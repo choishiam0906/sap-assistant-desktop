@@ -54,4 +54,14 @@ async def chat(request: ChatRequest, db: AsyncSession = Depends(get_db)) -> Chat
         sources=[SourceInfo(**s) for s in result["sources"]],
         suggested_tcodes=result["suggested_tcodes"],
         session_id=session_id,
+        skill_used=result.get("skill_used"),
     )
+
+
+@router.get("/skills")
+async def list_skills() -> list[dict]:
+    """사용 가능한 스킬 목록을 반환한다."""
+    from app.core.skills import get_skill_registry
+
+    registry = get_skill_registry()
+    return registry.list_skills()

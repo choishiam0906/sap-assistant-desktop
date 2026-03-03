@@ -11,6 +11,9 @@ from app.config import settings
 from app.core.llm_client import generate_chat_response, generate_embedding
 
 SEED_DATA_PATH = Path(__file__).parent.parent / "data" / "sap_knowledge" / "seed_data.json"
+ERROR_PATTERNS_PATH = (
+    Path(__file__).parent.parent / "data" / "sap_knowledge" / "error_patterns.json"
+)
 
 # ChromaDB 클라이언트 (싱글턴)
 _chroma_client: chromadb.ClientAPI | None = None
@@ -53,12 +56,16 @@ async def index_knowledge_item(
     tags: list[str],
     program_name: str | None = None,
     source_type: str = "guide",
+    error_code: str | None = None,
+    sap_note: str | None = None,
+    solutions: list[str] | None = None,
 ) -> None:
     """지식 항목을 ChromaDB에 벡터 인덱싱한다."""
     # 검색 품질을 위해 모든 필드를 하나의 텍스트로 결합
     full_text = _build_document_text(
         title, category, tcode, content, steps, warnings, tags,
         program_name=program_name, source_type=source_type,
+        error_code=error_code, sap_note=sap_note, solutions=solutions,
     )
 
     embedding = await generate_embedding(full_text)
@@ -74,6 +81,8 @@ async def index_knowledge_item(
             "tcode": tcode or "",
             "program_name": program_name or "",
             "source_type": source_type,
+            "error_code": error_code or "",
+            "sap_note": sap_note or "",
             "tags": json.dumps(tags, ensure_ascii=False),
         }],
     )
@@ -89,6 +98,9 @@ def _build_document_text(
     tags: list[str],
     program_name: str | None = None,
     source_type: str = "guide",
+    error_code: str | None = None,
+    sap_note: str | None = None,
+    solutions: list[str] | None = None,
 ) -> str:
     """인덱싱/검색용 통합 문서 텍스트를 생성한다."""
     source_labels = {
@@ -103,11 +115,17 @@ def _build_document_text(
         parts.append(f"T-code: {tcode}")
     if program_name:
         parts.append(f"프로그램명: {program_name}")
+    if error_code:
+        parts.append(f"에러코드: {error_code}")
+    if sap_note:
+        parts.append(f"SAP 노트: {sap_note}")
     parts.append(f"내용: {content}")
     if steps:
         parts.append("실행 절차:\n" + "\n".join(f"  {i+1}. {s}" for i, s in enumerate(steps)))
     if warnings:
         parts.append("주의사항:\n" + "\n".join(f"  - {w}" for w in warnings))
+    if solutions:
+        parts.append("해결방법:\n" + "\n".join(f"  {i+1}. {s}" for i, s in enumerate(solutions)))
     if tags:
         parts.append(f"태그: {', '.join(tags)}")
     return "\n\n".join(parts)
@@ -117,6 +135,7 @@ async def search_knowledge(
     query: str,
     top_k: int = 5,
     category: str | None = None,
+    source_type: str | None = None,
 ) -> list[dict]:
     """사용자 질문과 유사한 지식을 벡터 검색한다."""
     collection = get_collection()
@@ -127,9 +146,17 @@ async def search_knowledge(
 
     query_embedding = await generate_embedding(query)
 
+    # ChromaDB $and 조건으로 다중 필터 지원
     where_filter = None
+    filters = []
     if category:
-        where_filter = {"category": category}
+        filters.append({"category": category})
+    if source_type:
+        filters.append({"source_type": source_type})
+    if len(filters) == 1:
+        where_filter = filters[0]
+    elif len(filters) > 1:
+        where_filter = {"$and": filters}
 
     results = collection.query(
         query_embeddings=[query_embedding],
@@ -163,14 +190,25 @@ async def generate_rag_response(
     chat_history: list[dict[str, str]] | None = None,
     category: str | None = None,
 ) -> dict:
-    """RAG 파이프라인: 벡터 검색 → 컨텍스트 구성 → LLM 응답."""
-    # 1. 벡터 검색
-    search_results = await search_knowledge(user_message, top_k=5, category=category)
+    """RAG 파이프라인: 스킬 선택 → 벡터 검색 → 컨텍스트 구성 → LLM 응답."""
+    from app.core.skills import get_skill_registry
 
-    # 2. 컨텍스트 구성
+    # 1. 스킬 선택
+    registry = get_skill_registry()
+    selected_skill = registry.select_skill(user_message)
+
+    # 2. 벡터 검색 (스킬 카테고리로 우선 필터, 없으면 전체 검색)
+    skill_category = selected_skill.metadata.category or None
+    search_results = await search_knowledge(
+        user_message,
+        top_k=5,
+        category=category or skill_category,
+    )
+
+    # 3. 컨텍스트 구성
     context_parts = []
     sources = []
-    suggested_tcodes = []
+    suggested_tcodes = list(selected_skill.metadata.suggested_tcodes)
 
     for result in search_results:
         if result["relevance_score"] > 0.3:  # 관련성 임계값
@@ -183,15 +221,23 @@ async def generate_rag_response(
             if result["tcode"] and result["tcode"] not in suggested_tcodes:
                 suggested_tcodes.append(result["tcode"])
 
-    context = "\n\n---\n\n".join(context_parts) if context_parts else "관련 자료를 찾지 못했습니다."
+    context = (
+        "\n\n---\n\n".join(context_parts)
+        if context_parts
+        else "관련 자료를 찾지 못했습니다."
+    )
 
-    # 3. LLM 응답 생성
-    answer = await generate_chat_response(user_message, context, chat_history)
+    # 4. 스킬별 시스템 프롬프트로 LLM 응답 생성
+    answer = await generate_chat_response(
+        user_message, context, chat_history,
+        system_prompt=selected_skill.system_prompt,
+    )
 
     return {
         "answer": answer,
         "sources": sources,
         "suggested_tcodes": suggested_tcodes,
+        "skill_used": selected_skill.metadata.name,
     }
 
 
@@ -202,11 +248,16 @@ async def initialize_vector_store() -> int:
     if collection.count() > 0:
         return 0
 
+    # 시드 데이터 + 에러 패턴 데이터 병합 로드
+    all_items = []
     with open(SEED_DATA_PATH, encoding="utf-8") as f:
-        seed_items = json.load(f)
+        all_items.extend(json.load(f))
+    if ERROR_PATTERNS_PATH.exists():
+        with open(ERROR_PATTERNS_PATH, encoding="utf-8") as f:
+            all_items.extend(json.load(f))
 
     indexed = 0
-    for item in seed_items:
+    for item in all_items:
         item_id = f"seed_{indexed}"
         full_text = _build_document_text(
             title=item["title"],
@@ -216,6 +267,10 @@ async def initialize_vector_store() -> int:
             steps=item.get("steps", []),
             warnings=item.get("warnings", []),
             tags=item.get("tags", []),
+            source_type=item.get("source_type", "guide"),
+            error_code=item.get("error_code"),
+            sap_note=item.get("sap_note"),
+            solutions=item.get("solutions"),
         )
 
         try:
@@ -228,6 +283,9 @@ async def initialize_vector_store() -> int:
                     "title": item["title"],
                     "category": item["category"],
                     "tcode": item.get("tcode", ""),
+                    "source_type": item.get("source_type", "guide"),
+                    "error_code": item.get("error_code", ""),
+                    "sap_note": item.get("sap_note", ""),
                     "tags": json.dumps(item.get("tags", []), ensure_ascii=False),
                 }],
             )

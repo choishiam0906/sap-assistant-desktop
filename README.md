@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/Azure_OpenAI-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure OpenAI" />
   <img src="https://img.shields.io/badge/Teams-6264A7?style=for-the-badge&logo=microsoftteams&logoColor=white" alt="Teams" />
+  <img src="https://img.shields.io/badge/MCP-Claude_Code-7C3AED?style=for-the-badge" alt="MCP" />
 </p>
 
 <h1 align="center">🤖 SAP Ops Bot</h1>
@@ -58,8 +59,22 @@ Microsoft Teams에서 자연어로 질문하면, **RAG(Retrieval-Augmented Gener
   </tr>
   <tr>
     <td width="50%">
-      <h3>📂 카테고리별 가이드</h3>
-      <p>데이터분석 / 오류분석 / 역할관리 / CTS관리 4개 카테고리로 구조화된 가이드를 제공합니다.</p>
+      <h3>🐛 에러 패턴 카탈로그</h3>
+      <p>10개 주요 SAP 에러 패턴이 등록되어 있으며, 에러코드로 즉시 원인/해결책을 조회합니다.</p>
+      <pre>"DBIF_RSQL_SQL_ERROR 덤프가 반복 발생해"
+→ 에러 원인 + SAP Note 2220064 + 해결 방법 4가지</pre>
+    </td>
+    <td width="50%">
+      <h3>🧠 도메인 스킬 라우팅</h3>
+      <p>질문을 자동으로 전문 스킬(오류분석/데이터분석/역할관리/CTS관리)에 라우팅합니다.</p>
+      <pre>"CTS 전송이 실패했어"
+→ skill_used: "CTS관리" + STMS/SE03 안내</pre>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>🔌 MCP 서버 (Claude Code 연동)</h3>
+      <p>Claude Code에서 직접 SAP 지식을 검색하고 문제를 진단할 수 있는 MCP 서버를 제공합니다.</p>
     </td>
     <td width="50%">
       <h3>🖥️ Admin Dashboard</h3>
@@ -72,7 +87,9 @@ Microsoft Teams에서 자연어로 질문하면, **RAG(Retrieval-Augmented Gener
 
 ## 📦 SAP 지식 베이스
 
-PPT 기반으로 구축된 **13개 핵심 운영 지식**이 시드 데이터로 포함되어 있습니다.
+**13개 운영 가이드** + **10개 에러 패턴**이 시드 데이터로 포함되어 있습니다.
+
+### 운영 가이드 (13개)
 
 | 카테고리 | T-code | 용도 |
 |:--------:|:------:|------|
@@ -90,38 +107,55 @@ PPT 기반으로 구축된 **13개 핵심 운영 지식**이 시드 데이터로
 | CTS관리 | `STMS` | CTS 이동 경로 설정 및 전송 |
 | CTS관리 | `SE03` | Transport Request 이력 조회 |
 
+### 에러 패턴 카탈로그 (10개)
+
+에러코드로 즉시 원인과 해결 방법을 찾을 수 있습니다.
+
+| 에러코드 | SAP Note | 설명 |
+|----------|:--------:|------|
+| `DBIF_RSQL_SQL_ERROR` | 2220064 | DB SQL 실행 에러 (Lock, Deadlock) |
+| `TSV_TNEW_PAGE_ALLOC_FAILED` | — | Internal Table 메모리 부족 |
+| `DYNPRO_MSG_IN_HELP` | — | 다이나프로 Help 이벤트에서 MESSAGE 에러 |
+| `MESSAGE_TYPE_X` | — | 프로그램 의도적 강제 종료 |
+| `CONVT_NO_NUMBER` | — | 문자열→숫자 형변환 실패 |
+| `OBJECTS_OBJREF_NOT_ASSIGNED` | — | 초기화 안 된 객체 참조 (Null 참조) |
+| `GETWA_NOT_ASSIGNED` | — | 할당 안 된 필드 심볼 접근 |
+| `TIME_OUT` | — | 다이얼로그 실행 시간 초과 |
+| `RABAX_STATE` | — | 이중 예외 (덤프 처리 중 재덤프) |
+| `SM21_SYSTEM_LOG` | — | 시스템 로그 에러 패턴 종합 |
+
 ---
 
 ## 🏗️ 아키텍처
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   사용자 (Teams)                      │
-└────────────────────────┬────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────┐
-│             Microsoft Copilot Studio                 │
-│  · 대화 흐름 관리  · Azure AD 인증                    │
-│  · Custom Connector → FastAPI                        │
-└────────────────────────┬────────────────────────────┘
-                         │ REST API
-┌────────────────────────▼────────────────────────────┐
-│             Python FastAPI Backend                    │
-│                                                      │
-│  ┌──────────┐  ┌──────────┐  ┌────────────────┐     │
-│  │ Chat API │  │ RAG 엔진  │  │ Knowledge API  │     │
-│  └────┬─────┘  └────┬─────┘  └──────┬─────────┘     │
-│       │             │               │                │
-│  ┌────▼─────────────▼───────────────▼──────────┐     │
-│  │  Azure OpenAI (GPT-4)  ·  ChromaDB (Vector) │     │
-│  │  PostgreSQL (구조화 데이터)                    │     │
-│  └─────────────────────────────────────────────┘     │
-└──────────────────────────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────┐
-│             React Admin Dashboard                    │
-│  · 지식 베이스 CRUD  · 대화 이력 조회  · 사용 통계    │
-└─────────────────────────────────────────────────────┘
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│ Teams 사용자  │  │ Admin 대시보드│  │ Claude Code  │
+└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+       │                 │                 │ MCP (stdio)
+       │ Copilot Studio  │ REST API        │
+┌──────▼─────────────────▼─────────────────▼───────────┐
+│               Python FastAPI Backend                  │
+│                                                       │
+│  ┌──────────┐  ┌────────────┐  ┌──────────────────┐  │
+│  │ Chat API │  │ Knowledge  │  │   MCP Server     │  │
+│  │ /skills  │  │   API      │  │ (4 tools,        │  │
+│  └────┬─────┘  └─────┬──────┘  │  3 resources)    │  │
+│       │              │         └────────┬─────────┘  │
+│  ┌────▼──────────────▼─────────────────▼──────────┐  │
+│  │           Skill Router (5 스킬)                 │  │
+│  │  데이터분석 · 오류분석 · 역할관리 · CTS관리 · 일반 │  │
+│  └──────────────────────┬─────────────────────────┘  │
+│                         │                            │
+│  ┌──────────────────────▼─────────────────────────┐  │
+│  │  RAG Engine                                     │  │
+│  │  ChromaDB (Vector) · 에러 패턴 카탈로그          │  │
+│  └──────────────────────┬─────────────────────────┘  │
+│                         │                            │
+│  ┌──────────────────────▼─────────────────────────┐  │
+│  │  Azure OpenAI (GPT-4) · PostgreSQL/SQLite      │  │
+│  └────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -135,7 +169,7 @@ PPT 기반으로 구축된 **13개 핵심 운영 지식**이 시드 데이터로
 | **LLM** | Azure OpenAI GPT-4 | 기업 보안/컴플라이언스 |
 | **Vector DB** | ChromaDB → Azure AI Search | RAG 파이프라인 |
 | **Database** | PostgreSQL (Supabase) | 구조화 데이터, 대화 이력 |
-| **Integration** | Copilot Studio | Teams 배포, 기업 인증 |
+| **Integration** | Copilot Studio, MCP | Teams 배포, Claude Code 연동 |
 | **Infra** | Docker + GitHub Actions | 컨테이너화, CI/CD |
 
 ---
@@ -199,14 +233,89 @@ Backend 실행 후 자동 생성됩니다:
 
 | Method | Path | 설명 |
 |:------:|------|------|
-| `POST` | `/api/v1/chat` | 사용자 질문 → AI 응답 (RAG 기반) |
+| `POST` | `/api/v1/chat` | 사용자 질문 → AI 응답 (RAG + 스킬 라우팅) |
+| `GET` | `/api/v1/chat/skills` | 사용 가능한 스킬 목록 조회 |
 | `POST` | `/api/v1/chat/copilot` | Copilot Studio 전용 (Adaptive Card) |
 | `GET` | `/api/v1/knowledge` | 지식 목록 조회 |
-| `POST` | `/api/v1/knowledge` | 지식 추가 |
+| `POST` | `/api/v1/knowledge` | 지식 추가 (에러 패턴 포함) |
 | `PUT` | `/api/v1/knowledge/{id}` | 지식 수정 |
 | `DELETE` | `/api/v1/knowledge/{id}` | 지식 삭제 |
 | `GET` | `/api/v1/health` | 헬스체크 |
 | `GET` | `/api/v1/stats` | 사용 통계 |
+
+---
+
+## 🧠 도메인 스킬 시스템
+
+사용자의 질문을 자동으로 분석하여 가장 적합한 전문 스킬에 라우팅합니다.
+
+| 스킬 | 카테고리 | 키워드 예시 | 추천 T-code |
+|:----:|:--------:|-----------|:-----------:|
+| 데이터분석 | 데이터분석 | 이력, 로그, 조회, trace, 배치 | ST03N, SM20, ST05 |
+| 오류분석 | 오류분석 | 덤프, 에러, 런타임, 디버깅 | ST22, SM21, SE91 |
+| 역할관리 | 역할관리 | 역할, 권한, 사용자, PFCG | PFCG, SU01, SU53 |
+| CTS관리 | CTS관리 | 전송, transport, CTS, request | STMS, SE03, SE09 |
+| 일반 | — | 위에 해당하지 않는 질문 (폴백) | — |
+
+채팅 응답에 `skill_used` 필드가 포함되어 어떤 스킬이 선택되었는지 확인할 수 있습니다:
+
+```json
+{
+  "answer": "ST22는 ABAP Runtime Error를 분석하는 T-code입니다...",
+  "skill_used": "오류분석",
+  "suggested_tcodes": ["ST22", "SM21"]
+}
+```
+
+---
+
+## 🔌 MCP 서버 (Claude Code 연동)
+
+Claude Code에서 SAP 운영 지식을 직접 사용할 수 있는 MCP 서버를 제공합니다.
+
+### 설정
+
+프로젝트 루트의 `.mcp.json`이 이미 설정되어 있습니다:
+
+```json
+{
+  "mcpServers": {
+    "sap-ops-bot": {
+      "command": "python",
+      "args": ["-m", "app.mcp_server"],
+      "cwd": "backend",
+      "env": { "PYTHONPATH": "." }
+    }
+  }
+}
+```
+
+Claude Code에서 프로젝트를 열면 자동으로 MCP 서버가 로드됩니다.
+
+### MCP Tools (4개)
+
+| Tool | 설명 | 사용 예시 |
+|------|------|----------|
+| `search_knowledge` | SAP 지식 키워드 검색 | `search_knowledge("ST22 덤프")` |
+| `get_error_pattern` | 에러코드로 패턴 직접 조회 | `get_error_pattern("DBIF_RSQL_SQL_ERROR")` |
+| `suggest_tcode` | 주제별 T-code 추천 | `suggest_tcode("권한 관리")` |
+| `diagnose_problem` | RAG + 스킬 라우팅 종합 진단 | `diagnose_problem("메모리 부족 덤프 반복")` |
+
+### MCP Resources (3개)
+
+| URI | 설명 |
+|-----|------|
+| `sap://skills` | 사용 가능한 스킬 목록 |
+| `sap://knowledge/categories` | 지식 카테고리별 항목 수 |
+| `sap://error-catalog` | 에러 패턴 카탈로그 전체 목록 |
+
+### 독립 실행 테스트
+
+```bash
+cd backend
+python -m app.mcp_server
+# stdio 기반으로 동작 — Claude Code가 자동 연결
+```
 
 ---
 
@@ -215,6 +324,7 @@ Backend 실행 후 자동 생성됩니다:
 ```
 sap-ops-bot/
 ├── 📄 README.md
+├── 📄 .mcp.json                  # Claude Code MCP 서버 설정
 ├── 📄 docker-compose.yml
 ├── 📄 .env.example
 │
@@ -229,17 +339,28 @@ sap-ops-bot/
 │   ├── app/
 │   │   ├── main.py               # FastAPI 엔트리포인트
 │   │   ├── config.py             # 설정 관리
+│   │   ├── mcp_server.py         # MCP 서버 (Claude Code 연동)
 │   │   ├── api/                  # API 엔드포인트
-│   │   │   ├── chat.py           # 채팅 API
+│   │   │   ├── chat.py           # 채팅 API + /skills
 │   │   │   ├── knowledge.py      # 지식 베이스 CRUD
 │   │   │   └── copilot.py        # Copilot Studio 연동
 │   │   ├── core/                 # 핵심 비즈니스 로직
-│   │   │   ├── rag_engine.py     # RAG 파이프라인
+│   │   │   ├── rag_engine.py     # RAG 파이프라인 + 스킬 라우팅
 │   │   │   ├── llm_client.py     # Azure OpenAI 클라이언트
-│   │   │   └── knowledge_base.py # 지식 베이스 관리
+│   │   │   ├── knowledge_base.py # 지식 베이스 관리
+│   │   │   └── skills/           # 도메인 스킬 모듈
+│   │   │       ├── base.py       # BaseSkill + SkillMetadata
+│   │   │       ├── registry.py   # SkillRegistry (스킬 라우팅)
+│   │   │       ├── data_analysis.py
+│   │   │       ├── error_analysis.py
+│   │   │       ├── auth_management.py
+│   │   │       ├── cts_management.py
+│   │   │       └── general.py    # 폴백 스킬
 │   │   ├── models/               # 데이터 모델
-│   │   └── data/sap_knowledge/   # SAP 지식 시드 데이터
-│   └── tests/                    # pytest 테스트
+│   │   └── data/sap_knowledge/
+│   │       ├── seed_data.json    # 운영 가이드 시드 (13개)
+│   │       └── error_patterns.json # 에러 패턴 시드 (10개)
+│   └── tests/                    # pytest 테스트 (58개)
 │
 ├── 📂 frontend/
 │   ├── package.json
@@ -260,7 +381,7 @@ sap-ops-bot/
 ## 🗺️ 로드맵
 
 - [x] **Phase 1 MVP** — 지식 Q&A + T-code 추천 + Admin Dashboard
-- [ ] **Phase 1.5** — 대화 이력 조회 + 사용자 피드백 반영
+- [x] **Phase 1.5** — 에러 패턴 카탈로그 + 도메인 스킬 모듈화 + MCP 서버
 - [ ] **Phase 2** — SAP RFC 직접 연결 (pyrfc), 자동 실행
 - [ ] **Phase 3** — 실시간 모니터링, 알림 자동화
 
@@ -269,10 +390,13 @@ sap-ops-bot/
 ## 🧪 테스트
 
 ```bash
-# Backend
+# Backend (58개 테스트)
 cd backend
 pip install -e ".[dev]"
 pytest tests/ -v
+
+# 린트
+ruff check app/ tests/
 
 # Frontend
 cd frontend

@@ -1,0 +1,179 @@
+"""스킬 라우팅 테스트 — 스킬 선택, 매칭 점수, 레지스트리 검증."""
+
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from httpx import AsyncClient
+
+from app.core.skills.auth_management import AuthManagementSkill
+from app.core.skills.base import BaseSkill
+from app.core.skills.cts_management import CTSManagementSkill
+from app.core.skills.data_analysis import DataAnalysisSkill
+from app.core.skills.error_analysis import ErrorAnalysisSkill
+from app.core.skills.general import GeneralSkill
+from app.core.skills.registry import SkillRegistry
+
+# ── BaseSkill 매칭 로직 ──────────────────────────
+
+def test_error_analysis_matches_dump_query():
+    """오류분석 스킬이 덤프 관련 질문에 매칭."""
+    skill = ErrorAnalysisSkill()
+    score = skill.matches("ST22 덤프 분석 방법 알려줘")
+    assert score > 0.5
+
+
+def test_data_analysis_matches_trace_query():
+    """데이터분석 스킬이 trace 관련 질문에 매칭."""
+    skill = DataAnalysisSkill()
+    score = skill.matches("ST05 SQL Trace 분석하는 방법")
+    assert score > 0.5
+
+
+def test_auth_management_matches_role_query():
+    """역할관리 스킬이 권한 관련 질문에 매칭."""
+    skill = AuthManagementSkill()
+    score = skill.matches("PFCG에서 역할 생성하는 방법")
+    assert score > 0.5
+
+
+def test_cts_management_matches_transport_query():
+    """CTS관리 스킬이 전송 관련 질문에 매칭."""
+    skill = CTSManagementSkill()
+    score = skill.matches("STMS에서 transport request 전송하기")
+    assert score > 0.5
+
+
+def test_general_skill_always_returns_low_score():
+    """일반 스킬은 항상 0.1을 반환."""
+    skill = GeneralSkill()
+    assert skill.matches("아무 질문") == 0.1
+    assert skill.matches("ST22 덤프") == 0.1
+
+
+def test_skill_no_match_returns_zero():
+    """매칭 키워드가 없으면 0.0 반환."""
+    skill = DataAnalysisSkill()
+    score = skill.matches("PFCG에서 역할 생성")
+    assert score == 0.0
+
+
+# ── SkillRegistry ──────────────────────────────
+
+def test_registry_select_error_analysis():
+    """레지스트리가 덤프 질문에 오류분석 스킬을 선택."""
+    registry = SkillRegistry()
+    registry.register(DataAnalysisSkill())
+    registry.register(ErrorAnalysisSkill())
+    registry.register(GeneralSkill())
+
+    selected = registry.select_skill("ST22에서 ABAP 덤프 분석하는 방법")
+    assert selected.metadata.name == "오류분석"
+
+
+def test_registry_select_data_analysis():
+    """레지스트리가 이력 질문에 데이터분석 스킬을 선택."""
+    registry = SkillRegistry()
+    registry.register(DataAnalysisSkill())
+    registry.register(ErrorAnalysisSkill())
+    registry.register(GeneralSkill())
+
+    selected = registry.select_skill("SM20에서 감사 로그 조회 방법")
+    assert selected.metadata.name == "데이터분석"
+
+
+def test_registry_fallback_to_general():
+    """매칭되는 스킬이 없으면 일반 스킬로 폴백."""
+    registry = SkillRegistry()
+    registry.register(DataAnalysisSkill())
+    registry.register(ErrorAnalysisSkill())
+    registry.register(GeneralSkill())
+
+    selected = registry.select_skill("SAP GUI 설치 방법")
+    assert selected.metadata.name == "일반"
+
+
+def test_registry_list_skills():
+    """스킬 목록 조회."""
+    registry = SkillRegistry()
+    registry.register(ErrorAnalysisSkill())
+    registry.register(GeneralSkill())
+
+    skills = registry.list_skills()
+    assert len(skills) == 2
+    assert skills[0]["name"] == "오류분석"
+    assert "suggested_tcodes" in skills[0]
+
+
+def test_registry_empty_raises():
+    """스킬이 없으면 RuntimeError."""
+    registry = SkillRegistry()
+    with pytest.raises(RuntimeError):
+        registry.select_skill("아무 질문")
+
+
+# ── 스킬 메타데이터 검증 ──────────────────────────
+
+def test_all_skills_have_system_prompt():
+    """모든 스킬이 시스템 프롬프트를 가지고 있는지 확인."""
+    skills: list[BaseSkill] = [
+        DataAnalysisSkill(),
+        ErrorAnalysisSkill(),
+        AuthManagementSkill(),
+        CTSManagementSkill(),
+        GeneralSkill(),
+    ]
+    for skill in skills:
+        assert len(skill.system_prompt) > 50
+        assert "한국어" in skill.system_prompt
+
+
+def test_all_skills_have_unique_names():
+    """스킬 이름이 중복되지 않는지 확인."""
+    skills = [
+        DataAnalysisSkill(),
+        ErrorAnalysisSkill(),
+        AuthManagementSkill(),
+        CTSManagementSkill(),
+        GeneralSkill(),
+    ]
+    names = [s.metadata.name for s in skills]
+    assert len(names) == len(set(names))
+
+
+# ── API 통합 테스트 ──────────────────────────────
+
+@pytest.mark.asyncio
+@patch("app.api.chat.generate_rag_response")
+async def test_chat_returns_skill_used(mock_rag: AsyncMock, client: AsyncClient):
+    """채팅 응답에 skill_used 필드가 포함되는지 검증."""
+    mock_rag.return_value = {
+        "answer": "ST22 덤프 분석 방법입니다.",
+        "sources": [],
+        "suggested_tcodes": ["ST22"],
+        "skill_used": "오류분석",
+    }
+
+    response = await client.post("/api/v1/chat", json={
+        "message": "ST22 덤프 분석 방법",
+    })
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["skill_used"] == "오류분석"
+
+
+@pytest.mark.asyncio
+async def test_skills_endpoint(client: AsyncClient):
+    """GET /api/v1/chat/skills 엔드포인트."""
+    response = await client.get("/api/v1/chat/skills")
+    assert response.status_code == 200
+
+    skills = response.json()
+    assert len(skills) >= 5  # 5개 기본 스킬
+
+    names = [s["name"] for s in skills]
+    assert "오류분석" in names
+    assert "데이터분석" in names
+    assert "역할관리" in names
+    assert "CTS관리" in names
+    assert "일반" in names

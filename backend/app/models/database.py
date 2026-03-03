@@ -34,6 +34,10 @@ class KnowledgeItem(Base):
     steps: Mapped[list] = mapped_column(JSON, default=list)
     warnings: Mapped[list] = mapped_column(JSON, default=list)
     tags: Mapped[list] = mapped_column(JSON, default=list)
+    # 에러 패턴 카탈로그 필드
+    sap_note: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    error_code: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    solutions: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now()
     )

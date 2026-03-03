@@ -40,12 +40,13 @@ async def generate_chat_response(
     user_message: str,
     context: str,
     chat_history: list[dict[str, str]] | None = None,
+    system_prompt: str | None = None,
 ) -> str:
     """RAG 컨텍스트를 포함하여 LLM 응답을 생성한다."""
     client = get_openai_client()
 
     messages: list[dict[str, str]] = [
-        {"role": "system", "content": SAP_SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt or SAP_SYSTEM_PROMPT},
     ]
 
     # 이전 대화 이력 포함 (최대 5턴)

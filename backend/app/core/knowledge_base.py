@@ -11,6 +11,9 @@ from app.models.database import KnowledgeItem
 from app.models.schemas import KnowledgeCreate, KnowledgeUpdate
 
 SEED_DATA_PATH = Path(__file__).parent.parent / "data" / "sap_knowledge" / "seed_data.json"
+ERROR_PATTERNS_PATH = (
+    Path(__file__).parent.parent / "data" / "sap_knowledge" / "error_patterns.json"
+)
 
 
 async def get_all_knowledge(
@@ -57,6 +60,9 @@ async def create_knowledge(db: AsyncSession, data: KnowledgeCreate) -> Knowledge
         steps=data.steps,
         warnings=data.warnings,
         tags=data.tags,
+        sap_note=data.sap_note,
+        error_code=data.error_code,
+        solutions=data.solutions,
     )
     db.add(item)
     await db.commit()
@@ -102,20 +108,29 @@ async def load_seed_data(db: AsyncSession) -> int:
     if existing_count > 0:
         return 0
 
+    # 시드 데이터 + 에러 패턴 데이터 병합 로드
+    all_items: list[dict] = []
     with open(SEED_DATA_PATH, encoding="utf-8") as f:
-        seed_items = json.load(f)
+        all_items.extend(json.load(f))
+    if ERROR_PATTERNS_PATH.exists():
+        with open(ERROR_PATTERNS_PATH, encoding="utf-8") as f:
+            all_items.extend(json.load(f))
 
     loaded = 0
-    for item_data in seed_items:
+    for item_data in all_items:
         item = KnowledgeItem(
             id=str(uuid4()),
             title=item_data["title"],
             category=item_data["category"],
             tcode=item_data.get("tcode"),
+            source_type=item_data.get("source_type", "guide"),
             content=item_data["content"],
             steps=item_data.get("steps", []),
             warnings=item_data.get("warnings", []),
             tags=item_data.get("tags", []),
+            sap_note=item_data.get("sap_note"),
+            error_code=item_data.get("error_code"),
+            solutions=item_data.get("solutions", []),
         )
         db.add(item)
         loaded += 1

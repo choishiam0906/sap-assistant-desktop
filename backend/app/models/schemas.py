@@ -25,6 +25,7 @@ class ChatResponse(BaseModel):
     sources: list[SourceInfo] = []
     suggested_tcodes: list[str] = []
     session_id: str
+    skill_used: str | None = Field(default=None, description="사용된 스킬 이름")
 
 
 # ── Copilot Studio ────────────────────────────────
@@ -56,6 +57,9 @@ class KnowledgeBase(BaseModel):
     steps: list[str] = []
     warnings: list[str] = []
     tags: list[str] = []
+    sap_note: str | None = Field(default=None, max_length=20, description="SAP Note 번호")
+    error_code: str | None = Field(default=None, max_length=50, description="SAP 에러코드")
+    solutions: list[str] = Field(default=[], description="해결 방법 목록")
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
@@ -70,6 +74,9 @@ class KnowledgeCreate(BaseModel):
     steps: list[str] = []
     warnings: list[str] = []
     tags: list[str] = []
+    sap_note: str | None = Field(default=None, max_length=20, description="SAP Note 번호")
+    error_code: str | None = Field(default=None, max_length=50, description="SAP 에러코드")
+    solutions: list[str] = Field(default=[], description="해결 방법 목록")
 
 
 class KnowledgeUpdate(BaseModel):
@@ -82,6 +89,9 @@ class KnowledgeUpdate(BaseModel):
     steps: list[str] | None = None
     warnings: list[str] | None = None
     tags: list[str] | None = None
+    sap_note: str | None = None
+    error_code: str | None = None
+    solutions: list[str] | None = None
 
 
 class KnowledgeListResponse(BaseModel):
