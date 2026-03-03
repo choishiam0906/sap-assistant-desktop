@@ -433,6 +433,48 @@ npm run build   # TypeScript 타입 체크 + 빌드
 
 ---
 
+## 🤝 Codex Co-author 커밋 사용법
+
+Codex와 협업한 변경을 GitHub 히스토리에 남기려면 커밋 footer에 `Co-authored-by`를 포함하세요.
+
+### 1회 설정 (Windows PowerShell)
+
+```powershell
+@'
+<type>: <summary>
+
+<body>
+
+Co-authored-by: Codex <codex@openai.com>
+'@ | Set-Content -Path $HOME\.gitmessage_codex -Encoding utf8
+
+git config commit.template "$HOME\.gitmessage_codex"
+```
+
+### 커밋할 때
+
+```bash
+git commit
+```
+
+- 에디터가 열리면 `<type>: <summary>`, `<body>`만 채우고 `Co-authored-by` 줄은 유지합니다.
+- `git commit -m ...`처럼 한 줄 커밋을 쓰면 템플릿을 건너뛸 수 있으니, 아래처럼 footer를 직접 넣어주세요.
+
+```bash
+git commit -m "feat: add desktop oauth runtime" \
+  -m "Co-authored-by: Codex <codex@openai.com>"
+```
+
+### 확인
+
+```bash
+git show -s --format=full
+```
+
+- 출력 메시지 하단에 `Co-authored-by: Codex <codex@openai.com>`가 보이면 정상입니다.
+
+---
+
 ## 📝 라이선스
 
 MIT License
