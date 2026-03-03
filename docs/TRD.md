@@ -4,19 +4,18 @@
 ## 1. 시스템 아키텍처
 
 ```
-사용자 (Teams)
+사용자 (Desktop App)
+    ↓ OAuth (사용자 계정)
+Electron Runtime
+    ├── Provider Adapter (Codex / Copilot)
+    ├── Local Session Store (SQLite)
+    ├── Skill Router / RAG 구성
+    └── 지식 검색/진단
     ↓
-Microsoft Copilot Studio
-    ↓ REST API (HTTPS)
-Python FastAPI Backend
-    ├── Chat API (RAG 기반 응답)
+Python FastAPI Backend (보조)
     ├── Knowledge API (CRUD)
-    ├── Copilot Connector API
-    ├── Azure OpenAI (GPT-4)
-    ├── ChromaDB (Vector Store)
-    └── PostgreSQL (구조화 데이터)
-    ↓
-React Admin Dashboard
+    ├── Health/Stats API
+    └── Legacy Chat API (410 Gone)
 ```
 
 ---
@@ -27,8 +26,9 @@ React Admin Dashboard
 |--------|------|------|----------|
 | Backend Runtime | Python | 3.12+ | AI/LLM 생태계, pyrfc 호환성 |
 | Backend Framework | FastAPI | 0.115+ | 비동기 지원, 자동 OpenAPI 문서, 타입 검증 |
-| LLM | Azure OpenAI | GPT-4 | 기업 보안/컴플라이언스, SLA 보장 |
-| Embedding | Azure OpenAI | text-embedding-ada-002 | GPT-4와 동일 플랫폼, 한국어 성능 우수 |
+| Desktop Runtime | Electron + TypeScript | 31+ / 5.7+ | 사용자 OAuth, 로컬 실행, 세션 제어 |
+| LLM Provider | Codex + Copilot | OAuth | 사용자 계정 기반 인증, API 키 의존 제거 |
+| Embedding | Legacy (Azure OpenAI) | text-embedding-ada-002 | 기존 지식 인덱스 호환 목적 |
 | Vector DB | ChromaDB | 0.5+ | 로컬 개발 용이, Python 네이티브 |
 | RDBMS | PostgreSQL | 16+ | Supabase 호환, JSON 지원 |
 | ORM | SQLAlchemy | 2.0+ | 비동기 지원, 타입 안전성 |
@@ -40,53 +40,41 @@ React Admin Dashboard
 
 ## 3. API 설계
 
-### 3.1 Chat API
+### 3.1 Legacy Chat API (Retired)
 
 #### POST /api/v1/chat
-일반 채팅 엔드포인트 (RAG 기반 응답)
+서버형 채팅 엔드포인트는 중단되었으며 `410 Gone`을 반환한다.
 
 ```json
-// Request
 {
   "message": "ST22로 덤프 분석하는 방법 알려줘",
   "session_id": "uuid",
   "user_id": "optional"
 }
 
-// Response
 {
-  "answer": "ST22는 ABAP Runtime Error를 분석하는 T-code입니다...",
-  "sources": [
-    {
-      "title": "덤프분석 가이드",
-      "category": "오류분석",
-      "relevance_score": 0.95
-    }
-  ],
-  "suggested_tcodes": ["ST22", "SM21"],
-  "session_id": "uuid"
+  "detail": "Server-side chat runtime has been retired. Use the desktop client with user OAuth (Codex/Copilot)."
 }
 ```
 
 #### POST /api/v1/chat/copilot
-Copilot Studio 전용 (Adaptive Card 응답)
+Copilot Studio 서버 경로도 중단되어 `410 Gone`을 반환한다.
 
-```json
-// Request (Copilot Studio 포맷)
-{
-  "text": "사용자 질문",
-  "channelData": { "source": "teams" }
-}
+### 3.2 Desktop IPC (신규)
 
-// Response (Adaptive Card)
-{
-  "type": "AdaptiveCard",
-  "body": [...],
-  "actions": [...]
-}
-```
+Electron preload를 통해 아래 IPC 채널을 제공한다.
 
-### 3.2 Knowledge API
+| Channel | 설명 |
+|--------|------|
+| `auth:start` | OAuth 시작 (provider) |
+| `auth:complete` | OAuth 코드 교환 |
+| `auth:status` | 인증 상태 조회 |
+| `auth:logout` | 로그아웃/토큰 삭제 |
+| `chat:send` | 메시지 전송 |
+| `sessions:list` | 세션 목록 조회 |
+| `sessions:messages` | 세션 메시지 조회 |
+
+### 3.3 Knowledge API
 
 | Method | Path | 설명 |
 |--------|------|------|
@@ -96,11 +84,12 @@ Copilot Studio 전용 (Adaptive Card 응답)
 | DELETE | /api/v1/knowledge/{id} | 지식 삭제 |
 | POST | /api/v1/knowledge/ingest | 문서 업로드 → 벡터화 |
 
-### 3.3 System API
+### 3.4 System API
 
 | Method | Path | 설명 |
 |--------|------|------|
-| GET | /api/v1/health | 헬스체크 (DB, ChromaDB, OpenAI 상태) |
+| GET | /api/v1/health | 헬스체크 (DB, 런타임 모드 상태) |
+| GET | /api/v1/runtime | 런타임 모드(`desktop_oauth`) 조회 |
 | GET | /api/v1/stats | 사용 통계 (질의 수, 카테고리별 분포) |
 
 ---

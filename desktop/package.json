@@ -1,0 +1,26 @@
+{
+  "name": "sap-ops-bot-desktop",
+  "version": "2.0.0",
+  "private": true,
+  "description": "SAP Ops Bot desktop runtime (user OAuth: Codex + Copilot)",
+  "main": "dist/main/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/main/index.ts",
+    "lint": "eslint src --ext .ts",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.5",
+    "electron": "^31.4.0",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

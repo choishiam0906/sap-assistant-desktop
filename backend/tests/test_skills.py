@@ -1,7 +1,5 @@
 """스킬 라우팅 테스트 — 스킬 선택, 매칭 점수, 레지스트리 검증."""
 
-from unittest.mock import AsyncMock, patch
-
 import pytest
 from httpx import AsyncClient
 
@@ -143,23 +141,14 @@ def test_all_skills_have_unique_names():
 # ── API 통합 테스트 ──────────────────────────────
 
 @pytest.mark.asyncio
-@patch("app.api.chat.generate_rag_response")
-async def test_chat_returns_skill_used(mock_rag: AsyncMock, client: AsyncClient):
-    """채팅 응답에 skill_used 필드가 포함되는지 검증."""
-    mock_rag.return_value = {
-        "answer": "ST22 덤프 분석 방법입니다.",
-        "sources": [],
-        "suggested_tcodes": ["ST22"],
-        "skill_used": "오류분석",
-    }
-
+async def test_chat_endpoint_is_deprecated(client: AsyncClient):
+    """POST /api/v1/chat는 클라이언트 전환 후 410을 반환한다."""
     response = await client.post("/api/v1/chat", json={
         "message": "ST22 덤프 분석 방법",
     })
 
-    assert response.status_code == 200
-    data = response.json()
-    assert data["skill_used"] == "오류분석"
+    assert response.status_code == 410
+    assert "retired" in response.json()["detail"]
 
 
 @pytest.mark.asyncio

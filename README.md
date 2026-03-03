@@ -1,9 +1,9 @@
 <p align="center">
   <img src="https://img.shields.io/badge/SAP-0FAAFF?style=for-the-badge&logo=sap&logoColor=white" alt="SAP" />
+  <img src="https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron" />
+  <img src="https://img.shields.io/badge/OAuth-Codex%20%7C%20Copilot-111111?style=for-the-badge" alt="OAuth" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-  <img src="https://img.shields.io/badge/Azure_OpenAI-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure OpenAI" />
-  <img src="https://img.shields.io/badge/Teams-6264A7?style=for-the-badge&logo=microsoftteams&logoColor=white" alt="Teams" />
   <img src="https://img.shields.io/badge/MCP-Claude_Code-7C3AED?style=for-the-badge" alt="MCP" />
 </p>
 
@@ -23,11 +23,24 @@
 
 ---
 
+## ⚠️ v2 전환 공지 (2026-03-03)
+
+`sap-ops-bot`은 **클라이언트형 OAuth 아키텍처**로 전환되었습니다.
+
+- 신규 런타임: `desktop/` (Electron)
+- 인증: 사용자 OAuth (`Codex`, `Copilot`)
+- 데이터 저장: 로컬 SQLite
+- 서버 `/api/v1/chat`, `/api/v1/chat/copilot`: `410 Gone` (중단)
+
+Desktop 런타임은 [`desktop/README.md`](desktop/README.md)를 참고하세요.
+
+---
+
 ## 💡 프로젝트 소개
 
 SAP 운영 현장에서 축적된 노하우를 AI 봇으로 자동화한 프로젝트입니다.
 
-Microsoft Teams에서 자연어로 질문하면, **RAG(Retrieval-Augmented Generation)** 기반 AI가 적절한 T-code, 실행 절차, 주의사항을 안내합니다.
+Desktop 앱에서 자연어로 질문하면, **RAG(Retrieval-Augmented Generation)** 기반 AI가 적절한 T-code, 실행 절차, 주의사항을 안내합니다.
 
 ### 해결하는 문제
 
@@ -129,33 +142,25 @@ Microsoft Teams에서 자연어로 질문하면, **RAG(Retrieval-Augmented Gener
 ## 🏗️ 아키텍처
 
 ```
-┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│ Teams 사용자  │  │ Admin 대시보드│  │ Claude Code  │
-└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
-       │                 │                 │ MCP (stdio)
-       │ Copilot Studio  │ REST API        │
-┌──────▼─────────────────▼─────────────────▼───────────┐
-│               Python FastAPI Backend                  │
-│                                                       │
-│  ┌──────────┐  ┌────────────┐  ┌──────────────────┐  │
-│  │ Chat API │  │ Knowledge  │  │   MCP Server     │  │
-│  │ /skills  │  │   API      │  │ (4 tools,        │  │
-│  └────┬─────┘  └─────┬──────┘  │  3 resources)    │  │
-│       │              │         └────────┬─────────┘  │
-│  ┌────▼──────────────▼─────────────────▼──────────┐  │
-│  │           Skill Router (5 스킬)                 │  │
-│  │  데이터분석 · 오류분석 · 역할관리 · CTS관리 · 일반 │  │
-│  └──────────────────────┬─────────────────────────┘  │
-│                         │                            │
-│  ┌──────────────────────▼─────────────────────────┐  │
-│  │  RAG Engine                                     │  │
-│  │  ChromaDB (Vector) · 에러 패턴 카탈로그          │  │
-│  └──────────────────────┬─────────────────────────┘  │
-│                         │                            │
-│  ┌──────────────────────▼─────────────────────────┐  │
-│  │  Azure OpenAI (GPT-4) · PostgreSQL/SQLite      │  │
-│  └────────────────────────────────────────────────┘  │
-└───────────────────────────────────────────────────────┘
+┌───────────────────────────┐
+│ Electron Desktop Client   │
+│ (OAuth: Codex/Copilot)    │
+└──────────────┬────────────┘
+               │ IPC
+┌──────────────▼────────────┐
+│ Desktop Runtime           │
+│ - Provider Adapter        │
+│ - Session/Message Store   │
+│ - Local SQLite            │
+└──────────────┬────────────┘
+               │ (보조 API)
+┌──────────────▼────────────┐
+│ FastAPI Backend (Legacy)  │
+│ - Knowledge API           │
+│ - Health/Stats API        │
+│ - MCP Server              │
+│ - /api/v1/chat = 410 Gone │
+└───────────────────────────┘
 ```
 
 ---
@@ -164,12 +169,13 @@ Microsoft Teams에서 자연어로 질문하면, **RAG(Retrieval-Augmented Gener
 
 | 레이어 | 기술 | 선택 이유 |
 |:------:|------|----------|
-| **Backend** | Python 3.12 + FastAPI | AI/LLM 생태계 풍부, 비동기 지원 |
-| **Frontend** | React + TypeScript + Vite | 타입 안전성, 빠른 개발 |
-| **LLM** | Azure OpenAI GPT-4 | 기업 보안/컴플라이언스 |
-| **Vector DB** | ChromaDB → Azure AI Search | RAG 파이프라인 |
-| **Database** | PostgreSQL (Supabase) | 구조화 데이터, 대화 이력 |
-| **Integration** | Copilot Studio, MCP | Teams 배포, Claude Code 연동 |
+| **Desktop Runtime** | Electron + TypeScript | 사용자 OAuth, 로컬 실행, 세션 고정 |
+| **Desktop Storage** | SQLite (better-sqlite3) | 로컬 세션/메시지 저장 |
+| **Backend API** | Python 3.12 + FastAPI | 지식 관리, 헬스/통계, MCP |
+| **Admin UI** | React + TypeScript + Vite | 지식 CRUD 및 운영 화면 |
+| **LLM Provider** | Codex OAuth + Copilot OAuth | 사용자 계정 기반 인증 |
+| **Vector DB** | ChromaDB | 지식 검색 호환 레이어 |
+| **Integration** | MCP | Claude Code 연동 |
 | **Infra** | Docker + GitHub Actions | 컨테이너화, CI/CD |
 
 ---
@@ -178,44 +184,36 @@ Microsoft Teams에서 자연어로 질문하면, **RAG(Retrieval-Augmented Gener
 
 ### 사전 요구사항
 
-- Python 3.12+
 - Node.js 20+
-- Docker & Docker Compose (선택)
+- Python 3.12+ (Knowledge API/MCP 사용 시)
 
-### 1. 환경 설정
+### 1. Desktop (권장)
 
 ```bash
 git clone https://github.com/choishiam0906/sap-ops-bot.git
-cd sap-ops-bot
+cd sap-ops-bot/desktop
 cp .env.example .env
-# .env 파일에 Azure OpenAI API 키 등 실제 값 입력
+npm install
+npm run build
+npm run start
 ```
 
-### 2. Backend 실행
+### 2. Backend (보조 API/MCP)
 
 ```bash
 cd backend
 pip install -e ".[dev]"
 uvicorn app.main:app --reload
-# → http://localhost:8000/docs 에서 Swagger UI 확인
+# http://localhost:8000/docs
 ```
 
-### 3. Frontend 실행
+### 3. Admin Dashboard (선택)
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# → http://localhost:5173 에서 Admin Dashboard 확인
-```
-
-### 4. Docker Compose (전체 스택)
-
-```bash
-docker compose up -d
-# Backend: http://localhost:8000
-# Frontend: http://localhost:5173
-# PostgreSQL: localhost:5432
+# http://localhost:5173
 ```
 
 ---
@@ -233,14 +231,15 @@ Backend 실행 후 자동 생성됩니다:
 
 | Method | Path | 설명 |
 |:------:|------|------|
-| `POST` | `/api/v1/chat` | 사용자 질문 → AI 응답 (RAG + 스킬 라우팅) |
+| `POST` | `/api/v1/chat` | **중단됨** (`410 Gone`) |
+| `POST` | `/api/v1/chat/copilot` | **중단됨** (`410 Gone`) |
 | `GET` | `/api/v1/chat/skills` | 사용 가능한 스킬 목록 조회 |
-| `POST` | `/api/v1/chat/copilot` | Copilot Studio 전용 (Adaptive Card) |
 | `GET` | `/api/v1/knowledge` | 지식 목록 조회 |
 | `POST` | `/api/v1/knowledge` | 지식 추가 (에러 패턴 포함) |
 | `PUT` | `/api/v1/knowledge/{id}` | 지식 수정 |
 | `DELETE` | `/api/v1/knowledge/{id}` | 지식 삭제 |
 | `GET` | `/api/v1/health` | 헬스체크 |
+| `GET` | `/api/v1/runtime` | 런타임 모드 조회 (`desktop_oauth`) |
 | `GET` | `/api/v1/stats` | 사용 통계 |
 
 ---
@@ -333,6 +332,19 @@ sap-ops-bot/
 │   ├── BRD.md                    # 비즈니스 요구사항 정의서
 │   └── TRD.md                    # 기술 요구사항 정의서
 │
+├── 📂 desktop/
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── README.md
+│   └── src/
+│       ├── main/
+│       │   ├── index.ts          # Electron main + IPC
+│       │   ├── chatRuntime.ts    # 세션/메시지 런타임
+│       │   ├── auth/             # OAuth 매니저 + SecureStore
+│       │   ├── providers/        # Codex/Copilot 어댑터
+│       │   └── storage/          # SQLite 저장소
+│       └── preload/index.ts      # renderer 브리지
+│
 ├── 📂 backend/
 │   ├── pyproject.toml
 │   ├── Dockerfile
@@ -341,9 +353,9 @@ sap-ops-bot/
 │   │   ├── config.py             # 설정 관리
 │   │   ├── mcp_server.py         # MCP 서버 (Claude Code 연동)
 │   │   ├── api/                  # API 엔드포인트
-│   │   │   ├── chat.py           # 채팅 API + /skills
+│   │   │   ├── chat.py           # /chat 410 + /chat/skills
 │   │   │   ├── knowledge.py      # 지식 베이스 CRUD
-│   │   │   └── copilot.py        # Copilot Studio 연동
+│   │   │   └── copilot.py        # /chat/copilot 410
 │   │   ├── core/                 # 핵심 비즈니스 로직
 │   │   │   ├── rag_engine.py     # RAG 파이프라인 + 스킬 라우팅
 │   │   │   ├── llm_client.py     # Azure OpenAI 클라이언트
@@ -360,7 +372,7 @@ sap-ops-bot/
 │   │   └── data/sap_knowledge/
 │   │       ├── seed_data.json    # 운영 가이드 시드 (13개)
 │   │       └── error_patterns.json # 에러 패턴 시드 (10개)
-│   └── tests/                    # pytest 테스트 (58개)
+│   └── tests/                    # pytest 테스트
 │
 ├── 📂 frontend/
 │   ├── package.json
@@ -380,6 +392,7 @@ sap-ops-bot/
 
 ## 🗺️ 로드맵
 
+- [x] **v2 전환** — Desktop OAuth 런타임 (Codex/Copilot), 서버 채팅 경로 종료
 - [x] **Phase 1 MVP** — 지식 Q&A + T-code 추천 + Admin Dashboard
 - [x] **Phase 1.5** — 에러 패턴 카탈로그 + 도메인 스킬 모듈화 + MCP 서버
 - [ ] **Phase 2** — SAP RFC 직접 연결 (pyrfc), 자동 실행
@@ -390,7 +403,7 @@ sap-ops-bot/
 ## 🧪 테스트
 
 ```bash
-# Backend (58개 테스트)
+# Backend
 cd backend
 pip install -e ".[dev]"
 pytest tests/ -v
@@ -398,8 +411,13 @@ pytest tests/ -v
 # 린트
 ruff check app/ tests/
 
+# Desktop 타입 체크
+cd ../desktop
+npm install
+npm run build
+
 # Frontend
-cd frontend
+cd ../frontend
 npm run build   # TypeScript 타입 체크 + 빌드
 ```
 

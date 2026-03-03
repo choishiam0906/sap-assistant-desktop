@@ -71,12 +71,23 @@ async def health_check() -> dict:
     """헬스체크 엔드포인트."""
     return {
         "status": "healthy",
-        "version": "0.1.0",
+        "version": "2.0.0",
         "services": {
             "api": "ok",
             "database": "ok",
-            "vector_store": "ok" if settings.azure_openai_api_key else "not_configured",
+            "chat_runtime": "retired",
+            "vector_store": "legacy",
         },
+    }
+
+
+@app.get(f"{settings.api_v1_prefix}/runtime")
+async def runtime_mode() -> dict:
+    """현재 런타임 모드를 반환한다."""
+    return {
+        "mode": "desktop_oauth",
+        "chat_api": "retired",
+        "providers": ["codex", "copilot"],
     }
 
 
