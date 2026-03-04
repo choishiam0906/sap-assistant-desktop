@@ -6,21 +6,29 @@
   "main": "dist/main/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && vite build --config vite.renderer.config.ts",
+    "build:main": "tsc -p tsconfig.json",
+    "build:renderer": "vite build --config vite.renderer.config.ts",
     "dev": "tsx src/main/index.ts",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts,.tsx",
     "start": "electron ."
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
     "dotenv": "^16.4.5",
     "electron": "^31.4.0",
-    "keytar": "^7.9.0"
+    "keytar": "^7.9.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^22.10.5",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
   }
 }
