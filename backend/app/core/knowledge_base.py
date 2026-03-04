@@ -78,7 +78,7 @@ async def create_many_knowledge(
     db: AsyncSession,
     items: list[KnowledgeCreate],
 ) -> list[KnowledgeItem]:
-    """지식 항목을 일괄 생성한다."""
+    """지식 항목을 일괄 생성한다. expire_on_commit=False 설정으로 N+1 쿼리 방지."""
     created: list[KnowledgeItem] = []
     for data in items:
         item = KnowledgeItem(
@@ -96,12 +96,11 @@ async def create_many_knowledge(
             error_code=data.error_code,
             solutions=data.solutions,
         )
-        db.add(item)
         created.append(item)
 
+    db.add_all(created)
     await db.commit()
-    for item in created:
-        await db.refresh(item)
+    # expire_on_commit=False 설정으로 commit 후에도 객체 상태 유지
     return created
 
 

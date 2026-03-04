@@ -1,8 +1,12 @@
 """Azure OpenAI 클라이언트 — LLM 호출 및 임베딩 생성."""
 
+import logging
+
 from openai import AsyncAzureOpenAI
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Azure OpenAI 클라이언트 (싱글턴)
 _client: AsyncAzureOpenAI | None = None
@@ -67,6 +71,11 @@ async def generate_chat_response(
         temperature=0.3,
         max_tokens=1500,
     )
+
+    # 응답 검증
+    if not response.choices:
+        logger.error("LLM 응답이 비어있습니다")
+        return "죄송합니다. 응답을 생성하지 못했어요. 잠시 후 다시 시도해주세요."
 
     return response.choices[0].message.content or ""
 
