@@ -1,14 +1,15 @@
 """RAG 엔진 테스트 — 유틸리티 함수 및 벡터 검색 로직 검증."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.core.rag_engine import (
     _build_document_text,
     extract_tcodes_from_text,
-    search_knowledge,
     index_knowledge_item,
     initialize_vector_store,
+    search_knowledge,
 )
 
 
@@ -235,7 +236,7 @@ async def test_initialize_vector_store_logs_on_failure():
 
     with patch("app.core.rag_engine.get_collection") as mock_get_collection, \
          patch("app.core.rag_engine.generate_embedding") as mock_embedding, \
-         patch("builtins.open", create=True) as mock_open, \
+         patch("builtins.open", create=True), \
          patch("json.load") as mock_json_load, \
          patch("app.core.rag_engine.logger") as mock_logger:
 
@@ -275,7 +276,7 @@ async def test_initialize_vector_store_all_success():
 
     with patch("app.core.rag_engine.get_collection") as mock_get_collection, \
          patch("app.core.rag_engine.generate_embedding") as mock_embedding, \
-         patch("builtins.open", create=True) as mock_open, \
+         patch("builtins.open", create=True), \
          patch("json.load") as mock_json_load:
 
         mock_collection = MagicMock()

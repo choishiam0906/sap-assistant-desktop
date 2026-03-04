@@ -28,7 +28,9 @@ router = APIRouter(prefix="/knowledge", tags=["Knowledge Base"])
 @router.get("", response_model=KnowledgeListResponse)
 async def list_knowledge(
     category: str | None = Query(None, description="카테고리 필터"),
-    source_type: str | None = Query(None, description="소스유형 필터 (guide, source_code, error_pattern)"),
+    source_type: str | None = Query(
+        None, description="소스유형 필터 (guide, source_code, error_pattern)"
+    ),
     page: int = Query(1, ge=1, description="페이지 번호"),
     page_size: int = Query(20, ge=1, le=100, description="페이지 크기"),
     db: AsyncSession = Depends(get_db),

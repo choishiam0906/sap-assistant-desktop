@@ -2,14 +2,14 @@
 
 from app.mcp_server import (
     diagnose_problem,
-    get_memory_recent_resource,
     get_categories_resource,
     get_error_catalog_resource,
     get_error_pattern,
-    remember_note,
-    search_memory,
+    get_memory_recent_resource,
     get_skills_resource,
+    remember_note,
     search_knowledge,
+    search_memory,
     suggest_tcode,
 )
 
