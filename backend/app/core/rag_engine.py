@@ -1,6 +1,7 @@
 """RAG 파이프라인 — ChromaDB 벡터 검색 + LLM 응답 생성."""
 
 import json
+import logging
 import re
 from pathlib import Path
 
@@ -9,6 +10,8 @@ from chromadb.config import Settings as ChromaSettings
 
 from app.config import settings
 from app.core.llm_client import generate_chat_response, generate_embedding
+
+logger = logging.getLogger(__name__)
 
 SEED_DATA_PATH = Path(__file__).parent.parent / "data" / "sap_knowledge" / "seed_data.json"
 ERROR_PATTERNS_PATH = (
@@ -257,6 +260,7 @@ async def initialize_vector_store() -> int:
             all_items.extend(json.load(f))
 
     indexed = 0
+    failed = 0
     for item in all_items:
         item_id = f"seed_{indexed}"
         full_text = _build_document_text(
@@ -290,9 +294,15 @@ async def initialize_vector_store() -> int:
                 }],
             )
             indexed += 1
-        except Exception:
-            # Azure OpenAI 연결 실패 시 스킵 (개발 환경)
+        except Exception as exc:
+            logger.warning("벡터 인덱싱 실패 (title=%s): %s", item.get("title", "?"), exc)
+            failed += 1
             continue
+
+    if indexed == 0 and len(all_items) > 0:
+        logger.error("벡터 스토어 초기화 실패: %d건 중 0건 인덱싱됨", len(all_items))
+    elif failed > 0:
+        logger.warning("벡터 스토어 초기화 부분 성공: %d건 인덱싱, %d건 실패", indexed, failed)
 
     return indexed
 
@@ -302,8 +312,8 @@ def remove_from_vector_store(item_id: str) -> None:
     collection = get_collection()
     try:
         collection.delete(ids=[item_id])
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("벡터 스토어 항목 삭제 실패 (id=%s): %s", item_id, exc)
 
 
 def extract_tcodes_from_text(text: str) -> list[str]:
