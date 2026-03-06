@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Sidebar } from './components/Sidebar'
+import { WorkspaceBar } from './components/WorkspaceBar'
 import { ChatPage } from './pages/ChatPage'
 import { CboPage } from './pages/CboPage'
 import { SettingsPage } from './pages/SettingsPage'
 import './components/ErrorBoundary.css'
+import './components/WorkspaceBar.css'
 import './styles/animations.css'
 import './App.css'
 
@@ -32,7 +34,8 @@ export function App() {
         <div className="app-layout">
           <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
           <main className="app-main">
-            <div key={currentPage} className="page-enter">
+            <WorkspaceBar />
+            <div key={currentPage} className="app-page-shell page-enter">
               {currentPage === 'chat' && <ChatPage />}
               {currentPage === 'cbo' && <CboPage />}
               {currentPage === 'settings' && <SettingsPage />}

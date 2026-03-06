@@ -6,8 +6,15 @@
 
 .app-main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
   overflow-y: auto;
   padding: var(--spacing-xl);
   background: var(--color-bg);
   min-width: 0;
+}
+
+.app-page-shell {
+  min-height: 0;
 }

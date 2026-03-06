@@ -5,6 +5,7 @@ import {
   StreamEvent,
   ProviderType,
   ChatMessage,
+  ChatSession,
 } from "./contracts.js";
 import { SecureStore } from "./auth/secureStore.js";
 import { LlmProvider } from "./providers/base.js";
@@ -13,7 +14,7 @@ import { MessageRepository, SessionRepository } from "./storage/repositories.js"
 export class ChatRuntime {
   private readonly providers: Map<ProviderType, LlmProvider>;
   // P4-5: 세션 생성 동시 요청 방지 — 동일 provider에 대한 중복 생성을 막는 Promise mutex
-  private readonly sessionMutex = new Map<string, Promise<unknown>>();
+  private readonly sessionMutex = new Map<string, Promise<ChatSession>>();
 
   constructor(
     providers: LlmProvider[],
@@ -152,7 +153,7 @@ export class ChatRuntime {
    * P4-5: 세션 조회/생성을 직렬화하여 동시 호출 시 중복 생성을 방지한다.
    * 동일 provider에 대해 세션 생성이 진행 중이면 해당 Promise를 반환하여 대기.
    */
-  private resolveSession(input: SendMessageInput) {
+  private resolveSession(input: SendMessageInput): Promise<ChatSession> {
     // 기존 세션이 있으면 즉시 반환
     if (input.sessionId) {
       const existing = this.sessionRepo.getById(input.sessionId);

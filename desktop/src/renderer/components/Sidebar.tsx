@@ -11,9 +11,9 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS: { page: Page; label: string; Icon: LucideIcon }[] = [
-  { page: 'chat', label: '채팅', Icon: MessageSquare },
-  { page: 'cbo', label: 'CBO 분석', Icon: Search },
-  { page: 'settings', label: '설정', Icon: Settings },
+  { page: 'chat', label: 'Ask SAP', Icon: MessageSquare },
+  { page: 'cbo', label: 'Analyze Source', Icon: Search },
+  { page: 'settings', label: 'Settings', Icon: Settings },
 ]
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
@@ -23,10 +23,10 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         {!collapsed && (
-          <>
-            <h1 className="sidebar-title">SAP Ops Bot</h1>
-            <span className="sidebar-version">v2.5</span>
-          </>
+          <div className="sidebar-brand">
+            <h1 className="sidebar-title">SAP Assistant</h1>
+            <span className="sidebar-version">Desktop Platform v2.5</span>
+          </div>
         )}
         <button
           className="sidebar-toggle"

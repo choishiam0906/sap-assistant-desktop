@@ -7,6 +7,7 @@ interface ComposerProps {
   input: string
   provider: ProviderType
   model: string
+  placeholder?: string
   sending: boolean
   onInputChange: (v: string) => void
   onProviderChange: (v: ProviderType) => void
@@ -15,7 +16,7 @@ interface ComposerProps {
 }
 
 export function Composer({
-  input, provider, model, sending,
+  input, provider, model, placeholder, sending,
   onInputChange, onProviderChange, onModelChange, onSend,
 }: ComposerProps) {
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -53,7 +54,7 @@ export function Composer({
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="메시지를 입력하세요... (Enter로 전송)"
+          placeholder={placeholder ?? '메시지를 입력하세요... (Enter로 전송)'}
           className="chat-textarea"
           disabled={sending}
           rows={2}

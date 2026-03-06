@@ -1,8 +1,10 @@
 .chat-layout {
   display: flex;
-  height: calc(100vh - 48px);
-  margin: -24px;
-  border-radius: 0;
+  min-height: 720px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+  overflow: hidden;
 }
 
 .chat-sidebar {
@@ -70,6 +72,53 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+
+.chat-context-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border-light);
+  background:
+    linear-gradient(135deg, rgba(0, 110, 220, 0.07), transparent),
+    var(--color-bg-secondary);
+}
+
+.chat-context-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.chat-context-copy strong {
+  font-size: var(--font-size-lg);
+}
+
+.chat-context-copy p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.chat-context-eyebrow {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.chat-context-badges,
+.chat-empty-meta {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.chat-context-badges {
+  align-self: flex-start;
 }
 
 .chat-messages {
@@ -109,6 +158,10 @@
 .chat-empty p {
   font-size: var(--font-size-base);
   max-width: 360px;
+}
+
+.chat-empty-meta {
+  justify-content: center;
 }
 
 .chat-suggestions {
@@ -286,4 +339,22 @@
 /* Streaming */
 .streaming-cursor {
   animation: pulse 1s ease-in-out infinite;
+}
+
+@media (max-width: 960px) {
+  .chat-layout {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .chat-sidebar {
+    width: 100%;
+    max-height: 220px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .chat-context-banner {
+    flex-direction: column;
+  }
 }

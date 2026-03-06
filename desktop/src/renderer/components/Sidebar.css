@@ -26,6 +26,13 @@
   justify-content: center;
 }
 
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .sidebar-title {
   font-size: var(--font-size-lg);
   font-weight: 700;
@@ -38,6 +45,7 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .sidebar-toggle {
