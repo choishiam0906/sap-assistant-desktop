@@ -2,19 +2,19 @@ import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Sidebar } from './components/Sidebar'
-import { WorkspaceBar } from './components/WorkspaceBar'
 import { ChatPage } from './pages/ChatPage'
 import { CboPage } from './pages/CboPage'
+import { KnowledgeVaultPage } from './pages/KnowledgeVaultPage'
+import { SessionsAuditPage } from './pages/SessionsAuditPage'
 import { SettingsPage } from './pages/SettingsPage'
 import './components/ErrorBoundary.css'
-import './components/WorkspaceBar.css'
 import './styles/animations.css'
 import './App.css'
 
 // settingsStore를 import하면 초기 테마가 자동 적용됨
 import './stores/settingsStore'
 
-type Page = 'chat' | 'cbo' | 'settings'
+type Page = 'chat' | 'cbo' | 'audit' | 'vault' | 'settings'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,10 +34,11 @@ export function App() {
         <div className="app-layout">
           <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
           <main className="app-main">
-            <WorkspaceBar />
             <div key={currentPage} className="app-page-shell page-enter">
               {currentPage === 'chat' && <ChatPage />}
               {currentPage === 'cbo' && <CboPage />}
+              {currentPage === 'audit' && <SessionsAuditPage />}
+              {currentPage === 'vault' && <KnowledgeVaultPage />}
               {currentPage === 'settings' && <SettingsPage />}
             </div>
           </main>

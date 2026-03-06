@@ -16,7 +16,7 @@ import {
   CboSyncKnowledgeInput,
   CboSyncKnowledgeOutput,
 } from "../contracts.js";
-import { CboAnalysisRepository } from "../storage/repositories.js";
+import { CboAnalysisRepository, VaultRepository } from "../storage/repositories.js";
 import { CboAnalyzer } from "./analyzer.js";
 import { parseCboFile } from "./parser.js";
 
@@ -55,7 +55,8 @@ export class CboBatchRuntime {
   constructor(
     private readonly analyzer: CboAnalyzer,
     private readonly analysisRepo: CboAnalysisRepository,
-    private readonly defaultKnowledgeApiBaseUrl: string
+    private readonly defaultKnowledgeApiBaseUrl: string,
+    private readonly vaultRepo?: VaultRepository
   ) {}
 
   async analyzeFolder(
@@ -117,15 +118,28 @@ export class CboBatchRuntime {
           parsed.fileName,
           parsed.content,
           input.provider,
-          input.model
+          input.model,
+          input.securityMode
         );
-        this.analysisRepo.recordSuccessFile(
+        const fileId = this.analysisRepo.recordSuccessFile(
           run.id,
           filePath,
           parsed.fileName,
           fileHash,
           result
         );
+
+        // CBO 분석 결과를 Knowledge Vault에 자동 저장
+        this.vaultRepo?.store({
+          classification: "confidential",
+          sourceType: "cbo_analysis",
+          domainPack: input.domainPack ?? null,
+          title: `[CBO] ${parsed.fileName}`,
+          excerpt: result.summary.slice(0, 500),
+          sourceId: fileId,
+          filePath,
+        });
+
         successFiles += 1;
         onProgress?.({
           runId: run.id,

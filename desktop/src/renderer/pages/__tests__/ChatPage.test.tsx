@@ -16,7 +16,7 @@ function renderWithProviders(ui: React.ReactElement) {
 const mockSession: ChatSession = {
   id: 's1',
   title: 'SAP 질문',
-  provider: 'codex',
+  provider: 'openai',
   model: 'gpt-4.1-mini',
   createdAt: '2026-03-01T00:00:00Z',
   updatedAt: '2026-03-01T01:00:00Z',

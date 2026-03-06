@@ -1,12 +1,7 @@
 import { create } from 'zustand'
+import type { SecurityMode, DomainPack } from '../../main/contracts'
 
-export type SecurityMode = 'secure-local' | 'reference' | 'hybrid-approved'
-export type DomainPack =
-  | 'ops'
-  | 'functional'
-  | 'cbo-maintenance'
-  | 'pi-integration'
-  | 'btp-rap-cap'
+export type { SecurityMode, DomainPack }
 
 interface SecurityModeDetail {
   label: string

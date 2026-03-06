@@ -2,7 +2,8 @@ import "dotenv/config";
 
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import type { OpenDialogOptions } from "electron";
-import { autoUpdater } from "electron-updater";
+import electronUpdater from "electron-updater";
+const { autoUpdater } = electronUpdater;
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { OAuthManager } from "./auth/oauthManager.js";
 import { SecureStore } from "./auth/secureStore.js";
 import {
+  AuditSearchFilters,
   CboAnalyzeFileInput,
   CboAnalyzeFolderInput,
   CboAnalyzeFolderPickInput,
@@ -17,20 +19,26 @@ import {
   CboAnalyzeTextInput,
   CboRunDiffInput,
   CboSyncKnowledgeInput,
+  DomainPack,
   ProviderType,
   SendMessageInput,
   SetApiKeyInput,
+  VaultClassification,
 } from "./contracts.js";
-import { CopilotProvider } from "./providers/copilotProvider.js";
-import { CodexProvider } from "./providers/codexProvider.js";
+import { OpenAiProvider } from "./providers/openaiProvider.js";
+import { AnthropicProvider } from "./providers/anthropicProvider.js";
+import { GoogleProvider } from "./providers/googleProvider.js";
 import { ChatRuntime } from "./chatRuntime.js";
 import { CboAnalyzer } from "./cbo/analyzer.js";
 import { CboBatchRuntime } from "./cbo/batchRuntime.js";
+import { PolicyEngine } from "./policy/policyEngine.js";
 import {
+  AuditRepository,
   CboAnalysisRepository,
   MessageRepository,
   ProviderAccountRepository,
   SessionRepository,
+  VaultRepository,
 } from "./storage/repositories.js";
 import { LocalDatabase } from "./storage/sqlite.js";
 import { loadConfig } from "./config.js";
@@ -41,6 +49,8 @@ let chatRuntime: ChatRuntime;
 let oauthManager: OAuthManager;
 let cboAnalyzer: CboAnalyzer;
 let cboBatchRuntime: CboBatchRuntime;
+let auditRepo: AuditRepository;
+let vaultRepoRef: VaultRepository;
 let folderAbortController: AbortController | null = null;
 const mainDir = fileURLToPath(new URL(".", import.meta.url));
 const productName = "SAP Assistant Desktop Platform";
@@ -57,25 +67,28 @@ function initRuntime(): void {
   const analysisRepo = new CboAnalysisRepository(db);
   const secureStore = new SecureStore("sap-ops-bot-desktop");
 
-  const codexProvider = new CodexProvider(
-    config.codexOAuthVerificationUrl,
-    config.codexOAuthTokenUrl,
-    config.codexApiBaseUrl
-  );
-  const copilotProvider = new CopilotProvider(
-    config.copilotOAuthVerificationUrl,
-    config.copilotOAuthTokenUrl,
-    config.copilotApiBaseUrl
-  );
+  const openaiProvider = new OpenAiProvider(config.openaiApiBaseUrl);
+  const anthropicProvider = new AnthropicProvider(config.anthropicApiBaseUrl);
+  const googleProvider = new GoogleProvider(config.googleApiBaseUrl);
 
-  const providers = [codexProvider, copilotProvider];
-  chatRuntime = new ChatRuntime(providers, secureStore, sessionRepo, messageRepo);
-  oauthManager = new OAuthManager(providers, secureStore, accountRepo);
+  auditRepo = new AuditRepository(db);
+  const policyEngine = new PolicyEngine();
+
+  const providers = [openaiProvider, anthropicProvider, googleProvider];
+  chatRuntime = new ChatRuntime(
+    providers, secureStore, sessionRepo, messageRepo,
+    policyEngine, auditRepo
+  );
+  oauthManager = new OAuthManager(secureStore, accountRepo);
+  const vaultRepo = new VaultRepository(db);
+  vaultRepoRef = vaultRepo;
+
   cboAnalyzer = new CboAnalyzer(providers, secureStore);
   cboBatchRuntime = new CboBatchRuntime(
     cboAnalyzer,
     analysisRepo,
-    config.backendApiBaseUrl
+    config.backendApiBaseUrl,
+    vaultRepo
   );
 }
 
@@ -253,6 +266,29 @@ function registerIpc(): void {
 
   ipcMain.handle("cbo:runs:diff", async (_event, input: CboRunDiffInput) => {
     return cboBatchRuntime.diffRuns(input);
+  });
+
+  ipcMain.handle("audit:list", async (_event, limit = 50) => {
+    return auditRepo.list(limit);
+  });
+
+  ipcMain.handle("audit:search", async (_event, filters: AuditSearchFilters) => {
+    return auditRepo.search(filters);
+  });
+
+  ipcMain.handle("vault:list", async (_event, limit = 50) => {
+    return vaultRepoRef.list(limit);
+  });
+
+  ipcMain.handle(
+    "vault:searchByClassification",
+    async (_event, classification: VaultClassification, query?: string, limit?: number) => {
+      return vaultRepoRef.searchByClassification(classification, query, limit);
+    }
+  );
+
+  ipcMain.handle("vault:listByDomainPack", async (_event, pack: DomainPack, limit?: number) => {
+    return vaultRepoRef.listByDomainPack(pack, limit);
   });
 }
 

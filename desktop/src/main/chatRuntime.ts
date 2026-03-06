@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   SendMessageInput,
   SendMessageOutput,
@@ -8,8 +10,9 @@ import {
   ChatSession,
 } from "./contracts.js";
 import { SecureStore } from "./auth/secureStore.js";
+import { PolicyEngine } from "./policy/policyEngine.js";
 import { LlmProvider } from "./providers/base.js";
-import { MessageRepository, SessionRepository } from "./storage/repositories.js";
+import { AuditRepository, MessageRepository, SessionRepository } from "./storage/repositories.js";
 
 export class ChatRuntime {
   private readonly providers: Map<ProviderType, LlmProvider>;
@@ -20,7 +23,9 @@ export class ChatRuntime {
     providers: LlmProvider[],
     private readonly secureStore: SecureStore,
     private readonly sessionRepo: SessionRepository,
-    private readonly messageRepo: MessageRepository
+    private readonly messageRepo: MessageRepository,
+    private readonly policyEngine: PolicyEngine,
+    private readonly auditRepo: AuditRepository
   ) {
     this.providers = new Map(
       providers.map((provider) => [provider.type, provider])
@@ -36,6 +41,30 @@ export class ChatRuntime {
   }
 
   async sendMessage(input: SendMessageInput): Promise<SendMessageOutput> {
+    // 1. 정책 검증 — provider lookup 전에 수행하여 차단 시 외부 호출 방지
+    const decision = this.policyEngine.evaluate({
+      securityMode: input.securityMode,
+      domainPack: input.domainPack,
+      dataType: "chat",
+    });
+
+    if (!decision.allowed && !decision.requiresApproval) {
+      this.auditRepo.append({
+        id: randomUUID(),
+        sessionId: input.sessionId ?? null,
+        runId: null,
+        timestamp: new Date().toISOString(),
+        securityMode: input.securityMode,
+        domainPack: input.domainPack,
+        action: "send_message",
+        externalTransfer: false,
+        policyDecision: "BLOCKED",
+        provider: input.provider,
+        model: input.model,
+      });
+      throw new Error(decision.reason);
+    }
+
     const provider = this.providers.get(input.provider);
     if (!provider) {
       throw new Error(`Unsupported provider: ${input.provider}`);
@@ -80,6 +109,21 @@ export class ChatRuntime {
       llmResult.inputTokens,
       llmResult.outputTokens
     );
+
+    // 3. 성공 후 감사 기록
+    this.auditRepo.append({
+      id: randomUUID(),
+      sessionId: session.id,
+      runId: null,
+      timestamp: new Date().toISOString(),
+      securityMode: input.securityMode,
+      domainPack: input.domainPack,
+      action: "send_message",
+      externalTransfer: true,
+      policyDecision: decision.requiresApproval ? "PENDING_APPROVAL" : "ALLOWED",
+      provider: input.provider,
+      model: input.model,
+    });
 
     this.sessionRepo.touch(session.id);
     return {

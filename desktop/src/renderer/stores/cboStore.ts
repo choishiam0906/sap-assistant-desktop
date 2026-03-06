@@ -49,7 +49,7 @@ export const useCboStore = create<CboUIState>((set) => ({
   fileName: 'inline-cbo.md',
   sourceText: '',
   useLlm: false,
-  provider: 'codex',
+  provider: 'openai',
   model: 'gpt-4.1-mini',
   result: null,
   selectedRunId: '',

@@ -1,23 +1,100 @@
-export type ProviderType = "codex" | "copilot";
+export type ProviderType = "openai" | "anthropic" | "google";
+
+// 워크스페이스 정책 타입 — Main/Renderer 공유
+export type SecurityMode = "secure-local" | "reference" | "hybrid-approved";
+export type DomainPack =
+  | "ops"
+  | "functional"
+  | "cbo-maintenance"
+  | "pi-integration"
+  | "btp-rap-cap";
+
+export interface PolicyContext {
+  securityMode: SecurityMode;
+  domainPack: DomainPack;
+  dataType: "chat" | "cbo";
+}
+
+export interface PolicyDecision {
+  allowed: boolean;
+  reason: string;
+  requiresApproval: boolean;
+}
+
+export type AuditAction =
+  | "send_message"
+  | "analyze_cbo"
+  | "sync_knowledge"
+  | "stream_message";
+
+export type AuditPolicyDecision = "ALLOWED" | "BLOCKED" | "PENDING_APPROVAL";
+
+export interface AuditLogEntry {
+  id: string;
+  sessionId: string | null;
+  runId: string | null;
+  timestamp: string;
+  securityMode: SecurityMode;
+  domainPack: DomainPack;
+  action: AuditAction;
+  externalTransfer: boolean;
+  policyDecision: AuditPolicyDecision;
+  provider: ProviderType | null;
+  model: string | null;
+}
+
+export interface AuditSearchFilters {
+  from?: string;
+  to?: string;
+  action?: AuditAction;
+  securityMode?: SecurityMode;
+}
+
+// Knowledge Vault
+export type VaultClassification = "confidential" | "reference";
+export type VaultSourceType = "cbo_analysis" | "sap_standard" | "internal_memo";
+
+export interface VaultEntry {
+  id: string;
+  classification: VaultClassification;
+  sourceType: VaultSourceType;
+  domainPack: DomainPack | null;
+  title: string;
+  excerpt: string | null;
+  sourceId: string | null;
+  filePath: string | null;
+  indexedAt: string;
+}
+
+export const PROVIDER_LABELS: Record<ProviderType, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  google: "Google Gemini",
+};
 
 export const PROVIDER_MODELS: Record<ProviderType, { value: string; label: string }[]> = {
-  codex: [
+  openai: [
     { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
     { value: 'gpt-4.1', label: 'GPT-4.1' },
     { value: 'gpt-4o', label: 'GPT-4o' },
     { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
     { value: 'o4-mini', label: 'o4-mini' },
   ],
-  copilot: [
-    { value: 'gpt-4o', label: 'GPT-4o' },
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-    { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
+  anthropic: [
+    { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+    { value: 'claude-opus-4-6', label: 'Claude Opus 4.6' },
+    { value: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
+  ],
+  google: [
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+    { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
   ],
 }
 
 export const DEFAULT_MODELS: Record<ProviderType, string> = {
-  codex: 'gpt-4.1-mini',
-  copilot: 'gpt-4o',
+  openai: 'gpt-4.1-mini',
+  anthropic: 'claude-sonnet-4-6',
+  google: 'gemini-2.5-flash',
 }
 
 export type AuthStatus =
@@ -58,6 +135,8 @@ export interface SendMessageInput {
   provider: ProviderType;
   model: string;
   message: string;
+  securityMode: SecurityMode;
+  domainPack: DomainPack;
 }
 
 export interface SendMessageOutput {
@@ -107,19 +186,6 @@ export interface SubmitFeedbackInput {
   comment?: string;
 }
 
-export interface OAuthStartResult {
-  provider: ProviderType;
-  verificationUri: string;
-  userCode: string;
-  state: string;
-}
-
-export interface OAuthCompleteInput {
-  provider: ProviderType;
-  state: string;
-  code: string;
-}
-
 export interface SetApiKeyInput {
   provider: ProviderType;
   apiKey: string;
@@ -159,12 +225,16 @@ export interface CboAnalyzeTextInput {
   content: string;
   provider?: ProviderType;
   model?: string;
+  securityMode?: SecurityMode;
+  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzeFileInput {
   filePath: string;
   provider?: ProviderType;
   model?: string;
+  securityMode?: SecurityMode;
+  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzePickInput {
@@ -231,6 +301,8 @@ export interface CboAnalyzeFolderInput {
   provider?: ProviderType;
   model?: string;
   skipUnchanged?: boolean;
+  securityMode?: SecurityMode;
+  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzeFolderOutput {

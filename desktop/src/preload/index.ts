@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 import type {
+  AuditSearchFilters,
   CboBatchProgressEvent,
   CboAnalyzeFileInput,
   CboAnalyzeFolderInput,
@@ -9,9 +10,11 @@ import type {
   CboAnalyzeTextInput,
   CboRunDiffInput,
   CboSyncKnowledgeInput,
+  DomainPack,
   ProviderType,
   SendMessageInput,
   SetApiKeyInput,
+  VaultClassification,
 } from "../main/contracts.js";
 
 const desktopApi = {
@@ -70,6 +73,21 @@ const desktopApi = {
     return () => {
       ipcRenderer.removeListener("cbo:progress", handler);
     };
+  },
+  listAuditLogs(limit = 50) {
+    return ipcRenderer.invoke("audit:list", limit);
+  },
+  searchAuditLogs(filters: AuditSearchFilters) {
+    return ipcRenderer.invoke("audit:search", filters);
+  },
+  listVaultEntries(limit = 50) {
+    return ipcRenderer.invoke("vault:list", limit);
+  },
+  searchVaultByClassification(classification: VaultClassification, query?: string, limit?: number) {
+    return ipcRenderer.invoke("vault:searchByClassification", classification, query, limit);
+  },
+  listVaultByDomainPack(pack: DomainPack, limit?: number) {
+    return ipcRenderer.invoke("vault:listByDomainPack", pack, limit);
   },
 };
 

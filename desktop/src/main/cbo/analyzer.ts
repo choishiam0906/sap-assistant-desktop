@@ -3,6 +3,7 @@ import {
   CboAnalyzeFileInput,
   CboAnalyzeTextInput,
   ProviderType,
+  SecurityMode,
 } from "../contracts.js";
 import { SecureStore } from "../auth/secureStore.js";
 import { LlmProvider } from "../providers/base.js";
@@ -40,7 +41,8 @@ export class CboAnalyzer {
       parsed.fileName,
       parsed.content,
       input.provider,
-      input.model
+      input.model,
+      input.securityMode
     );
   }
 
@@ -50,7 +52,8 @@ export class CboAnalyzer {
       parsed.fileName,
       parsed.content,
       input.provider,
-      input.model
+      input.model,
+      input.securityMode
     );
   }
 
@@ -58,9 +61,16 @@ export class CboAnalyzer {
     fileName: string,
     content: string,
     provider?: ProviderType,
-    model?: string
+    model?: string,
+    securityMode?: SecurityMode
   ): Promise<CboAnalysisResult> {
     const baseResult = analyzeByRules(fileName, content);
+
+    // secure-local 모드: LLM 보강 건너뜀 — 규칙 분석만 반환
+    if (securityMode === "secure-local") {
+      return baseResult;
+    }
+
     return this.enrichWithOptionalLlm(baseResult, content, provider, model);
   }
 

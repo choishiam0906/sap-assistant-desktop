@@ -7,7 +7,7 @@ const mockApi: { [K in keyof DesktopApi]: ReturnType<typeof vi.fn> } = {
   getAuthStatus: vi.fn().mockResolvedValue('unauthenticated'),
   logout: vi.fn().mockResolvedValue(undefined),
   sendMessage: vi.fn().mockResolvedValue({
-    session: { id: 's1', title: '테스트', provider: 'codex', model: 'gpt-4.1-mini', createdAt: '', updatedAt: '' },
+    session: { id: 's1', title: '테스트', provider: 'openai', model: 'gpt-4.1-mini', createdAt: '', updatedAt: '' },
     userMessage: { id: 'm1', sessionId: 's1', role: 'user', content: '테스트', inputTokens: 0, outputTokens: 0, createdAt: '' },
     assistantMessage: { id: 'm2', sessionId: 's1', role: 'assistant', content: '응답', inputTokens: 0, outputTokens: 10, createdAt: '' },
   }),
@@ -24,6 +24,11 @@ const mockApi: { [K in keyof DesktopApi]: ReturnType<typeof vi.fn> } = {
   diffCboRuns: vi.fn().mockResolvedValue({ fromRunId: '', toRunId: '', added: 0, resolved: 0, persisted: 0, changes: [] }),
   cancelCboFolder: vi.fn().mockResolvedValue(undefined),
   onCboProgress: vi.fn().mockReturnValue(() => {}),
+  listAuditLogs: vi.fn().mockResolvedValue([]),
+  searchAuditLogs: vi.fn().mockResolvedValue([]),
+  listVaultEntries: vi.fn().mockResolvedValue([]),
+  searchVaultByClassification: vi.fn().mockResolvedValue([]),
+  listVaultByDomainPack: vi.fn().mockResolvedValue([]),
 }
 
 Object.defineProperty(window, 'sapOpsDesktop', {
@@ -35,5 +40,14 @@ Object.defineProperty(window, 'sapOpsDesktop', {
 beforeEach(() => {
   Object.values(mockApi).forEach((fn) => fn.mockClear())
 })
+
+// workspaceStore 초기화를 위한 헬퍼
+export function resetWorkspaceStore() {
+  const { useWorkspaceStore } = require('../stores/workspaceStore')
+  useWorkspaceStore.setState({
+    securityMode: 'secure-local',
+    domainPack: 'ops',
+  })
+}
 
 export { mockApi }

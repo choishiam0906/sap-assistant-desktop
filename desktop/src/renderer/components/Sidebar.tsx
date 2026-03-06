@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { MessageSquare, Search, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
+import { MessageSquare, Search, Shield, Database, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import './Sidebar.css'
 
-type Page = 'chat' | 'cbo' | 'settings'
+type Page = 'chat' | 'cbo' | 'audit' | 'vault' | 'settings'
 
 interface SidebarProps {
   currentPage: Page
@@ -13,6 +13,8 @@ interface SidebarProps {
 const NAV_ITEMS: { page: Page; label: string; Icon: LucideIcon }[] = [
   { page: 'chat', label: 'Ask SAP', Icon: MessageSquare },
   { page: 'cbo', label: 'Analyze Source', Icon: Search },
+  { page: 'audit', label: 'Sessions', Icon: Shield },
+  { page: 'vault', label: 'Vault', Icon: Database },
   { page: 'settings', label: 'Settings', Icon: Settings },
 ]
 
@@ -25,7 +27,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         {!collapsed && (
           <div className="sidebar-brand">
             <h1 className="sidebar-title">SAP Assistant</h1>
-            <span className="sidebar-version">Desktop Platform v2.5</span>
+            <span className="sidebar-version">Desktop Platform v3.0</span>
           </div>
         )}
         <button

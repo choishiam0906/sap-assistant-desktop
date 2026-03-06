@@ -1,14 +1,21 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  AuditLogEntry,
+  AuditSearchFilters,
   CboAnalysisResult,
   CboAnalysisRunDetail,
   CboAnalysisRunSummary,
   CboBatchFileErrorCode,
   ChatMessage,
   ChatSession,
+  DomainPack,
   ProviderAccount,
   ProviderType,
+  SecurityMode,
+  VaultClassification,
+  VaultEntry,
+  VaultSourceType,
 } from "../contracts.js";
 import { LocalDatabase } from "./sqlite.js";
 
@@ -581,5 +588,241 @@ export class CboAnalysisRepository {
     } catch {
       return null;
     }
+  }
+}
+
+interface AuditRow {
+  id: string;
+  sessionId: string | null;
+  runId: string | null;
+  timestamp: string;
+  securityMode: SecurityMode;
+  domainPack: string;
+  action: string;
+  externalTransfer: number;
+  policyDecision: string;
+  provider: string | null;
+  model: string | null;
+}
+
+function toAuditLogEntry(row: AuditRow): AuditLogEntry {
+  return {
+    ...row,
+    externalTransfer: Boolean(row.externalTransfer),
+  } as AuditLogEntry;
+}
+
+export class AuditRepository {
+  constructor(private readonly db: LocalDatabase) {}
+
+  append(entry: AuditLogEntry): void {
+    this.db
+      .prepare(
+        `INSERT INTO audit_logs(
+          id, session_id, run_id, timestamp, security_mode, domain_pack,
+          action, external_transfer, policy_decision, provider, model
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        entry.id,
+        entry.sessionId,
+        entry.runId,
+        entry.timestamp,
+        entry.securityMode,
+        entry.domainPack,
+        entry.action,
+        entry.externalTransfer ? 1 : 0,
+        entry.policyDecision,
+        entry.provider,
+        entry.model
+      );
+  }
+
+  list(limit = 50): AuditLogEntry[] {
+    const rows = this.db
+      .prepare(
+        `SELECT
+          id,
+          session_id AS sessionId,
+          run_id AS runId,
+          timestamp,
+          security_mode AS securityMode,
+          domain_pack AS domainPack,
+          action,
+          external_transfer AS externalTransfer,
+          policy_decision AS policyDecision,
+          provider,
+          model
+         FROM audit_logs
+         ORDER BY timestamp DESC
+         LIMIT ?`
+      )
+      .all(limit) as AuditRow[];
+    return rows.map(toAuditLogEntry);
+  }
+
+  listBySession(sessionId: string): AuditLogEntry[] {
+    const rows = this.db
+      .prepare(
+        `SELECT
+          id,
+          session_id AS sessionId,
+          run_id AS runId,
+          timestamp,
+          security_mode AS securityMode,
+          domain_pack AS domainPack,
+          action,
+          external_transfer AS externalTransfer,
+          policy_decision AS policyDecision,
+          provider,
+          model
+         FROM audit_logs
+         WHERE session_id = ?
+         ORDER BY timestamp DESC`
+      )
+      .all(sessionId) as AuditRow[];
+    return rows.map(toAuditLogEntry);
+  }
+
+  search(filters: AuditSearchFilters): AuditLogEntry[] {
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+
+    if (filters.from) {
+      conditions.push("timestamp >= ?");
+      params.push(filters.from);
+    }
+    if (filters.to) {
+      conditions.push("timestamp <= ?");
+      params.push(filters.to);
+    }
+    if (filters.action) {
+      conditions.push("action = ?");
+      params.push(filters.action);
+    }
+    if (filters.securityMode) {
+      conditions.push("security_mode = ?");
+      params.push(filters.securityMode);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const rows = this.db
+      .prepare(
+        `SELECT
+          id,
+          session_id AS sessionId,
+          run_id AS runId,
+          timestamp,
+          security_mode AS securityMode,
+          domain_pack AS domainPack,
+          action,
+          external_transfer AS externalTransfer,
+          policy_decision AS policyDecision,
+          provider,
+          model
+         FROM audit_logs
+         ${where}
+         ORDER BY timestamp DESC
+         LIMIT 200`
+      )
+      .all(...params) as AuditRow[];
+    return rows.map(toAuditLogEntry);
+  }
+}
+
+export class VaultRepository {
+  constructor(private readonly db: LocalDatabase) {}
+
+  store(entry: Omit<VaultEntry, "id" | "indexedAt">): VaultEntry {
+    const id = randomUUID();
+    const indexedAt = nowIso();
+    this.db
+      .prepare(
+        `INSERT INTO knowledge_vault(
+          id, classification, source_type, domain_pack, title, excerpt,
+          source_id, file_path, indexed_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        id,
+        entry.classification,
+        entry.sourceType,
+        entry.domainPack,
+        entry.title,
+        entry.excerpt,
+        entry.sourceId,
+        entry.filePath,
+        indexedAt
+      );
+    return { id, indexedAt, ...entry };
+  }
+
+  searchByClassification(
+    classification: VaultClassification,
+    query?: string,
+    limit = 50
+  ): VaultEntry[] {
+    if (query) {
+      return this.db
+        .prepare(
+          `SELECT
+            id, classification, source_type AS sourceType,
+            domain_pack AS domainPack, title, excerpt,
+            source_id AS sourceId, file_path AS filePath,
+            indexed_at AS indexedAt
+           FROM knowledge_vault
+           WHERE classification = ? AND (title LIKE ? OR excerpt LIKE ?)
+           ORDER BY indexed_at DESC
+           LIMIT ?`
+        )
+        .all(classification, `%${query}%`, `%${query}%`, limit) as VaultEntry[];
+    }
+
+    return this.db
+      .prepare(
+        `SELECT
+          id, classification, source_type AS sourceType,
+          domain_pack AS domainPack, title, excerpt,
+          source_id AS sourceId, file_path AS filePath,
+          indexed_at AS indexedAt
+         FROM knowledge_vault
+         WHERE classification = ?
+         ORDER BY indexed_at DESC
+         LIMIT ?`
+      )
+      .all(classification, limit) as VaultEntry[];
+  }
+
+  listByDomainPack(pack: DomainPack, limit = 50): VaultEntry[] {
+    return this.db
+      .prepare(
+        `SELECT
+          id, classification, source_type AS sourceType,
+          domain_pack AS domainPack, title, excerpt,
+          source_id AS sourceId, file_path AS filePath,
+          indexed_at AS indexedAt
+         FROM knowledge_vault
+         WHERE domain_pack = ?
+         ORDER BY indexed_at DESC
+         LIMIT ?`
+      )
+      .all(pack, limit) as VaultEntry[];
+  }
+
+  list(limit = 50): VaultEntry[] {
+    return this.db
+      .prepare(
+        `SELECT
+          id, classification, source_type AS sourceType,
+          domain_pack AS domainPack, title, excerpt,
+          source_id AS sourceId, file_path AS filePath,
+          indexed_at AS indexedAt
+         FROM knowledge_vault
+         ORDER BY indexed_at DESC
+         LIMIT ?`
+      )
+      .all(limit) as VaultEntry[];
   }
 }

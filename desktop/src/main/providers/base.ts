@@ -1,8 +1,4 @@
-import {
-  OAuthCompleteInput,
-  OAuthStartResult,
-  ProviderType,
-} from "../contracts.js";
+import { ProviderType } from "../contracts.js";
 import { SecureRecord } from "../auth/secureStore.js";
 
 export interface ProviderChatInput {
@@ -17,21 +13,10 @@ export interface ProviderChatOutput {
   outputTokens: number;
 }
 
-export interface ProviderOAuthResult extends SecureRecord {
-  accountHint: string | null;
-}
-
-export interface RefreshTokenResult {
-  accessToken: string;
-  refreshToken?: string;
-  expiresAt?: string;
-}
-
 export interface LlmProvider {
   readonly type: ProviderType;
-
-  startOAuth(): Promise<OAuthStartResult>;
-  completeOAuth(input: OAuthCompleteInput): Promise<ProviderOAuthResult>;
-  refreshToken(refreshToken: string): Promise<RefreshTokenResult>;
-  sendMessage(tokens: SecureRecord, input: ProviderChatInput): Promise<ProviderChatOutput>;
+  sendMessage(
+    tokens: SecureRecord,
+    input: ProviderChatInput
+  ): Promise<ProviderChatOutput>;
 }

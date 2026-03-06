@@ -105,6 +105,44 @@ export class LocalDatabase {
 
       CREATE INDEX IF NOT EXISTS idx_analysis_files_hash
       ON analysis_files (file_path, file_hash, status);
+
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id TEXT PRIMARY KEY,
+        session_id TEXT,
+        run_id TEXT,
+        timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+        security_mode TEXT NOT NULL,
+        domain_pack TEXT NOT NULL,
+        action TEXT NOT NULL,
+        external_transfer INTEGER NOT NULL DEFAULT 0,
+        policy_decision TEXT NOT NULL,
+        provider TEXT,
+        model TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
+      ON audit_logs (timestamp DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_session
+      ON audit_logs (session_id);
+
+      CREATE TABLE IF NOT EXISTS knowledge_vault (
+        id TEXT PRIMARY KEY,
+        classification TEXT NOT NULL,
+        source_type TEXT NOT NULL,
+        domain_pack TEXT,
+        title TEXT NOT NULL,
+        excerpt TEXT,
+        source_id TEXT,
+        file_path TEXT,
+        indexed_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_vault_classification
+      ON knowledge_vault (classification);
+
+      CREATE INDEX IF NOT EXISTS idx_vault_domain
+      ON knowledge_vault (domain_pack);
     `);
   }
 

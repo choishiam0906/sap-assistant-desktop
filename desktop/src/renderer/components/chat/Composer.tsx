@@ -1,6 +1,6 @@
 import { Send } from 'lucide-react'
 import type { ProviderType } from '../../../main/contracts.js'
-import { PROVIDER_MODELS } from '../../../main/contracts.js'
+import { PROVIDER_LABELS, PROVIDER_MODELS } from '../../../main/contracts.js'
 import { Button } from '../ui/Button.js'
 
 interface ComposerProps {
@@ -35,8 +35,9 @@ export function Composer({
           className="chat-select"
           aria-label="Provider 선택"
         >
-          <option value="codex">Codex</option>
-          <option value="copilot">Copilot</option>
+          {(Object.keys(PROVIDER_LABELS) as ProviderType[]).map((p) => (
+            <option key={p} value={p}>{PROVIDER_LABELS[p]}</option>
+          ))}
         </select>
         <select
           value={model}
