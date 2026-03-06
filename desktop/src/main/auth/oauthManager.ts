@@ -150,7 +150,45 @@ export class OAuthManager {
       });
       throw new Error(`${provider} access token is missing or expired.`);
     }
+
+    // 토큰 만료 확인 + 자동 갱신 (만료 5분 전부터 갱신 시도)
+    if (record.expiresAt && record.refreshToken) {
+      const expiresMs = new Date(record.expiresAt).getTime();
+      const bufferMs = 5 * 60 * 1000;
+      if (Date.now() >= expiresMs - bufferMs) {
+        return this.performTokenRefresh(provider, record.refreshToken);
+      }
+    }
+
     return record.accessToken;
+  }
+
+  private async performTokenRefresh(
+    provider: ProviderType,
+    refreshToken: string
+  ): Promise<string> {
+    const adapter = this.getProvider(provider);
+    try {
+      const result = await adapter.refreshToken(refreshToken);
+      await this.secureStore.set(provider, {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresAt: result.expiresAt,
+      });
+      console.log(`[OAuthManager] ${provider} 토큰 자동 갱신 완료`);
+      return result.accessToken;
+    } catch (err) {
+      console.error(`[OAuthManager] ${provider} 토큰 갱신 실패`, err);
+      this.saveStatus({
+        provider,
+        status: "expired",
+        accountHint: null,
+        updatedAt: nowIso(),
+      });
+      throw new Error(
+        `${provider} 토큰이 만료되었고 갱신에 실패했어요. 설정에서 다시 인증해주세요.`
+      );
+    }
   }
 
   private getProvider(provider: ProviderType): LlmProvider {

@@ -7,6 +7,7 @@ import {
   ProviderChatInput,
   ProviderChatOutput,
   ProviderOAuthResult,
+  RefreshTokenResult,
 } from "./base.js";
 
 export class CodexProvider implements LlmProvider {
@@ -57,6 +58,37 @@ export class CodexProvider implements LlmProvider {
       refreshToken: payload.refresh_token,
       expiresAt,
       accountHint: payload.account_hint ?? null,
+    };
+  }
+
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResult> {
+    const response = await fetch(this.oauthTokenExchangeUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Codex token refresh failed: ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      access_token: string;
+      refresh_token?: string;
+      expires_in?: number;
+    };
+
+    const expiresAt = payload.expires_in
+      ? new Date(Date.now() + payload.expires_in * 1000).toISOString()
+      : undefined;
+
+    return {
+      accessToken: payload.access_token,
+      refreshToken: payload.refresh_token ?? refreshToken,
+      expiresAt,
     };
   }
 
