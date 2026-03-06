@@ -106,7 +106,10 @@ export class CodexProvider implements LlmProvider {
       },
       body: JSON.stringify({
         model: input.model,
-        input: messages.map((item) => `${item.role}: ${item.content}`).join("\n"),
+        input: messages.map((item) => ({
+          role: item.role,
+          content: item.content,
+        })),
       }),
     });
 
