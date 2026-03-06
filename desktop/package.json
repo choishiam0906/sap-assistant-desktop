@@ -17,7 +17,8 @@
     "start": "electron .",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
-    "dist:portable": "npm run build && electron-builder --win portable"
+    "dist:portable": "npm run build && electron-builder --win portable",
+    "dist:nsis": "npm run build && electron-builder --win nsis"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.60.0",
@@ -76,9 +77,19 @@
     ],
     "win": {
       "target": [
-        "portable"
+        "portable",
+        "nsis"
       ],
-      "icon": null
+      "icon": null,
+      "signingHashAlgorithms": ["sha256"],
+      "sign": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "SAP-Assistant-Desktop-Platform-${version}-Setup.exe",
+      "shortcutName": "SAP Assistant Desktop Platform"
     },
     "portable": {
       "artifactName": "SAP-Assistant-Desktop-Platform-${version}-Portable.exe"
