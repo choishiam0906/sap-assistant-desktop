@@ -27,8 +27,10 @@ export function ChatPage() {
     try {
       const list = await api.listSessions(50)
       setSessions(Array.isArray(list) ? list : [])
-    } catch {
+    } catch (err) {
+      console.error('[ChatPage] 세션 목록 로드 실패', err)
       setSessions([])
+      setError('세션 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.')
     } finally {
       setLoadingSessions(false)
     }
@@ -39,8 +41,10 @@ export function ChatPage() {
     try {
       const msgs = await api.getSessionMessages(session.id, 100)
       setMessages(Array.isArray(msgs) ? msgs : [])
-    } catch {
+    } catch (err) {
+      console.error('[ChatPage] 메시지 로드 실패', err)
       setMessages([])
+      setError('대화 내용을 불러오지 못했어요')
     }
   }
 

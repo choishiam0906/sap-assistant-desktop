@@ -65,7 +65,11 @@ export function CboPage() {
       setRuns(arr)
       if (arr.length > 0) store.setSelectedRunId(arr[0].id)
       if (arr.length > 1) store.setFromRunId(arr[1].id)
-    } catch { setRuns([]) }
+    } catch (err) {
+      console.error('[CboPage] Run 목록 로드 실패', err)
+      setRuns([])
+      store.setError('실행 이력을 불러오지 못했어요')
+    }
   }
 
   async function loadRunDetail() {
