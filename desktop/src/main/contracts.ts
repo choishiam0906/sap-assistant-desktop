@@ -1,5 +1,25 @@
 export type ProviderType = "codex" | "copilot";
 
+export const PROVIDER_MODELS: Record<ProviderType, { value: string; label: string }[]> = {
+  codex: [
+    { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
+    { value: 'gpt-4.1', label: 'GPT-4.1' },
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+    { value: 'o4-mini', label: 'o4-mini' },
+  ],
+  copilot: [
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+    { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
+  ],
+}
+
+export const DEFAULT_MODELS: Record<ProviderType, string> = {
+  codex: 'gpt-4.1-mini',
+  copilot: 'gpt-4o',
+}
+
 export type AuthStatus =
   | "unauthenticated"
   | "pending"
@@ -46,6 +66,47 @@ export interface SendMessageOutput {
   assistantMessage: ChatMessage;
 }
 
+export interface StreamMessageInput {
+  sessionId?: string;
+  provider: ProviderType;
+  model: string;
+  message: string;
+  apiBaseUrl?: string;
+}
+
+export interface StreamMetaEvent {
+  type: "meta";
+  sources: Array<{ title: string; category: string; relevance_score: number }>;
+  suggested_tcodes: string[];
+  skill_used: string;
+}
+
+export interface StreamTokenEvent {
+  type: "token";
+  content: string;
+}
+
+export interface StreamDoneEvent {
+  type: "done";
+}
+
+export interface StreamErrorEvent {
+  type: "error";
+  content: string;
+}
+
+export type StreamEvent =
+  | StreamMetaEvent
+  | StreamTokenEvent
+  | StreamDoneEvent
+  | StreamErrorEvent;
+
+export interface SubmitFeedbackInput {
+  messageId: string;
+  rating: "positive" | "negative";
+  comment?: string;
+}
+
 export interface OAuthStartResult {
   provider: ProviderType;
   verificationUri: string;
@@ -57,6 +118,11 @@ export interface OAuthCompleteInput {
   provider: ProviderType;
   state: string;
   code: string;
+}
+
+export interface SetApiKeyInput {
+  provider: ProviderType;
+  apiKey: string;
 }
 
 export type CboRiskSeverity = "high" | "medium" | "low";

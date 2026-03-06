@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 
-import {
+import type {
   CboAnalyzeFileInput,
   CboAnalyzeFolderInput,
   CboAnalyzeFolderPickInput,
@@ -8,17 +8,14 @@ import {
   CboAnalyzeTextInput,
   CboRunDiffInput,
   CboSyncKnowledgeInput,
-  OAuthCompleteInput,
   ProviderType,
   SendMessageInput,
+  SetApiKeyInput,
 } from "../main/contracts.js";
 
 const desktopApi = {
-  startOAuth(provider: ProviderType) {
-    return ipcRenderer.invoke("auth:start", provider);
-  },
-  completeOAuth(input: OAuthCompleteInput) {
-    return ipcRenderer.invoke("auth:complete", input);
+  setApiKey(input: SetApiKeyInput) {
+    return ipcRenderer.invoke("auth:setApiKey", input);
   },
   getAuthStatus(provider: ProviderType) {
     return ipcRenderer.invoke("auth:status", provider);

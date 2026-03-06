@@ -4,6 +4,7 @@ import {
   OAuthStartResult,
   ProviderAccount,
   ProviderType,
+  SetApiKeyInput,
 } from "../contracts.js";
 import { ProviderAccountRepository } from "../storage/repositories.js";
 import { LlmProvider } from "../providers/base.js";
@@ -15,6 +16,7 @@ function nowIso(): string {
 
 export class OAuthManager {
   private readonly providers: Map<ProviderType, LlmProvider>;
+  private readonly pendingStates: Map<ProviderType, string> = new Map();
 
   constructor(
     providers: LlmProvider[],
@@ -42,15 +44,33 @@ export class OAuthManager {
   async start(provider: ProviderType): Promise<OAuthStartResult> {
     const adapter = this.getProvider(provider);
     const current = await this.getStatus(provider);
+    // P4-5: 기존 pending state 정리 — 중복 start() 호출 시 이전 state 무효화
+    this.pendingStates.delete(provider);
     this.saveStatus({
       ...current,
       status: "pending",
       updatedAt: nowIso(),
     });
-    return adapter.startOAuth();
+    const result = await adapter.startOAuth();
+    // CSRF 방지: state 값을 저장하여 complete() 시 검증
+    this.pendingStates.set(provider, result.state);
+    return result;
   }
 
   async complete(input: OAuthCompleteInput): Promise<ProviderAccount> {
+    // CSRF 방지: 저장된 state와 비교 검증
+    const expectedState = this.pendingStates.get(input.provider);
+    if (!expectedState || expectedState !== input.state) {
+      this.pendingStates.delete(input.provider);
+      return this.saveStatus({
+        provider: input.provider,
+        status: "error",
+        accountHint: null,
+        updatedAt: nowIso(),
+      });
+    }
+    this.pendingStates.delete(input.provider);
+
     const adapter = this.getProvider(input.provider);
     try {
       const tokenResult = await adapter.completeOAuth(input);
@@ -73,6 +93,30 @@ export class OAuthManager {
         updatedAt: nowIso(),
       });
     }
+  }
+
+  async setApiKey(input: SetApiKeyInput): Promise<ProviderAccount> {
+    const { provider, apiKey } = input;
+    if (!apiKey.trim()) {
+      return this.saveStatus({
+        provider,
+        status: "error",
+        accountHint: null,
+        updatedAt: nowIso(),
+      });
+    }
+    await this.secureStore.set(provider, {
+      accessToken: apiKey.trim(),
+    });
+    const hint = apiKey.length > 8
+      ? `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}`
+      : "****";
+    return this.saveStatus({
+      provider,
+      status: "authenticated",
+      accountHint: hint,
+      updatedAt: nowIso(),
+    });
   }
 
   async logout(provider: ProviderType): Promise<ProviderAccount> {

@@ -1,6 +1,8 @@
 import {
   SendMessageInput,
   SendMessageOutput,
+  StreamMessageInput,
+  StreamEvent,
   ProviderType,
   ChatMessage,
 } from "./contracts.js";
@@ -10,6 +12,8 @@ import { MessageRepository, SessionRepository } from "./storage/repositories.js"
 
 export class ChatRuntime {
   private readonly providers: Map<ProviderType, LlmProvider>;
+  // P4-5: 세션 생성 동시 요청 방지 — 동일 provider에 대한 중복 생성을 막는 Promise mutex
+  private readonly sessionMutex = new Map<string, Promise<any>>();
 
   constructor(
     providers: LlmProvider[],
@@ -36,9 +40,8 @@ export class ChatRuntime {
       throw new Error(`Unsupported provider: ${input.provider}`);
     }
 
-    const session =
-      (input.sessionId && this.sessionRepo.getById(input.sessionId)) ||
-      this.sessionRepo.create(input.provider, input.model, this.makeTitle(input.message));
+    // P4-5: Promise mutex로 세션 중복 생성 방지
+    const session = await this.resolveSession(input);
 
     if (session.provider !== input.provider) {
       throw new Error(
@@ -83,6 +86,96 @@ export class ChatRuntime {
       userMessage,
       assistantMessage,
     };
+  }
+
+  async *streamMessage(
+    input: StreamMessageInput,
+    onEvent: (event: StreamEvent) => void
+  ): AsyncGenerator<StreamEvent> {
+    const apiBase = input.apiBaseUrl || "http://localhost:8000";
+    const url = `${apiBase}/api/v1/chat/stream`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: input.message }),
+    });
+
+    if (!response.ok || !response.body) {
+      const errorEvent: StreamEvent = {
+        type: "error",
+        content: `서버 응답 오류: ${response.status}`,
+      };
+      onEvent(errorEvent);
+      yield errorEvent;
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") {
+            const doneEvent: StreamEvent = { type: "done" };
+            onEvent(doneEvent);
+            yield doneEvent;
+            return;
+          }
+
+          try {
+            const event: StreamEvent = JSON.parse(data);
+            onEvent(event);
+            yield event;
+          } catch {
+            // JSON 파싱 실패 시 무시
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
+  /**
+   * P4-5: 세션 조회/생성을 직렬화하여 동시 호출 시 중복 생성을 방지한다.
+   * 동일 provider에 대해 세션 생성이 진행 중이면 해당 Promise를 반환하여 대기.
+   */
+  private resolveSession(input: SendMessageInput) {
+    // 기존 세션이 있으면 즉시 반환
+    if (input.sessionId) {
+      const existing = this.sessionRepo.getById(input.sessionId);
+      if (existing) return Promise.resolve(existing);
+    }
+
+    // 동일 provider에 대한 세션 생성이 진행 중이면 해당 Promise 대기
+    const mutexKey = input.provider;
+    const pending = this.sessionMutex.get(mutexKey);
+    if (pending) return pending;
+
+    const creation = Promise.resolve().then(() =>
+      this.sessionRepo.create(
+        input.provider,
+        input.model,
+        this.makeTitle(input.message)
+      )
+    );
+    this.sessionMutex.set(mutexKey, creation);
+
+    return creation.finally(() => {
+      this.sessionMutex.delete(mutexKey);
+    });
   }
 
   private toProviderHistory(

@@ -15,9 +15,9 @@ import {
   CboAnalyzeTextInput,
   CboRunDiffInput,
   CboSyncKnowledgeInput,
-  OAuthCompleteInput,
   ProviderType,
   SendMessageInput,
+  SetApiKeyInput,
 } from "./contracts.js";
 import { CopilotProvider } from "./providers/copilotProvider.js";
 import { CodexProvider } from "./providers/codexProvider.js";
@@ -84,12 +84,8 @@ function createWindow(): void {
 }
 
 function registerIpc(): void {
-  ipcMain.handle("auth:start", async (_event, provider: ProviderType) => {
-    return oauthManager.start(provider);
-  });
-
-  ipcMain.handle("auth:complete", async (_event, input: OAuthCompleteInput) => {
-    return oauthManager.complete(input);
+  ipcMain.handle("auth:setApiKey", async (_event, input: SetApiKeyInput) => {
+    return oauthManager.setApiKey(input);
   });
 
   ipcMain.handle("auth:status", async (_event, provider: ProviderType) => {
