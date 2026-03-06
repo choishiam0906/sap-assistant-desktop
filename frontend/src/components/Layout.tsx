@@ -8,7 +8,7 @@ export const Layout: React.FC = () => {
       <Sidebar />
       <div className="layout-main">
         <header className="layout-header">
-          <h1 className="layout-title">SAP Ops Bot Admin</h1>
+          <h1 className="layout-title">SAP Assistant Desktop Platform Admin</h1>
         </header>
         <main className="layout-content">
           <Outlet />

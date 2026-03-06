@@ -30,7 +30,7 @@ export function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1 className="login-title">SAP Ops Bot</h1>
+        <h1 className="login-title">SAP Assistant Desktop Platform</h1>
         <p className="login-subtitle">관리자 로그인</p>
 
         <form onSubmit={handleSubmit} className="login-form">
