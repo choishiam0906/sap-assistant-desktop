@@ -1,0 +1,119 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { ChatPage } from '../ChatPage'
+import { mockApi } from '../../__tests__/setup'
+import { useChatStore } from '../../stores/chatStore'
+import type { ChatSession } from '../../../main/contracts'
+
+function renderWithProviders(ui: React.ReactElement) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
+
+const mockSession: ChatSession = {
+  id: 's1',
+  title: 'SAP 질문',
+  provider: 'codex',
+  model: 'gpt-4.1-mini',
+  createdAt: '2026-03-01T00:00:00Z',
+  updatedAt: '2026-03-01T01:00:00Z',
+}
+
+describe('ChatPage', () => {
+  beforeEach(() => {
+    mockApi.listSessions.mockResolvedValue([])
+    mockApi.getSessionMessages.mockResolvedValue([])
+    useChatStore.setState({ input: '', error: '', isStreaming: false, streamingContent: '' })
+  })
+
+  it('빈 상태에서 안내 메시지를 표시한다', async () => {
+    renderWithProviders(<ChatPage />)
+    await waitFor(() => {
+      expect(screen.getByText('SAP 운영에 대해 질문해보세요')).toBeInTheDocument()
+    })
+  })
+
+  it('세션 목록을 로드하고 표시한다', async () => {
+    mockApi.listSessions.mockResolvedValue([mockSession])
+    renderWithProviders(<ChatPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('SAP 질문')).toBeInTheDocument()
+    })
+    expect(mockApi.listSessions).toHaveBeenCalledWith(50)
+  })
+
+  it('세션 로드 실패 시 에러 메시지를 표시한다', async () => {
+    mockApi.listSessions.mockRejectedValue(new Error('네트워크 오류'))
+    renderWithProviders(<ChatPage />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+  })
+
+  it('제안 칩 클릭 시 입력란에 텍스트가 채워진다', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<ChatPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('SAP 운영에 대해 질문해보세요')).toBeInTheDocument()
+    })
+
+    const chip = screen.getByText('T-code SE38의 용도가 뭐예요?')
+    await user.click(chip)
+
+    const textarea = screen.getByLabelText('메시지 입력')
+    expect(textarea).toHaveValue('T-code SE38의 용도가 뭐예요?')
+  })
+
+  it('메시지 전송 시 API를 호출한다', async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(<ChatPage />)
+    await waitFor(() => {
+      expect(screen.getByLabelText('메시지 입력')).toBeInTheDocument()
+    })
+
+    const textarea = screen.getByLabelText('메시지 입력')
+    await user.type(textarea, '테스트 질문')
+
+    // 입력 값이 반영될 때까지 대기
+    await waitFor(() => {
+      expect(textarea).toHaveValue('테스트 질문')
+    })
+
+    const sendBtn = screen.getByText('전송')
+    await user.click(sendBtn)
+
+    await waitFor(() => {
+      expect(mockApi.sendMessage).toHaveBeenCalled()
+    })
+
+    // 호출된 인자의 message 필드 검증
+    const callArgs = mockApi.sendMessage.mock.calls[0][0]
+    expect(callArgs.message).toBe('테스트 질문')
+  })
+
+  it('메시지 전송 실패 시 에러를 표시한다', async () => {
+    const user = userEvent.setup()
+    mockApi.sendMessage.mockRejectedValue(new Error('전송 실패'))
+
+    renderWithProviders(<ChatPage />)
+    await waitFor(() => {
+      expect(screen.getByLabelText('메시지 입력')).toBeInTheDocument()
+    })
+
+    const textarea = screen.getByLabelText('메시지 입력')
+    await user.type(textarea, '실패 테스트')
+
+    const sendBtn = screen.getByText('전송')
+    await user.click(sendBtn)
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('전송 실패')
+    })
+  })
+})

@@ -1,8 +1,8 @@
 {
-  "name": "sap-ops-bot-desktop",
+  "name": "sap-assistant-desktop-platform",
   "version": "2.5.0",
   "private": true,
-  "description": "SAP Ops Bot desktop runtime (user OAuth: Codex + Copilot)",
+  "description": "SAP Assistant Desktop Platform desktop runtime (user OAuth: Codex + Copilot)",
   "main": "dist/main/index.js",
   "type": "module",
   "scripts": {
@@ -11,6 +11,9 @@
     "build:renderer": "vite build --config vite.renderer.config.ts",
     "dev": "tsx src/main/index.ts",
     "lint": "eslint src/",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "start": "electron .",
     "pack": "npm run build && electron-builder --dir",
     "dist": "npm run build && electron-builder",
@@ -32,6 +35,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/better-sqlite3": "^7.6.11",
     "@types/node": "^22.10.5",
     "@types/react": "^18.3.12",
@@ -42,14 +49,16 @@
     "eslint": "^9.39.3",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "happy-dom": "^20.8.3",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.56.1",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "vitest": "^4.0.18"
   },
   "build": {
-    "appId": "com.sapopsbot.desktop",
-    "productName": "SAP Ops Bot",
+    "appId": "com.sapassistantdesktop.platform",
+    "productName": "SAP Assistant Desktop Platform",
     "directories": {
       "output": "release"
     },
@@ -72,7 +81,7 @@
       "icon": null
     },
     "portable": {
-      "artifactName": "SAP-Ops-Bot-${version}-Portable.exe"
+      "artifactName": "SAP-Assistant-Desktop-Platform-${version}-Portable.exe"
     },
     "asar": true,
     "asarUnpack": [
