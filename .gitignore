@@ -17,6 +17,7 @@ frontend/dist/
 frontend/build/
 desktop/dist/
 desktop/dist-renderer/
+desktop/release/
 *.tsbuildinfo
 
 # Environment

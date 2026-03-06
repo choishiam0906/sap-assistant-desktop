@@ -95,6 +95,104 @@ jobs:
       - name: 빌드
         run: npm run build
 
+  e2e:
+    name: E2E 테스트 (Playwright)
+    runs-on: ubuntu-latest
+    needs: [frontend]
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js 20 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 의존성 설치
+        run: npm ci || npm install
+
+      - name: Playwright 브라우저 설치
+        run: npx playwright install --with-deps chromium
+
+      - name: 프론트엔드 빌드
+        run: npm run build
+
+      - name: E2E 테스트 실행
+        run: npx playwright test
+        env:
+          CI: true
+
+      - name: Playwright 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+
+  security:
+    name: 보안 스캔
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python 보안 스캔
+      - name: Python 3.12 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python 보안 도구 설치
+        run: pip install bandit pip-audit
+
+      - name: Bandit 소스코드 스캔
+        run: bandit -r backend/app/ -ll -ii --format json --output bandit-report.json || true
+
+      - name: Bandit 결과 요약
+        run: |
+          if [ -f bandit-report.json ]; then
+            python -c "
+          import json
+          with open('bandit-report.json') as f:
+              data = json.load(f)
+          results = data.get('results', [])
+          high = sum(1 for r in results if r['issue_severity'] == 'HIGH')
+          medium = sum(1 for r in results if r['issue_severity'] == 'MEDIUM')
+          print(f'Bandit: {len(results)} issues (HIGH={high}, MEDIUM={medium})')
+          if high > 0:
+              exit(1)
+          "
+          fi
+
+      - name: pip-audit 의존성 취약점 스캔
+        run: |
+          cd backend && pip install -e . && pip-audit --strict --desc || true
+
+      # Node 보안 스캔
+      - name: Node.js 20 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Frontend npm audit
+        run: cd frontend && npm audit --audit-level=high || true
+
+      - name: Desktop npm audit
+        run: cd desktop && npm audit --audit-level=high || true
+
+      # Secret 스캔
+      - name: Gitleaks 시크릿 스캔
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   docker:
     name: Docker 빌드 검증
     runs-on: ubuntu-latest
@@ -108,3 +206,19 @@ jobs:
 
       - name: Frontend 이미지 빌드
         run: docker build -t sap-ops-bot-frontend ./frontend
+
+      - name: Trivy 컨테이너 스캔 (Backend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: sap-ops-bot-backend
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: 0
+
+      - name: Trivy 컨테이너 스캔 (Frontend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: sap-ops-bot-frontend
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: 0
