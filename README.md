@@ -1,13 +1,13 @@
 <p align="center">
   <img src="https://img.shields.io/badge/SAP-0FAAFF?style=for-the-badge&logo=sap&logoColor=white" alt="SAP" />
-  <img src="https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron" />
-  <img src="https://img.shields.io/badge/OAuth-Codex%20%7C%20Copilot-111111?style=for-the-badge" alt="OAuth" />
+  <img src="https://img.shields.io/badge/Electron_31-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron" />
+  <img src="https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/MCP-Claude_Code-7C3AED?style=for-the-badge" alt="MCP" />
+  <img src="https://img.shields.io/badge/v2.5.0-blue?style=for-the-badge" alt="v2.5.0" />
 </p>
 
-<h1 align="center">🤖 SAP Ops Bot</h1>
+<h1 align="center">SAP Ops Bot</h1>
 
 <p align="center">
   <strong>SAP 운영 지식을 AI로 민주화하여, 누구나 자연어로 SAP 운영 절차를 안내받을 수 있는 환경을 만듭니다.</strong>
@@ -17,22 +17,10 @@
   <a href="docs/PRD.md">📋 PRD</a> •
   <a href="docs/BRD.md">📊 BRD</a> •
   <a href="docs/TRD.md">🔧 TRD</a> •
+  <a href="desktop/README.md">🖥️ Desktop</a> •
   <a href="#빠른-시작">🚀 빠른 시작</a> •
   <a href="#api-문서">📖 API 문서</a>
 </p>
-
----
-
-## ⚠️ v2 전환 공지 (2026-03-03)
-
-`sap-ops-bot`은 **클라이언트형 OAuth 아키텍처**로 전환되었습니다.
-
-- 신규 런타임: `desktop/` (Electron)
-- 인증: 사용자 OAuth (`Codex`, `Copilot`)
-- 데이터 저장: 로컬 SQLite
-- 서버 `/api/v1/chat`, `/api/v1/chat/copilot`: `410 Gone` (중단)
-
-Desktop 런타임은 [`desktop/README.md`](desktop/README.md)를 참고하세요.
 
 ---
 
@@ -86,29 +74,35 @@ Desktop 앱에서 자연어로 질문하면, **RAG(Retrieval-Augmented Generatio
   </tr>
   <tr>
     <td width="50%">
-      <h3>🔌 MCP 서버 (Claude Code 연동)</h3>
-      <p>Claude Code에서 직접 SAP 지식을 검색하고 문제를 진단할 수 있는 MCP 서버를 제공합니다.</p>
+      <h3>🖥️ 채팅 UI</h3>
+      <p>스트리밍 응답, 세션 관리, 마크다운 렌더링을 지원하는 대화형 인터페이스입니다.</p>
+      <pre>세션 리스트 + 메시지 타임라인 + Composer
+Provider/Model 선택 → 스트리밍 응답 + 메타데이터</pre>
     </td>
     <td width="50%">
-      <h3>🖥️ Admin Dashboard</h3>
-      <p>지식 베이스 CRUD 관리, 대화 이력 조회, 사용 통계 대시보드를 제공합니다.</p>
+      <h3>⚙️ 설정 관리</h3>
+      <p>Craft 스타일의 설정 화면에서 테마, 기본 연결, Provider 관리를 합니다.</p>
+      <pre>테마: system/light/dark 선택
+Connections: 인증 상태 Badge + API Key 관리</pre>
     </td>
   </tr>
   <tr>
     <td width="50%">
       <h3>🧪 CBO 소스 정적 분석</h3>
-      <p>`.txt`/`.md`로 전달된 CBO 소스를 규칙 기반으로 점검하고 운영 리스크와 개선 권고를 제시합니다.</p>
+      <p>CBO 소스를 5개 규칙으로 점검하고 리스크와 개선 권고를 제시합니다. 배치 분석, 이력 관리, 리스크 diff를 지원합니다.</p>
       <pre>"EXEC SQL, SELECT *가 포함된 CBO 소스 점검해줘"
 → 리스크 목록 + 우선순위 권고 + 요약 리포트</pre>
     </td>
     <td width="50%">
-      <h3>✨ 선택적 LLM 보강</h3>
-      <p>OAuth 인증된 provider/model을 선택하면 규칙 분석 결과를 LLM 관점으로 추가 보강할 수 있습니다.</p>
-      <pre>규칙 분석 결과 + LLM 보강 요약
-→ 실무 개선 포인트 빠른 도출</pre>
+      <h3>🔌 MCP 서버 (Claude Code 연동)</h3>
+      <p>Claude Code에서 직접 SAP 지식을 검색하고 문제를 진단할 수 있는 MCP 서버를 제공합니다.</p>
+      <pre>6개 Tools + 4개 Resources
+search_knowledge, diagnose_problem, ...</pre>
     </td>
   </tr>
 </table>
+
+<!-- TODO: 스크린샷 추가 -->
 
 ---
 
@@ -156,25 +150,28 @@ Desktop 앱에서 자연어로 질문하면, **RAG(Retrieval-Augmented Generatio
 ## 🏗️ 아키텍처
 
 ```
-┌───────────────────────────┐
-│ Electron Desktop Client   │
-│ (OAuth: Codex/Copilot)    │
-└──────────────┬────────────┘
-               │ IPC
-┌──────────────▼────────────┐
-│ Desktop Runtime           │
-│ - Provider Adapter        │
-│ - Session/Message Store   │
-│ - Local SQLite            │
-└──────────────┬────────────┘
-               │ (보조 API)
-┌──────────────▼────────────┐
-│ FastAPI Backend (Legacy)  │
-│ - Knowledge API           │
-│ - Health/Stats API        │
-│ - MCP Server              │
-│ - /api/v1/chat = 410 Gone │
-└───────────────────────────┘
+┌─────────────────────────────────┐
+│ Electron Desktop Client (v2.5) │
+│ ┌─────────┐ ┌────────────────┐ │
+│ │ Chat UI │ │ CBO Analysis   │ │
+│ │ Settings│ │ Session Mgmt   │ │
+│ └────┬────┘ └───────┬────────┘ │
+│      │ IPC (15 channels)       │
+│ ┌────▼─────────────────────┐   │
+│ │ Main Process             │   │
+│ │ - OAuth (Codex/Copilot)  │   │
+│ │ - Chat Runtime           │   │
+│ │ - CBO Analyzer           │   │
+│ │ - SQLite Storage         │   │
+│ └────────────┬─────────────┘   │
+└──────────────┼─────────────────┘
+               │ HTTP (보조 API)
+┌──────────────▼─────────────────┐
+│ FastAPI Backend                │
+│ - Knowledge API (CRUD + bulk) │
+│ - Health / Stats              │
+│ - MCP Server (6 tools)        │
+└────────────────────────────────┘
 ```
 
 ---
@@ -183,8 +180,9 @@ Desktop 앱에서 자연어로 질문하면, **RAG(Retrieval-Augmented Generatio
 
 | 레이어 | 기술 | 선택 이유 |
 |:------:|------|----------|
-| **Desktop Runtime** | Electron + TypeScript | 사용자 OAuth, 로컬 실행, 세션 고정 |
-| **Desktop Storage** | SQLite (better-sqlite3) | 로컬 세션/메시지 저장 |
+| **Desktop Runtime** | Electron 31 + TypeScript 5.7 | 사용자 OAuth, 로컬 실행, 세션 고정 |
+| **Desktop Renderer** | React 18 + Zustand 5 | 컴포넌트 기반 UI, 경량 상태 관리 |
+| **Desktop Storage** | SQLite (better-sqlite3) + keytar | 세션/메시지 로컬 저장 + 안전한 자격 증명 저장 |
 | **Backend API** | Python 3.12 + FastAPI | 지식 관리, 헬스/통계, MCP |
 | **Admin UI** | React + TypeScript + Vite | 지식 CRUD 및 운영 화면 |
 | **LLM Provider** | Codex OAuth + Copilot OAuth | 사용자 계정 기반 인증 |
@@ -212,14 +210,21 @@ npm run build
 npm run start
 ```
 
-Desktop 실행 후 기본 화면에서 아래를 바로 수행할 수 있습니다.
-- CBO 텍스트 직접 입력 분석
-- CBO 파일 선택 분석(`.txt`, `.md`, 최대 1MB)
-- CBO 폴더 배치 분석(재귀 스캔 + 동일 해시 스킵)
-- CBO 실행 이력 조회(로컬 SQLite 저장)
-- CBO 실행 결과를 backend Knowledge API로 동기화(`source_type=source_code`, bulk 우선)
-- CBO 실행 간 리스크 변화 비교(diff)
-- 선택적 LLM 보강 분석(provider/model 지정)
+Desktop 실행 후 할 수 있는 것:
+
+- **채팅**: 새 세션 생성 → 자연어 질문 → 스트리밍 AI 응답 (Provider/Model 선택)
+- **CBO 분석**: 텍스트 직접 입력 / 파일 선택 / 폴더 배치 분석 (5개 정적 규칙)
+- **CBO 이력**: 실행 이력 조회, Run 상세 보기, Run 간 리스크 diff
+- **Knowledge 동기화**: CBO 결과를 Backend Knowledge API로 bulk 동기화
+- **LLM 보강**: 인증된 Provider/Model로 규칙 분석 결과 보강
+- **설정**: 테마(system/light/dark) 변경, API Key 입력, Provider 관리
+
+#### OAuth(API Key) 설정 방법
+
+1. 앱 실행 후 좌측 사이드바에서 **Settings** 클릭
+2. **Connections** 섹션에서 사용할 Provider(Codex/Copilot) 선택
+3. API Key를 입력하면 `keytar` SecureStore에 안전하게 저장
+4. 채팅/CBO 분석에서 해당 Provider 사용 가능
 
 ### 2. Backend (보조 API/MCP)
 
@@ -254,8 +259,6 @@ Backend 실행 후 자동 생성됩니다:
 
 | Method | Path | 설명 |
 |:------:|------|------|
-| `POST` | `/api/v1/chat` | **중단됨** (`410 Gone`) |
-| `POST` | `/api/v1/chat/copilot` | **중단됨** (`410 Gone`) |
 | `GET` | `/api/v1/chat/skills` | 사용 가능한 스킬 목록 조회 |
 | `GET` | `/api/v1/knowledge` | 지식 목록 조회 |
 | `POST` | `/api/v1/knowledge` | 지식 추가 (에러 패턴 포함) |
@@ -365,13 +368,35 @@ sap-ops-bot/
 │   ├── README.md
 │   └── src/
 │       ├── main/
-│       │   ├── index.ts          # Electron main + IPC
+│       │   ├── index.ts          # Electron main + IPC 핸들러
 │       │   ├── chatRuntime.ts    # 세션/메시지 런타임
-│       │   ├── auth/             # OAuth 매니저 + SecureStore
-│       │   ├── cbo/              # CBO parser/rules/analyzer
+│       │   ├── contracts.ts      # 공유 타입 정의
+│       │   ├── auth/             # OAuth 매니저 + SecureStore (keytar)
+│       │   ├── cbo/              # CBO parser/rules/analyzer/batchRuntime
 │       │   ├── providers/        # Codex/Copilot 어댑터
-│       │   └── storage/          # SQLite 저장소
-│       └── preload/index.ts      # renderer 브리지
+│       │   └── storage/          # SQLite 저장소 (sqlite.ts, repositories.ts)
+│       ├── preload/index.ts      # IPC 브리지 (15개 채널)
+│       └── renderer/
+│           ├── App.tsx           # 루트 컴포넌트 (React Query + 3페이지 라우팅)
+│           ├── main.tsx          # 엔트리포인트
+│           ├── pages/
+│           │   ├── ChatPage.tsx      # 채팅 UI (세션 + 메시지 + Composer)
+│           │   ├── CboPage.tsx       # CBO 분석 (텍스트/파일/이력 탭)
+│           │   └── SettingsPage.tsx   # 설정 (테마 + Connections)
+│           ├── components/
+│           │   ├── Sidebar.tsx       # 접이식 내비게이션
+│           │   ├── MarkdownRenderer.tsx  # GFM + 코드 하이라이팅
+│           │   ├── chat/             # Composer, MessageList, SessionList
+│           │   ├── cbo/              # LlmOptions, ResultPanel, DiffPanel, RunsTable
+│           │   └── ui/               # Badge, Button, Skeleton, Tooltip
+│           ├── stores/
+│           │   ├── chatStore.ts      # 채팅 상태 (Zustand)
+│           │   ├── cboStore.ts       # CBO 분석 상태 (Zustand)
+│           │   └── settingsStore.ts  # 설정 상태 (Zustand + localStorage)
+│           └── styles/
+│               ├── global.css        # 기본 스타일
+│               ├── variables.css     # CSS 커스텀 속성
+│               └── animations.css    # 페이지 전환 애니메이션
 │
 ├── 📂 backend/
 │   ├── pyproject.toml
@@ -381,21 +406,14 @@ sap-ops-bot/
 │   │   ├── config.py             # 설정 관리
 │   │   ├── mcp_server.py         # MCP 서버 (Claude Code 연동)
 │   │   ├── api/                  # API 엔드포인트
-│   │   │   ├── chat.py           # /chat 410 + /chat/skills
-│   │   │   ├── knowledge.py      # 지식 베이스 CRUD
-│   │   │   └── copilot.py        # /chat/copilot 410
+│   │   │   ├── chat.py           # /chat/skills
+│   │   │   ├── knowledge.py      # 지식 베이스 CRUD + bulk
+│   │   │   └── copilot.py        # (레거시 참조)
 │   │   ├── core/                 # 핵심 비즈니스 로직
 │   │   │   ├── rag_engine.py     # RAG 파이프라인 + 스킬 라우팅
-│   │   │   ├── llm_client.py     # Azure OpenAI 클라이언트
+│   │   │   ├── llm_client.py     # LLM 클라이언트
 │   │   │   ├── knowledge_base.py # 지식 베이스 관리
 │   │   │   └── skills/           # 도메인 스킬 모듈
-│   │   │       ├── base.py       # BaseSkill + SkillMetadata
-│   │   │       ├── registry.py   # SkillRegistry (스킬 라우팅)
-│   │   │       ├── data_analysis.py
-│   │   │       ├── error_analysis.py
-│   │   │       ├── auth_management.py
-│   │   │       ├── cts_management.py
-│   │   │       └── general.py    # 폴백 스킬
 │   │   ├── models/               # 데이터 모델
 │   │   └── data/sap_knowledge/
 │   │       ├── seed_data.json    # 운영 가이드 시드 (13개)
@@ -420,11 +438,12 @@ sap-ops-bot/
 
 ## 🗺️ 로드맵
 
-- [x] **v2 전환** — Desktop OAuth 런타임 (Codex/Copilot), 서버 채팅 경로 종료
 - [x] **Phase 1 MVP** — 지식 Q&A + T-code 추천 + Admin Dashboard
 - [x] **Phase 1.5** — 에러 패턴 카탈로그 + 도메인 스킬 모듈화 + MCP 서버
-- [ ] **Phase 2** — SAP RFC 직접 연결 (pyrfc), 자동 실행
-- [ ] **Phase 3** — 실시간 모니터링, 알림 자동화
+- [x] **Phase 2 Desktop** — Electron OAuth 런타임 + Renderer UI (채팅/CBO 분석/설정) ✅
+- [ ] **Phase 2.5** — OAuth 실서비스 검증, 리프레시 토큰, 패키징/코드서명 (진행중)
+- [ ] **Phase 3** — SAP RFC 직접 연결 (pyrfc), 자동 실행
+- [ ] **Phase 4** — 실시간 모니터링, 알림 자동화
 
 ---
 
@@ -458,6 +477,7 @@ npm run build   # TypeScript 타입 체크 + 빌드
 | [📋 PRD](docs/PRD.md) | 제품 요구사항 정의서 — 기능 명세, 비기능 요구사항, KPI |
 | [📊 BRD](docs/BRD.md) | 비즈니스 요구사항 정의서 — ROI 분석, 이해관계자 |
 | [🔧 TRD](docs/TRD.md) | 기술 요구사항 정의서 — API 설계, 데이터 모델, RAG 파이프라인 |
+| [🖥️ Desktop](desktop/README.md) | Desktop 클라이언트 — 아키텍처, UI 구조, IPC 채널 |
 
 ---
 
