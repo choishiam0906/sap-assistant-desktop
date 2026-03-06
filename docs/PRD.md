@@ -7,7 +7,7 @@
 SAP Assistant Desktop Platform
 
 ### 저장소명
-`sap-ops-bot`
+`sap-assistant-desktop`
 
 ### 제품 한 줄 정의
 SAP 운영자, SAP 현업, ABAP/CBO 유지보수 담당자, PI/Integration 담당자, BTP/RAP/CAP 개발자가 하나의 로컬 우선 데스크톱 앱에서 SAP 질문과 유지보수 업무를 안전하게 처리할 수 있도록 돕는 Agent-Native Desktop Platform

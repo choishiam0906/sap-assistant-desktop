@@ -141,7 +141,7 @@ SAP Assistant Desktop Platform의 목적은 SAP 실무자가 질문, 점검, 유
 
 ## 10. 현재 저장소와의 관계
 
-현재 `sap-ops-bot` 저장소는 이미 Desktop, Backend, Frontend 기반을 갖고 있습니다.
+현재 `sap-assistant-desktop` 저장소는 이미 Desktop, Backend, Frontend 기반을 갖고 있습니다.
 
 다만 제품 관점에서 보면 지금 필요한 것은 기능 추가보다 아래 정렬입니다.
 

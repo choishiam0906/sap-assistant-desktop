@@ -116,7 +116,7 @@
     "publish": {
       "provider": "github",
       "owner": "choishiam0906",
-      "repo": "sap-ops-bot"
+      "repo": "sap-assistant-desktop"
     }
   }
 }

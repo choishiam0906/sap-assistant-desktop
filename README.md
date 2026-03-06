@@ -167,7 +167,7 @@ Optional Backend / Control Plane
 ## 저장소 구조
 
 ```text
-sap-ops-bot/
+sap-assistant-desktop/
 ├─ README.md
 ├─ docs/
 │  ├─ PRD.md
@@ -187,8 +187,8 @@ sap-ops-bot/
 ### Desktop
 
 ```bash
-git clone https://github.com/choishiam0906/sap-ops-bot.git
-cd sap-ops-bot/desktop
+git clone https://github.com/choishiam0906/sap-assistant-desktop.git
+cd sap-assistant-desktop/desktop
 cp .env.example .env
 npm install
 npm run build
@@ -248,7 +248,7 @@ npm run dev
 
 ## 저장소 운영 메모
 
-- 현재 저장소 이름은 `sap-ops-bot`이지만 제품 브랜딩은 `SAP Assistant Desktop Platform`으로 사용합니다.
+- 저장소 slug는 `sap-assistant-desktop`이며 제품 브랜딩은 `SAP Assistant Desktop Platform`입니다.
 - 문서는 목표 제품 방향에 맞게 개편했으며, 구현은 단계적으로 따라갑니다.
 - 민감 소스 보호가 제품 핵심이므로 기능 추가보다 정책 경계 정의가 우선입니다.
 
