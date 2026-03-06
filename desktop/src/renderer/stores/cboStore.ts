@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { CboAnalysisResult, CboRunDiffOutput, ProviderType } from '../../main/contracts.js'
+import type { CboAnalysisResult, CboBatchProgressEvent, CboRunDiffOutput, ProviderType } from '../../main/contracts.js'
 
 type Tab = 'text' | 'file' | 'history'
 
@@ -22,6 +22,9 @@ interface CboUIState {
   fromRunId: string
   diffResult: CboRunDiffOutput | null
 
+  // 배치 진행률
+  progress: CboBatchProgressEvent | null
+
   setTab: (v: Tab) => void
   setBusy: (v: boolean) => void
   setStatus: (v: string) => void
@@ -35,6 +38,7 @@ interface CboUIState {
   setSelectedRunId: (v: string) => void
   setFromRunId: (v: string) => void
   setDiffResult: (v: CboRunDiffOutput | null) => void
+  setProgress: (v: CboBatchProgressEvent | null) => void
 }
 
 export const useCboStore = create<CboUIState>((set) => ({
@@ -51,6 +55,7 @@ export const useCboStore = create<CboUIState>((set) => ({
   selectedRunId: '',
   fromRunId: '',
   diffResult: null,
+  progress: null,
   setTab: (tab) => set({ tab }),
   setBusy: (busy) => set({ busy }),
   setStatus: (status) => set({ status }),
@@ -64,4 +69,5 @@ export const useCboStore = create<CboUIState>((set) => ({
   setSelectedRunId: (selectedRunId) => set({ selectedRunId }),
   setFromRunId: (fromRunId) => set({ fromRunId }),
   setDiffResult: (diffResult) => set({ diffResult }),
+  setProgress: (progress) => set({ progress }),
 }))

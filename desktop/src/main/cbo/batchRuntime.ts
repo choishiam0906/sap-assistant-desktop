@@ -9,6 +9,7 @@ import {
   CboAnalyzeFolderInput,
   CboAnalyzeFolderOutput,
   CboBatchFileErrorCode,
+  CboBatchProgressEvent,
   CboRunDiffInput,
   CboRunDiffItem,
   CboRunDiffOutput,
@@ -45,6 +46,11 @@ function toErrorCode(message: string): CboBatchFileErrorCode {
   return "ANALYZE_ERROR";
 }
 
+export interface AnalyzeFolderOptions {
+  signal?: AbortSignal;
+  onProgress?: (event: CboBatchProgressEvent) => void;
+}
+
 export class CboBatchRuntime {
   constructor(
     private readonly analyzer: CboAnalyzer,
@@ -52,10 +58,14 @@ export class CboBatchRuntime {
     private readonly defaultKnowledgeApiBaseUrl: string
   ) {}
 
-  async analyzeFolder(input: CboAnalyzeFolderInput): Promise<CboAnalyzeFolderOutput> {
+  async analyzeFolder(
+    input: CboAnalyzeFolderInput,
+    options?: AnalyzeFolderOptions
+  ): Promise<CboAnalyzeFolderOutput> {
     const rootPath = resolve(input.rootPath);
     const recursive = input.recursive ?? true;
     const skipUnchanged = input.skipUnchanged ?? true;
+    const { signal, onProgress } = options ?? {};
 
     const files = await this.collectCandidateFiles(rootPath, recursive);
     const run = this.analysisRepo.createRun("folder", {
@@ -70,7 +80,18 @@ export class CboBatchRuntime {
     let skippedFiles = 0;
     const errors: CboAnalyzeFolderOutput["errors"] = [];
 
-    for (const filePath of files) {
+    for (let i = 0; i < files.length; i++) {
+      if (signal?.aborted) break;
+
+      const filePath = files[i];
+      onProgress?.({
+        runId: run.id,
+        current: i + 1,
+        total: files.length,
+        filePath,
+        status: "analyzing",
+      });
+
       try {
         const parsed = await parseCboFile(filePath);
         const fileHash = createHash("sha256").update(parsed.content).digest("hex");
@@ -82,6 +103,13 @@ export class CboBatchRuntime {
             fileHash
           );
           skippedFiles += 1;
+          onProgress?.({
+            runId: run.id,
+            current: i + 1,
+            total: files.length,
+            filePath,
+            status: "skipped",
+          });
           continue;
         }
 
@@ -99,6 +127,13 @@ export class CboBatchRuntime {
           result
         );
         successFiles += 1;
+        onProgress?.({
+          runId: run.id,
+          current: i + 1,
+          total: files.length,
+          filePath,
+          status: "success",
+        });
       } catch (error) {
         const message = toErrorMessage(error);
         const code = toErrorCode(message);
@@ -115,6 +150,13 @@ export class CboBatchRuntime {
           message,
         });
         failedFiles += 1;
+        onProgress?.({
+          runId: run.id,
+          current: i + 1,
+          total: files.length,
+          filePath,
+          status: "failed",
+        });
       }
     }
 

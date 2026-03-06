@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import type { OpenDialogOptions } from "electron";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -39,7 +40,10 @@ let chatRuntime: ChatRuntime;
 let oauthManager: OAuthManager;
 let cboAnalyzer: CboAnalyzer;
 let cboBatchRuntime: CboBatchRuntime;
+let folderAbortController: AbortController | null = null;
 const mainDir = fileURLToPath(new URL(".", import.meta.url));
+const productName = "SAP Assistant Desktop Platform";
+const appUserModelId = "com.sapassistantdesktop.platform";
 
 function initRuntime(): void {
   const config = loadConfig();
@@ -76,9 +80,12 @@ function initRuntime(): void {
 
 function createWindow(): void {
   const config = loadConfig();
+  const windowIconPath = join(mainDir, "../../build/icon.png");
   mainWindow = new BrowserWindow({
+    title: productName,
     width: config.windowWidth,
     height: config.windowHeight,
+    icon: existsSync(windowIconPath) ? windowIconPath : undefined,
     webPreferences: {
       preload: join(mainDir, "../preload/index.js"),
     },
@@ -124,7 +131,20 @@ function registerIpc(): void {
   });
 
   ipcMain.handle("cbo:analyzeFolder", async (_event, input: CboAnalyzeFolderInput) => {
-    return cboBatchRuntime.analyzeFolder(input);
+    folderAbortController = new AbortController();
+    try {
+      return await cboBatchRuntime.analyzeFolder(input, {
+        signal: folderAbortController.signal,
+        onProgress: (event) => mainWindow?.webContents.send("cbo:progress", event),
+      });
+    } finally {
+      folderAbortController = null;
+    }
+  });
+
+  ipcMain.handle("cbo:cancelFolder", () => {
+    folderAbortController?.abort();
+    folderAbortController = null;
   });
 
   ipcMain.handle(
@@ -184,13 +204,25 @@ function registerIpc(): void {
       }
 
       const rootPath = selection.filePaths[0];
-      const output = await cboBatchRuntime.analyzeFolder({
-        rootPath,
-        recursive: input.recursive,
-        provider: input.provider,
-        model: input.model,
-        skipUnchanged: input.skipUnchanged,
-      });
+      folderAbortController = new AbortController();
+      let output: Awaited<ReturnType<typeof cboBatchRuntime.analyzeFolder>>;
+      try {
+        output = await cboBatchRuntime.analyzeFolder(
+          {
+            rootPath,
+            recursive: input.recursive,
+            provider: input.provider,
+            model: input.model,
+            skipUnchanged: input.skipUnchanged,
+          },
+          {
+            signal: folderAbortController.signal,
+            onProgress: (event) => mainWindow?.webContents.send("cbo:progress", event),
+          }
+        );
+      } finally {
+        folderAbortController = null;
+      }
 
       return {
         canceled: false,
@@ -224,6 +256,10 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(() => {
+  app.setName(productName);
+  if (process.platform === "win32") {
+    app.setAppUserModelId(appUserModelId);
+  }
   logger.info({ version: app.getVersion() }, "앱 시작");
   initRuntime();
   registerIpc();

@@ -22,6 +22,8 @@ const mockApi: { [K in keyof DesktopApi]: ReturnType<typeof vi.fn> } = {
   getCboRunDetail: vi.fn().mockResolvedValue({ run: {}, files: [] }),
   syncCboRunKnowledge: vi.fn().mockResolvedValue({ runId: '', mode: 'bulk', endpoint: '', totalCandidates: 0, synced: 0, failed: 0, failures: [] }),
   diffCboRuns: vi.fn().mockResolvedValue({ fromRunId: '', toRunId: '', added: 0, resolved: 0, persisted: 0, changes: [] }),
+  cancelCboFolder: vi.fn().mockResolvedValue(undefined),
+  onCboProgress: vi.fn().mockReturnValue(() => {}),
 }
 
 Object.defineProperty(window, 'sapOpsDesktop', {

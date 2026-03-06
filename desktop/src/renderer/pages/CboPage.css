@@ -1,5 +1,44 @@
 .cbo-page { max-width: 1000px; }
 
+.cbo-workspace-callout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  background: var(--color-success-bg);
+}
+
+.cbo-workspace-callout.warning {
+  background: var(--color-warning-bg);
+}
+
+.cbo-workspace-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.cbo-workspace-copy strong {
+  font-size: var(--font-size-base);
+}
+
+.cbo-workspace-copy p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.cbo-workspace-badges {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
 .cbo-tabs {
   display: flex;
   gap: 2px;
@@ -197,3 +236,76 @@
 .diff-added { color: var(--color-error); }
 .diff-resolved { color: var(--color-success); }
 .diff-persisted { color: var(--color-warning); }
+
+/* Progress bar */
+.cbo-progress {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+}
+
+.cbo-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.cbo-progress-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cbo-progress-cancel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.cbo-progress-cancel:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.cbo-progress-bar {
+  height: 6px;
+  background: var(--color-border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cbo-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.cbo-progress-file {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .cbo-workspace-callout {
+    flex-direction: column;
+  }
+}

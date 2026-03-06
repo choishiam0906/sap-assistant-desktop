@@ -294,3 +294,11 @@ export interface CboRunDiffOutput {
   persisted: number;
   changes: CboRunDiffItem[];
 }
+
+export interface CboBatchProgressEvent {
+  runId: string;
+  current: number;
+  total: number;
+  filePath: string;
+  status: "analyzing" | "success" | "failed" | "skipped";
+}

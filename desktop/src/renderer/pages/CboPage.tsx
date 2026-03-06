@@ -1,4 +1,5 @@
-import { FileText, FolderSearch, RefreshCw, GitCompare, Database } from 'lucide-react'
+import { useEffect } from 'react'
+import { FileText, FolderSearch, RefreshCw, GitCompare, Database, XCircle } from 'lucide-react'
 import { useCboStore } from '../stores/cboStore.js'
 import { useCboRuns } from '../hooks/useCboRuns.js'
 import { Badge } from '../components/ui/Badge.js'
@@ -31,6 +32,22 @@ export function CboPage() {
 
   const displayError = store.error || (runsError ? '실행 이력을 불러오지 못했어요' : '')
 
+  useEffect(() => {
+    const { setProgress, setStatus } = useCboStore.getState()
+    const cleanup = api.onCboProgress((event) => {
+      setProgress(event)
+      setStatus(`분석 중: ${event.current}/${event.total} — ${event.filePath.split(/[\\/]/).pop()}`)
+    })
+    return cleanup
+  }, [])
+
+  function cancelFolder() {
+    api.cancelCboFolder()
+    store.setProgress(null)
+    store.setStatus('분석이 취소되었어요')
+    store.setBusy(false)
+  }
+
   function llmOpts() {
     if (!store.useLlm) return {}
     return { provider: store.provider, model: store.model }
@@ -59,7 +76,7 @@ export function CboPage() {
   }
 
   async function pickFolder() {
-    store.setBusy(true); store.setError(''); store.setStatus('폴더 선택 대기 중...')
+    store.setBusy(true); store.setError(''); store.setProgress(null); store.setStatus('폴더 선택 대기 중...')
     try {
       const res = await api.pickAndAnalyzeCboFolder({ recursive: true, skipUnchanged: true, ...llmOpts() })
       if (!res || res.canceled || !res.output) { store.setStatus('폴더 선택 취소됨'); return }
@@ -68,7 +85,7 @@ export function CboPage() {
       await refreshRuns()
       store.setTab('history')
     } catch (e) { store.setError(e instanceof Error ? e.message : '분석 실패') }
-    finally { store.setBusy(false) }
+    finally { store.setBusy(false); store.setProgress(null) }
   }
 
   async function refreshRuns() {
@@ -251,8 +268,30 @@ export function CboPage() {
         </div>
       )}
 
+      {/* 배치 진행률 */}
+      {store.progress && store.busy && (
+        <div className="cbo-progress" aria-label="배치 분석 진행 상황">
+          <div className="cbo-progress-header">
+            <span className="cbo-progress-label">
+              {store.progress.current}/{store.progress.total} 파일 분석 중
+            </span>
+            <button className="cbo-progress-cancel" onClick={cancelFolder} aria-label="분석 취소">
+              <XCircle size={16} aria-hidden="true" />
+              취소
+            </button>
+          </div>
+          <div className="cbo-progress-bar">
+            <div
+              className="cbo-progress-fill"
+              style={{ width: `${Math.round((store.progress.current / store.progress.total) * 100)}%` }}
+            />
+          </div>
+          <span className="cbo-progress-file">{store.progress.filePath.split(/[\\/]/).pop()}</span>
+        </div>
+      )}
+
       {/* 분석 중 스켈레톤 */}
-      {store.busy && !store.result && !store.diffResult && (
+      {store.busy && !store.progress && !store.result && !store.diffResult && (
         <div className="cbo-result" aria-label="분석 중">
           <SkeletonText lines={4} />
         </div>

@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 import type {
+  CboBatchProgressEvent,
   CboAnalyzeFileInput,
   CboAnalyzeFolderInput,
   CboAnalyzeFolderPickInput,
@@ -58,6 +59,17 @@ const desktopApi = {
   },
   diffCboRuns(input: CboRunDiffInput) {
     return ipcRenderer.invoke("cbo:runs:diff", input);
+  },
+  cancelCboFolder() {
+    return ipcRenderer.invoke("cbo:cancelFolder");
+  },
+  onCboProgress(callback: (event: CboBatchProgressEvent) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: CboBatchProgressEvent) =>
+      callback(data);
+    ipcRenderer.on("cbo:progress", handler);
+    return () => {
+      ipcRenderer.removeListener("cbo:progress", handler);
+    };
   },
 };
 
