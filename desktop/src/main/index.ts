@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import type { OpenDialogOptions } from "electron";
+import { autoUpdater } from "electron-updater";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -255,6 +256,26 @@ function registerIpc(): void {
   });
 }
 
+function checkForUpdates(): void {
+  if (!app.isPackaged) return;
+
+  autoUpdater.logger = logger;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("update-available", (info) => {
+    logger.info({ version: info.version }, "업데이트 사용 가능");
+  });
+  autoUpdater.on("update-downloaded", (info) => {
+    logger.info({ version: info.version }, "업데이트 다운로드 완료 — 종료 시 설치");
+  });
+  autoUpdater.on("error", (err) => {
+    logger.error({ err }, "자동 업데이트 에러");
+  });
+
+  autoUpdater.checkForUpdatesAndNotify();
+}
+
 app.whenReady().then(() => {
   app.setName(productName);
   if (process.platform === "win32") {
@@ -264,6 +285,7 @@ app.whenReady().then(() => {
   initRuntime();
   registerIpc();
   createWindow();
+  checkForUpdates();
   logger.info("윈도우 생성 완료");
 });
 
