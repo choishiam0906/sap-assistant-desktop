@@ -41,9 +41,6 @@ export function getOAuthConfig(
         callbackPort: 1455,
         callbackHost: "localhost",
         callbackPath: "/auth/callback",
-        extraAuthParams: {
-          audience: "https://api.openai.com/v1",
-        },
         requiresTokenExchange: true,
       };
     }
