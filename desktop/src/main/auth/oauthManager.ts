@@ -296,18 +296,14 @@ export class OAuthManager {
       throw new Error(`${provider} OAuth 설정을 찾을 수 없어요.`);
     }
 
+    // Craft OSS와 동일: state는 콜백 CSRF 검증에만 사용, 토큰 교환에는 포함하지 않음
     const tokenBody: Record<string, string> = {
       grant_type: "authorization_code",
-      code,
       client_id: oauthConfig.clientId,
+      code,
       redirect_uri: pending.redirectUri,
       code_verifier: pending.codeVerifier,
     };
-
-    // state: 코드에서 추출한 값 또는 pending에 저장된 값
-    if (codeState) {
-      tokenBody.state = codeState;
-    }
 
     console.log(`[OAuth] ${provider} 토큰 교환 요청:`, {
       url: oauthConfig.tokenUrl,
@@ -325,6 +321,7 @@ export class OAuthManager {
           oauthConfig.tokenContentType === "form"
             ? "application/x-www-form-urlencoded"
             : "application/json",
+        Accept: "application/json",
       },
       body:
         oauthConfig.tokenContentType === "form"
@@ -365,32 +362,37 @@ export class OAuthManager {
       }
     }
 
-    // OpenAI Codex: id_token → API Key 변환 (RFC 8693 Token Exchange)
+    // OpenAI Codex: id_token → API Key 변환 시도 (선택사항)
+    // Codex CLI도 obtain_api_key().await.ok() 로 실패 시 무시하고 access_token 사용
+    let finalAccessToken = tokenData.access_token;
+
     if (oauthConfig.requiresTokenExchange && tokenData.id_token) {
-      console.log(`[OAuth] ${provider} id_token → API Key 변환 시작`);
-      const apiKey = await this.exchangeIdTokenForApiKey(
-        oauthConfig,
-        tokenData.id_token
-      );
-
-      await this.secureStore.set(provider, {
-        accessToken: apiKey,
-        refreshToken: tokenData.refresh_token,
-        // API Key는 만료되지 않음 (refresh_token으로 갱신)
-      });
-
-      console.log(`[OAuth] ${provider} API Key 변환 완료`);
-    } else {
-      const expiresAt = tokenData.expires_in
-        ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
-        : undefined;
-
-      await this.secureStore.set(provider, {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        expiresAt,
-      });
+      console.log(`[OAuth] ${provider} id_token → API Key 변환 시도`);
+      try {
+        const apiKey = await this.exchangeIdTokenForApiKey(
+          oauthConfig,
+          tokenData.id_token
+        );
+        finalAccessToken = apiKey;
+        console.log(`[OAuth] ${provider} API Key 변환 성공`);
+      } catch (err) {
+        // Codex CLI와 동일: 변환 실패 시 access_token으로 폴백
+        console.warn(
+          `[OAuth] ${provider} API Key 변환 실패 (access_token 사용):`,
+          err instanceof Error ? err.message : err
+        );
+      }
     }
+
+    const expiresAt = tokenData.expires_in
+      ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
+      : undefined;
+
+    await this.secureStore.set(provider, {
+      accessToken: finalAccessToken,
+      refreshToken: tokenData.refresh_token,
+      expiresAt,
+    });
 
     this.cleanupPending(provider);
 
@@ -480,21 +482,24 @@ export class OAuthManager {
   ): Promise<string> {
     const exchangeBody = new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+      client_id: oauthConfig.clientId,
       subject_token: idToken,
       subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
-      client_id: oauthConfig.clientId,
+      requested_token: "openai-api-key",
     });
 
     console.log(`[OAuth] Token Exchange 요청:`, {
       url: oauthConfig.tokenUrl,
       grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
       subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
+      requested_token: "openai-api-key",
     });
 
     const res = await fetch(oauthConfig.tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
       },
       body: exchangeBody.toString(),
     });

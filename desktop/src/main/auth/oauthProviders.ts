@@ -35,13 +35,25 @@ export function getOAuthConfig(
         authorizationUrl: "https://auth.openai.com/oauth/authorize",
         tokenUrl: "https://auth.openai.com/oauth/token",
         clientId,
-        scopes: ["openid", "profile", "email", "offline_access"],
+        scopes: [
+          "openid",
+          "profile",
+          "email",
+          "offline_access",
+          "api.connectors.read",
+          "api.connectors.invoke",
+        ],
         tokenContentType: "form",
         useCallbackServer: true,
         callbackPort: 1455,
         callbackHost: "localhost",
         callbackPath: "/auth/callback",
         requiresTokenExchange: true,
+        // Codex CLI와 동일: audience 없음, simplified flow + org 정보
+        extraAuthParams: {
+          codex_cli_simplified_flow: "true",
+          id_token_add_organizations: "true",
+        },
       };
     }
     case "anthropic": {

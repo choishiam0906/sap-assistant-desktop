@@ -60,7 +60,7 @@ export async function createCallbackServer(
       return;
     }
 
-    const parsed = new URL(req.url, `http://127.0.0.1`);
+    const parsed = new URL(req.url, `http://localhost`);
     if (parsed.pathname !== expectedPath) {
       res.writeHead(404);
       res.end();
