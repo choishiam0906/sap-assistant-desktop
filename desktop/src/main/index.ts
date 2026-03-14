@@ -26,6 +26,7 @@ import {
   MessageRepository,
   ProviderAccountRepository,
   RoutineExecutionRepository,
+  RoutineKnowledgeLinkRepository,
   RoutineTemplateRepository,
   ScheduledTaskRepository,
   ScheduleLogRepository,
@@ -80,6 +81,7 @@ function initRuntime(): void {
   const closingStepRepo = new ClosingStepRepository(db);
   const routineTemplateRepo = new RoutineTemplateRepository(db);
   const routineExecutionRepo = new RoutineExecutionRepository(db);
+  const routineKnowledgeLinkRepo = new RoutineKnowledgeLinkRepository(db);
 
   // 시드 데이터: 첫 실행 시 기본 SAP 루틴 템플릿 삽입
   seedRoutineTemplates(routineTemplateRepo);
@@ -156,6 +158,7 @@ function initRuntime(): void {
     closingStepRepo,
     routineTemplateRepo,
     routineExecutionRepo,
+    routineKnowledgeLinkRepo,
     routineExecutor,
     routineScheduler,
     scheduledTaskRepo,

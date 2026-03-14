@@ -11,3 +11,4 @@ export { RoutineTemplateRepository } from "./routineTemplateRepository.js";
 export { RoutineExecutionRepository } from "./routineExecutionRepository.js";
 export { ScheduledTaskRepository } from "./scheduledTaskRepository.js";
 export { ScheduleLogRepository } from "./scheduleLogRepository.js";
+export { RoutineKnowledgeLinkRepository } from "./routineKnowledgeLinkRepository.js";
