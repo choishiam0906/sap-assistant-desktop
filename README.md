@@ -1,10 +1,9 @@
 # SAP Assistant Desktop Platform
 
-[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/boxlogodev/sap-assistant-desktop/releases/tag/v4.0.0)
+[![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/choishiam0906/sap-assistant-desktop/releases/tag/v5.0.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4.svg)](#)
 [![Node](https://img.shields.io/badge/node-22.x-brightgreen.svg)](#)
-[![Website](https://img.shields.io/badge/website-boxlogodev.com-ff6b35.svg)](https://www.boxlogodev.com)
 
 **SAP 운영 자동화 봇 플랫폼** – 로컬 우선(Local-First) 아키텍처로 민감한 데이터를 보호하면서, 커스텀 에이전트와 스킬을 통해 SAP 운영 워크플로우를 자동화합니다.
 
@@ -65,7 +64,40 @@
 - SAP 트랜잭션별 컨텍스트 인식
 - 도메인별 프롬프트 최적화
 
-### 커스텀 에이전트 & 스킬 (v4.0 NEW)
+### LLM 스트리밍 (v5.0 NEW)
+- **실시간 토큰 스트리밍**: Server-Sent Events(SSE) 기반 응답 스트리밍
+- **프로바이더별 지원**: OpenAI, Anthropic, Google 모두 네이티브 스트리밍
+- **IPC 채널**: Renderer에서 실시간 응답 수신 및 렌더링
+
+### 스케줄 자동 실행 (v5.0 NEW)
+- **node-cron 기반**: 루틴 자동 실행 스케줄링 (초, 분, 시간, 요일 지원)
+- **Cockpit SchedulePanel**: 스케줄 관리 UI
+- **Routine Engine**: 에이전트와 스킬 자동 실행
+
+### 정책 엔진 (v5.0 NEW)
+- **DB 기반 규칙 관리**: SQLite에 정책 저장
+- **자동/수동 승인 흐름**: 민감도 평가에 따른 승인 프로세스
+- **Settings PolicySettingsPage**: 정책 설정 UI
+
+### 에러 복원력 (v5.0 NEW)
+- **Retry**: 지수 백오프 방식 재시도
+- **Circuit Breaker**: 연속 실패 시 요청 차단 및 빠른 실패
+- **Fallback**: 프로바이더 체인을 통한 대체 경로
+
+### DB 마이그레이션 시스템 (v5.0 NEW)
+- **MigrationRunner**: 스키마 버전 관리 (001~005)
+- **마이그레이션 추적**: migrations 테이블에 버전 기록
+- **하위호환성**: 점진적 스키마 진화
+
+### Chat History 설정화 (v5.0 NEW)
+- **유연한 히스토리 윈도우**: 2~100 범위에서 사용자 설정 가능
+- **메모리 최적화**: 설정된 개수만 메모리에 유지
+
+### Zustand 선택자 최적화 (v5.0 NEW)
+- **useShallow 훅**: 부분 구독으로 불필요한 렌더링 방지
+- **성능 향상**: 크대 상태 객체에서 선택적 업데이트
+
+### 커스텀 에이전트 & 스킬 (v4.0)
 - **agent.md**: YAML frontmatter 형식으로 워크플로우 직접 정의
 - **skill.md**: 맞춤형 프롬프트 템플릿 정의
 - 프리셋 에이전트/스킬과 자동 병합
@@ -73,7 +105,7 @@
 - 저장 경로: `%APPDATA%/SAP Assistant/agents/` 및 `skills/`
 - 상세: [커스텀 에이전트 가이드](./docs/USER-GUIDE/CUSTOM-AGENTS.md) | [커스텀 스킬 가이드](./docs/USER-GUIDE/CUSTOM-SKILLS.md)
 
-### 코드 랩 (Code Lab) (v4.0 NEW)
+### 코드 랩 (Code Lab) (v4.0)
 - 소스 관리 + CBO 분석 + 아카이브를 하나의 통합 뷰로 제공
 - 탭 전환으로 빠르게 작업 컨텍스트 전환
 
@@ -81,14 +113,24 @@
 
 ## 문서
 
+### 시작하기
 | 문서 | 설명 |
 |------|------|
-| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 시스템 아키텍처, 신뢰 경계, Mermaid 다이어그램 |
 | [GETTING-STARTED.md](./docs/GETTING-STARTED.md) | 설치, 빌드, 개발 모드 |
-| [CUSTOM-AGENTS.md](./docs/USER-GUIDE/CUSTOM-AGENTS.md) | agent.md 작성 가이드 + 예제 |
-| [CUSTOM-SKILLS.md](./docs/USER-GUIDE/CUSTOM-SKILLS.md) | skill.md 작성 가이드 + 예제 |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 시스템 아키텍처, 신뢰 경계, Mermaid 다이어그램 |
+
+### 사용자 가이드
+| 문서 | 설명 |
+|------|------|
+| [USAGE.md](./docs/USER-GUIDE/USAGE.md) | 주요 기능별 사용법 가이드 (v5.0) |
 | [DOMAIN-PACKS.md](./docs/USER-GUIDE/DOMAIN-PACKS.md) | 5가지 Domain Pack 상세 |
 | [SECURITY-MODES.md](./docs/USER-GUIDE/SECURITY-MODES.md) | 3가지 보안 모드 설명 |
+| [CUSTOM-AGENTS.md](./docs/USER-GUIDE/CUSTOM-AGENTS.md) | agent.md 작성 가이드 + 예제 |
+| [CUSTOM-SKILLS.md](./docs/USER-GUIDE/CUSTOM-SKILLS.md) | skill.md 작성 가이드 + 예제 |
+
+### 개발자 문서
+| 문서 | 설명 |
+|------|------|
 | [IPC-PROTOCOL.md](./docs/API/IPC-PROTOCOL.md) | 전체 IPC 채널 레퍼런스 |
 | [CONTRIBUTING.md](./docs/CONTRIBUTING.md) | 코드 기여, 컨벤션, PR 규칙 |
 
@@ -174,67 +216,66 @@ graph TB
 
 ```
 src/
-├── main/
+├── main/                           # 메인 프로세스 (Node.js)
 │   ├── index.ts                    # 앱 진입점
-│   ├── window.ts                   # Electron 윈도우 관리
-│   ├── preload.ts                  # IPC 프리로드 스크립트
-│   ├── runtime/
-│   │   ├── chat-engine.ts          # 채팅 엔진
-│   │   ├── provider-router.ts      # 프로바이더 라우팅
-│   │   ├── mcp-connector.ts        # MCP 클라이언트
-│   │   └── cbo-analyzer.ts         # CBO 분석 엔진
-│   ├── security/
-│   │   ├── policy-engine.ts        # 정책 엔진
-│   │   ├── security-mode.ts        # 보안 모드 전환
-│   │   └── audit-logger.ts         # 감사 로거
-│   ├── data/
-│   │   ├── db.ts                   # SQLite 초기화
-│   │   ├── session-store.ts        # 세션 저장소
-│   │   └── source-manager.ts       # 소스 파일 관리
-│   ├── domain/
-│   │   ├── domain-packs.ts         # 도메인팩 레지스트리
-│   │   └── skills.ts               # T-Code 스킬 시스템
-│   └── utils/
-│       ├── logger.ts               # Pino 로거
-│       └── constants.ts            # 상수 정의
-├── renderer/
-│   ├── App.tsx                     # 루트 컴포넌트
-│   ├── pages/
-│   │   ├── Chat.tsx                # 채팅 페이지
-│   │   ├── Cockpit.tsx             # 대시보드
-│   │   ├── CBO.tsx                 # CBO 분석
-│   │   ├── Vault.tsx               # Knowledge Vault
-│   │   ├── Sessions.tsx            # 세션/감사
-│   │   ├── Skills.tsx              # 스킬 관리
-│   │   ├── Sources.tsx             # 소스 관리
-│   │   └── Settings.tsx            # 설정
-│   ├── components/
-│   │   ├── ChatMessage.tsx         # 채팅 메시지
-│   │   ├── ProviderSelect.tsx      # 프로바이더 선택
-│   │   ├── SecurityModeToggle.tsx  # 보안 모드 토글
-│   │   ├── DomainPackLauncher.tsx  # 도메인팩 런처
-│   │   └── AuditLog.tsx            # 감사 로그 뷰어
-│   ├── hooks/
-│   │   ├── useChat.ts              # 채팅 상태 관리
-│   │   ├── useSession.ts           # 세션 관리
-│   │   └── useIPC.ts               # IPC 통신
-│   ├── stores/
-│   │   ├── chat-store.ts           # Zustand: 채팅 상태
-│   │   ├── session-store.ts        # Zustand: 세션 상태
-│   │   └── auth-store.ts           # Zustand: 인증
-│   └── styles/
-│       ├── globals.css             # 전역 스타일
-│       └── components.css          # 컴포넌트 스타일
-└── shared/
-    ├── types/
-    │   ├── chat.ts                 # Chat 타입
-    │   ├── cbo.ts                  # CBO 타입
-    │   ├── policy.ts               # Policy 타입
-    │   └── ipc.ts                  # IPC 메시지 타입
-    └── constants/
-        ├── models.ts               # 모델 상수
-        ├── providers.ts            # 프로바이더 상수
-        └── tcode-map.ts            # T-Code 매핑
+│   ├── bootstrap/                  # v5.0 팩토리 (DI 컨테이너)
+│   │   ├── createRepositories.ts   # 데이터 저장소 초기화
+│   │   ├── createServices.ts       # 비즈니스 로직 서비스 초기화
+│   │   └── seedData.ts             # 초기 데이터 삽입
+│   ├── auth/                       # OAuth, PKCE, keytar (시스템 키체인)
+│   ├── cbo/                        # CBO(Custom Business Object) 분석기
+│   ├── ipc/                        # IPC 핸들러 (Renderer와 통신)
+│   │   ├── chatHandlers.ts         # 채팅 (스트리밍 포함)
+│   │   ├── policyHandlers.ts       # 정책 엔진 (v5.0 NEW)
+│   │   ├── scheduleHandlers.ts     # 스케줄 관리 (v5.0 NEW)
+│   │   ├── auditHandlers.ts        # 감사 로그
+│   │   ├── authHandlers.ts         # 인증 관리
+│   │   ├── cboHandlers.ts          # CBO 분석 요청
+│   │   ├── sourceHandlers.ts       # 소스 관리
+│   │   ├── routineHandlers.ts      # 루틴 관리
+│   │   ├── archiveHandlers.ts      # 아카이브
+│   │   ├── agentHandlers.ts        # 에이전트 관리
+│   │   ├── closingHandlers.ts      # 앱 종료 작업
+│   │   └── helpers/                # v5.0 CRUD 팩토리, 에러 래퍼
+│   ├── policy/                     # 정책 엔진 (규칙, 심사, 승인 흐름)
+│   ├── providers/                  # LLM 프로바이더 라우터
+│   │   ├── openai.ts               # OpenAI (GPT-4.1, GPT-4o)
+│   │   ├── anthropic.ts            # Anthropic (Claude Opus/Sonnet)
+│   │   ├── google.ts               # Google (Gemini 2.5)
+│   │   └── providerResilience.ts   # Retry + Circuit Breaker + Fallback (v5.0)
+│   ├── services/                   # 비즈니스 로직 서비스
+│   │   ├── routineExecutor.ts      # 루틴 실행기
+│   │   └── scheduleManager.ts      # node-cron 기반 스케줄러 (v5.0)
+│   ├── skills/                     # 스킬 시스템 (프롬프트 템플릿)
+│   ├── sources/                    # 소스 관리자 (로컬 파일, MCP)
+│   ├── storage/                    # SQLite 저장소 + Repository 패턴
+│   │   ├── db.ts                   # 데이터베이스 초기화
+│   │   ├── migrationRunner.ts      # DB 마이그레이션 자동화 (v5.0)
+│   │   ├── migrations/             # 마이그레이션 스크립트 (001~005)
+│   │   └── repositories/           # 16개 Repository (CRUD 추상화)
+│   ├── types/                      # 타입 정의 (모듈별 분리)
+│   └── contracts.ts                # 타입 재내보내기 (호환성)
+├── preload/                        # Preload 스크립트
+│   └── index.ts                    # window.sapOpsDesktop IPC 브릿지
+└── renderer/                       # 렌더러 프로세스 (React 18)
+    ├── components/                 # React 컴포넌트
+    │   └── settings/primitives/    # 설정 기본 UI (v5.0 DRY)
+    ├── hooks/                      # 커스텀 React 훅 (React Query 래퍼)
+    ├── pages/                      # 페이지 컴포넌트 (라우팅)
+    │   ├── sources/                # 소스 페이지 (Local, MCP, API 탭)
+    │   ├── settings/               # 설정 페이지들 (Security, Display 등)
+    │   ├── cockpit/                # 대시보드 패널 (Schedule, Policy 등)
+    │   ├── chat/                   # 채팅 관련 컴포넌트
+    │   ├── cbo/                    # CBO 분석 컴포넌트
+    │   └── __tests__/              # 페이지 테스트
+    ├── stores/                     # Zustand 상태 관리
+    │   ├── settingsStore.ts        # 설정 상태
+    │   ├── chatStore.ts            # 채팅 상태
+    │   ├── workspaceStore.ts       # 작업공간 상태
+    │   └── __tests__/              # 스토어 테스트
+    ├── styles/                     # 스타일 시스템
+    │   └── variables.css           # CSS 변수 정의 (색상, 간격, 타이포그래피)
+    └── App.tsx                     # 앱 진입점
 ```
 
 ---
@@ -253,8 +294,10 @@ src/
 | **데이터베이스** | better-sqlite3 | 11.x |
 | **로깅** | Pino | 8.x |
 | **LLM SDK** | Model Context Protocol | 1.27.x |
-| **UI 스타일** | CSS/Tailwind (선택) | - |
-| **테스트** | Vitest + Jest | - |
+| **UI 스타일** | CSS 변수 시스템 (Tailwind 미사용) | - |
+| **테스트** | Vitest + React Testing Library | - |
+| **스케줄** | node-cron | 1.3.x |
+| **시스템 키체인** | keytar | 8.x |
 
 ---
 
@@ -272,14 +315,15 @@ src/
 
 ```bash
 # 저장소 클론
-git clone https://github.com/boxlogodev/sap-assistant-desktop.git
-cd sap-assistant-desktop/desktop
+git clone https://github.com/choishiam0906/sap-assistant-desktop.git
+cd sap-assistant-desktop
 
 # 런타임 확인
 npm run check:runtime
 
 # 의존성 설치 (Electron 네이티브 모듈 자동 재빌드 포함)
 npm install
+# 주의: desktop/ 래퍼 폴더 제거됨 (v5.0부터 루트 직접 관리)
 ```
 
 ### 2단계: 환경 설정
@@ -297,12 +341,15 @@ cp .env.example .env
 ### 3단계: 앱 실행
 
 ```bash
-# 권장: 렌더러를 먼저 빌드한 뒤 앱 실행
-npm run build
-npm run start
+# 개발 모드: 메인 프로세스만 핫 리로드
+npm run dev
+
+# 프로덕션 빌드 후 실행 (권장)
+npm run build && npm run start
 ```
 
-> `npm run start`는 Electron과 충돌할 수 있는 `NODE_OPTIONS`를 정리한 뒤 앱을 실행합니다.
+> `npm run start`는 Electron과 충돌할 수 있는 `NODE_OPTIONS`를 정리한 뒤 빌드된 앱을 실행합니다.
+> `npm run dev`는 메인 프로세스를 tsx로 핫 리로드하며 실행합니다.
 
 ### 4단계: 빌드 및 배포
 
@@ -338,7 +385,7 @@ GOOGLE_API_KEY=...
 
 # 애플리케이션
 APP_NAME=SAP Assistant
-APP_VERSION=4.0.0
+APP_VERSION=5.0.0
 
 # 개발/프로덕션
 NODE_ENV=development|production
@@ -899,7 +946,7 @@ npx webpack-bundle-analyzer
 - [ABAP Development 가이드](https://help.sap.com/docs/abap-development)
 
 ### 커뮤니티
-- [GitHub Discussions](https://github.com/boxlogodev/sap-assistant-desktop/discussions)
+- [GitHub Discussions](https://github.com/choishiam0906/sap-assistant-desktop/discussions)
 - [SAP 커뮤니티](https://community.sap.com)
 - [Stack Overflow - SAP](https://stackoverflow.com/questions/tagged/sap)
 
@@ -907,44 +954,54 @@ npx webpack-bundle-analyzer
 
 ## 로드맵
 
-### Phase 1: 수동 워크플로우 (v4.0 — 현재)
+### Phase 1: 수동 워크플로우 (v4.0 — ✅ 완료)
+
+**주요 성과**:
 - ✅ 다중 LLM 통합 (OpenAI, Anthropic, Google)
 - ✅ CBO 분석 + 소스코드 아카이브
 - ✅ 에이전트/스킬 시스템 (프리셋 2 에이전트, 6 스킬)
-- ✅ **커스텀 에이전트/스킬** (agent.md / skill.md)
-- ✅ **코드 랩** (Sources + CBO + Archive 통합)
+- ✅ 커스텀 에이전트/스킬 (agent.md / skill.md)
+- ✅ 코드 랩 (Sources + CBO + Archive 통합)
 - ✅ Knowledge Vault + MCP 서버 연결
 - ✅ Cockpit (마감 관리 + 루틴)
 
-### Phase 2: 자동 트리거 (v4.1 — 예정)
-- ⬜ 스케줄 기반 에이전트 실행 (cron-like)
-- ⬜ 이벤트 트리거 (파일 변경 감시, Transport 알림)
-- ⬜ 에이전트 체이닝 (에이전트 → 에이전트)
-- ⬜ 결과 알림 (Windows 토스트, Slack webhook)
+### Phase 2: 자동 트리거 & 정책 관리 (v5.0 — ✅ 현재 진행 중)
 
-### Phase 3: 무인 운영 (v5.0 — 장기)
-- ⬜ SAP 시스템 직접 연결 (RFC/OData)
-- ⬜ 자동 Transport 리뷰 & 승인 흐름
-- ⬜ 멀티 시스템 모니터링 대시보드
-- ⬜ 오프라인 LLM (Ollama 연동)
-- ⬜ 엔터프라이즈 배포 (LDAP, SSO, 코드 서명)
+**v5.0 구현 사항**:
+- ✅ 스케줄 기반 에이전트 실행 (node-cron, cron 표현식)
+- ✅ DB 마이그레이션 시스템 (버전 관리, 점진적 진화)
+- ✅ LLM 스트리밍 (SSE 기반 실시간 토큰 응답)
+- ✅ 정책 엔진 (조건 기반 자동/수동 승인 흐름)
+- ✅ 에러 복원력 (Retry + Circuit Breaker + Fallback)
+- ✅ 코드 품질 개선 (Zustand 선택자, IPC 팩토리, bootstrap 분해)
+- ✅ Chat History 설정화 (사용자 정의 윈도우: 2~100)
+
+### Phase 3: 무인 운영 (v6.0 — 장기 계획)
+
+**예상 기능**:
+- [ ] SAP 시스템 직접 연결 (RFC/OData)
+- [ ] 자동 Transport 리뷰 & 승인 흐름
+- [ ] 멀티 시스템 모니터링 대시보드
+- [ ] 오프라인 LLM (Ollama 연동)
+- [ ] 엔터프라이즈 배포 (LDAP, SSO, 코드 서명)
 
 ---
 
 ## 문의 및 지원
 
 ### 버그 신고
-- [GitHub Issues](https://github.com/boxlogodev/sap-assistant-desktop/issues)
+- [GitHub Issues](https://github.com/choishiam0906/sap-assistant-desktop/issues)
 - 템플릿: `[BUG] 제목` 또는 `[FEATURE] 제목`
 
 ### 토론
-- [GitHub Discussions](https://github.com/boxlogodev/sap-assistant-desktop/discussions)
+- [GitHub Discussions](https://github.com/choishiam0906/sap-assistant-desktop/discussions)
 
-### 이메일
-- support@your-org.com
+### 커뮤니티
+- [SAP 커뮤니티](https://community.sap.com)
+- [Stack Overflow - SAP](https://stackoverflow.com/questions/tagged/sap)
 
 ---
 
-**Made with ❤️ for SAP Professionals**
+**Made with care for SAP Professionals**
 
-© 2024 Your Organization. All rights reserved.
+© 2024-2026 SAP Assistant Desktop Contributors. All rights reserved.

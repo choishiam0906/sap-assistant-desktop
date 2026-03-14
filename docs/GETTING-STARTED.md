@@ -14,8 +14,8 @@
 
 ```bash
 # 저장소 클론
-git clone https://github.com/boxlogodev/sap-assistant-desktop.git
-cd sap-assistant-desktop/desktop
+git clone https://github.com/choishiam0906/sap-assistant-desktop.git
+cd sap-assistant-desktop
 
 # 런타임 확인
 npm run check:runtime
