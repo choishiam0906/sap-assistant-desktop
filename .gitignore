@@ -13,11 +13,8 @@ env/
 
 # Node
 node_modules/
-frontend/dist/
-frontend/build/
-desktop/dist/
-desktop/dist-renderer/
-desktop/release/
+dist-renderer/
+release/
 *.tsbuildinfo
 
 # Environment
