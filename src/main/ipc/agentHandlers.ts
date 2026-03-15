@@ -5,47 +5,48 @@ import type { AgentExecutionListOptions } from "../storage/repositories/agentExe
 import { listAgentDefinitions, getAgentDefinition, listCustomAgentDefinitions } from "../agents/registry.js";
 import { saveCustomAgent, deleteCustomAgent, getAgentFolderPath } from "../agents/agentLoaderService.js";
 import type { IpcContext } from "./types.js";
+import { IPC } from "./channels.js";
 
 export function registerAgentHandlers(ctx: IpcContext): void {
-  ipcMain.handle("agents:list", (_e, domainPack?: DomainPack) => {
+  ipcMain.handle(IPC.AGENTS_LIST, (_e, domainPack?: DomainPack) => {
     return listAgentDefinitions(domainPack);
   });
 
-  ipcMain.handle("agents:get", (_e, id: string) => {
+  ipcMain.handle(IPC.AGENTS_GET, (_e, id: string) => {
     return getAgentDefinition(id);
   });
 
-  ipcMain.handle("agents:execute", async (_e, agentId: string, domainPack: DomainPack) => {
+  ipcMain.handle(IPC.AGENTS_EXECUTE, async (_e, agentId: string, domainPack: DomainPack) => {
     return ctx.agentExecutor.startExecution(agentId, domainPack);
   });
 
-  ipcMain.handle("agents:execution:status", (_e, execId: string) => {
+  ipcMain.handle(IPC.AGENTS_EXECUTION_STATUS, (_e, execId: string) => {
     return ctx.agentExecutor.getStatus(execId);
   });
 
-  ipcMain.handle("agents:executions:list", (_e, opts?: AgentExecutionListOptions) => {
+  ipcMain.handle(IPC.AGENTS_EXECUTIONS_LIST, (_e, opts?: AgentExecutionListOptions) => {
     return ctx.agentExecutionRepo.list(opts);
   });
 
-  ipcMain.handle("agents:execution:cancel", async (_e, execId: string) => {
+  ipcMain.handle(IPC.AGENTS_EXECUTION_CANCEL, async (_e, execId: string) => {
     return ctx.agentExecutor.cancelExecution(execId);
   });
 
   // ─── 커스텀 에이전트 CRUD ───
 
-  ipcMain.handle("agents:listCustom", () => {
+  ipcMain.handle(IPC.AGENTS_LIST_CUSTOM, () => {
     return listCustomAgentDefinitions();
   });
 
-  ipcMain.handle("agents:saveCustom", (_e, content: string, fileName: string) => {
+  ipcMain.handle(IPC.AGENTS_SAVE_CUSTOM, (_e, content: string, fileName: string) => {
     saveCustomAgent(content, fileName);
   });
 
-  ipcMain.handle("agents:deleteCustom", (_e, fileName: string) => {
+  ipcMain.handle(IPC.AGENTS_DELETE_CUSTOM, (_e, fileName: string) => {
     deleteCustomAgent(fileName);
   });
 
-  ipcMain.handle("agents:openFolder", async () => {
+  ipcMain.handle(IPC.AGENTS_OPEN_FOLDER, async () => {
     await shell.openPath(getAgentFolderPath());
   });
 }

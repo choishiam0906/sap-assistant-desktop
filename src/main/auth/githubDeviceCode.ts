@@ -8,6 +8,7 @@
  */
 
 import type { AppConfig } from "../config.js";
+import { logger } from "../logger.js";
 
 // ── 타입 ──
 
@@ -83,9 +84,7 @@ export async function initiateDeviceCode(
     cancelled: false,
   };
 
-  console.log(
-    `[DeviceCode] GitHub device code 발급 완료 (user_code: ${data.user_code})`
-  );
+  logger.debug({ userCode: data.user_code }, '[DeviceCode] GitHub device code 발급 완료');
 
   return {
     userCode: data.user_code,
@@ -144,7 +143,7 @@ export async function pollDeviceCode(): Promise<string> {
     };
 
     if (data.access_token) {
-      console.log("[DeviceCode] GitHub 인증 성공");
+      logger.info('[DeviceCode] GitHub 인증 성공');
       pending = null;
       return data.access_token;
     }

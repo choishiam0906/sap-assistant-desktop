@@ -1,6 +1,7 @@
 import { X, CheckCircle2, Loader2, XCircle, Clock } from 'lucide-react'
 import type { AgentExecution, AgentStepResult } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
+import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 
 interface AgentExecutionModalProps {
   execution: AgentExecution
@@ -54,11 +55,15 @@ function statusVariant(status: AgentExecution['status']): 'success' | 'warning' 
 }
 
 export function AgentExecutionModal({ execution, onClose }: AgentExecutionModalProps) {
+  const trapRef = useFocusTrap<HTMLDivElement>()
+
   return (
     <div className="agent-modal-backdrop" onClick={onClose}>
       <div
+        ref={trapRef}
         className="agent-modal"
         role="dialog"
+        aria-modal="true"
         aria-label="실행 결과 상세"
         onClick={(e) => e.stopPropagation()}
       >

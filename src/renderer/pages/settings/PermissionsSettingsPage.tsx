@@ -3,6 +3,7 @@ import {
   SettingsCard,
   SettingsRow,
 } from '../../components/settings/primitives/index.js'
+import './PermissionsSettingsPage.css'
 import { Badge } from '../../components/ui/Badge.js'
 import {
   useWorkspaceStore,

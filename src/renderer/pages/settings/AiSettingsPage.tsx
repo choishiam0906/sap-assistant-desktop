@@ -3,6 +3,7 @@
 // 기존 컴포넌트를 그대로 재사용하되 페이지 래퍼만 교체합니다.
 
 import { SettingsAiSection } from '../../components/settings/SettingsAiSection.js'
+import './AiSettingsPage.css'
 
 export function AiSettingsPage() {
   return <SettingsAiSection />

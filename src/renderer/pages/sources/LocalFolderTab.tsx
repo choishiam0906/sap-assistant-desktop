@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { FolderSearch, RefreshCw, FileText, X } from 'lucide-react'
+import { queryKeys } from '../../hooks/queryKeys.js'
 import type { ConfiguredSource, SourceDocument, VaultClassification } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
-import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore.js'
+import { useWorkspaceStore } from '../../stores/workspaceStore.js'
 import { formatTimestamp } from './utils.js'
 
 const api = window.sapOpsDesktop
@@ -23,7 +24,7 @@ export function LocalFolderTab() {
   const domainPack = useWorkspaceStore((state) => state.domainPack)
 
   const { data: configuredSources = [] } = useQuery({
-    queryKey: ['sources', 'configured'],
+    queryKey: queryKeys.sources.configured(),
     queryFn: () => api.listConfiguredSources(),
     staleTime: 15_000,
   })
@@ -34,7 +35,7 @@ export function LocalFolderTab() {
   )
 
   const { data: documents = [] } = useQuery({
-    queryKey: ['sources', 'documents', selectedSourceId, searchQuery, domainPack],
+    queryKey: queryKeys.sources.documents(selectedSourceId, searchQuery, domainPack),
     queryFn: () =>
       api.searchSourceDocuments({
         query: searchQuery.trim() || undefined,
@@ -63,8 +64,8 @@ export function LocalFolderTab() {
       setSelectedSourceId(result.source.id)
       setNewTitle('')
       setStatusMessage(`등록 완료: ${result.source.title} (${result.summary?.indexed ?? 0}개 색인)`)
-      await queryClient.invalidateQueries({ queryKey: ['sources', 'configured'] })
-      await queryClient.invalidateQueries({ queryKey: ['sources', 'documents'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.configured() })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.documents() })
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : '폴더 등록에 실패했습니다.')
     } finally {
@@ -78,8 +79,8 @@ export function LocalFolderTab() {
     try {
       const result = await api.reindexSource(source.id)
       setStatusMessage(`${result.source?.title ?? source.title} 재색인 완료 (${result.summary.indexed}개 색인)`)
-      await queryClient.invalidateQueries({ queryKey: ['sources', 'configured'] })
-      await queryClient.invalidateQueries({ queryKey: ['sources', 'documents'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.configured() })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.documents() })
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : '재색인에 실패했습니다.')
     } finally {

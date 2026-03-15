@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { logger } from "../logger.js";
 
 export interface Migration {
   version: number;
@@ -45,10 +46,16 @@ export class MigrationRunner {
 
     const applyAll = this.db.transaction(() => {
       for (const migration of pending) {
-        migration.up(this.db);
-        this.db
-          .prepare("INSERT INTO schema_version (version, name) VALUES (?, ?)")
-          .run(migration.version, migration.name);
+        try {
+          migration.up(this.db);
+          this.db
+            .prepare("INSERT INTO schema_version (version, name) VALUES (?, ?)")
+            .run(migration.version, migration.name);
+          logger.info({ version: migration.version, name: migration.name }, '마이그레이션 적용 완료');
+        } catch (error) {
+          logger.error({ version: migration.version, name: migration.name, error }, '마이그레이션 실패');
+          throw error;
+        }
       }
     });
 

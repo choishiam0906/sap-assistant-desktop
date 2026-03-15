@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlugZap, Unplug, Plus, Loader2, RefreshCw } from 'lucide-react'
+import { queryKeys } from '../../hooks/queryKeys.js'
 import type { ConfiguredSource, VaultClassification } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
@@ -25,7 +26,7 @@ export function McpSourcesTab() {
   const domainPack = useWorkspaceStore((state) => state.domainPack)
 
   const { data: configuredSources = [] } = useQuery({
-    queryKey: ['sources', 'configured'],
+    queryKey: queryKeys.sources.configured(),
     queryFn: () => api.listConfiguredSources(),
     staleTime: 15_000,
   })
@@ -36,13 +37,13 @@ export function McpSourcesTab() {
   )
 
   const { data: connectedServers = [] } = useQuery({
-    queryKey: ['mcp', 'servers'],
+    queryKey: queryKeys.mcp.servers(),
     queryFn: () => api.mcpListServers(),
     staleTime: 5_000,
   })
 
   const { data: mcpResources = [], isLoading: isLoadingResources } = useQuery({
-    queryKey: ['mcp', 'resources', selectedMcpServer],
+    queryKey: queryKeys.mcp.resources(selectedMcpServer),
     queryFn: () => api.mcpListResources(selectedMcpServer),
     enabled: selectedMcpServer !== '',
     staleTime: 10_000,
@@ -60,7 +61,7 @@ export function McpSourcesTab() {
       setMcpCommand('')
       setMcpArgs('')
       setMcpName('')
-      await queryClient.invalidateQueries({ queryKey: ['mcp', 'servers'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.mcp.servers() })
     } catch (error) {
       setMcpStatus(error instanceof Error ? error.message : 'MCP 서버 연결에 실패했습니다.')
     } finally {
@@ -74,8 +75,8 @@ export function McpSourcesTab() {
       await api.mcpDisconnect(serverName)
       setMcpStatus(`${serverName} 연결이 해제되었습니다.`)
       if (selectedMcpServer === serverName) setSelectedMcpServer('')
-      await queryClient.invalidateQueries({ queryKey: ['mcp', 'servers'] })
-      await queryClient.invalidateQueries({ queryKey: ['mcp', 'resources'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.mcp.servers() })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.mcp.resources(selectedMcpServer) })
     } catch (error) {
       setMcpStatus(error instanceof Error ? error.message : '연결 해제에 실패했습니다.')
     }
@@ -92,7 +93,7 @@ export function McpSourcesTab() {
       })
       setMcpStatus(`MCP Source 등록 완료: ${result.source.title} (${result.summary.indexed}개 색인)`)
       setMcpSourceTitle('')
-      await queryClient.invalidateQueries({ queryKey: ['sources', 'configured'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.configured() })
     } catch (error) {
       setMcpStatus(error instanceof Error ? error.message : 'MCP Source 등록에 실패했습니다.')
     } finally {
@@ -106,7 +107,7 @@ export function McpSourcesTab() {
     try {
       const result = await api.mcpSyncSource(source.id)
       setMcpStatus(`${source.title} 동기화 완료 (${result.summary.indexed}개 색인)`)
-      await queryClient.invalidateQueries({ queryKey: ['sources', 'configured'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.sources.configured() })
     } catch (error) {
       setMcpStatus(error instanceof Error ? error.message : 'MCP 동기화에 실패했습니다.')
     } finally {

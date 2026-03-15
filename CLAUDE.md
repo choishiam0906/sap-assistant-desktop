@@ -1,4 +1,4 @@
-# CLAUDE.md - SAP Assistant Desktop Platform v5.0.0
+# CLAUDE.md - SAP Assistant Desktop Platform v6.0.0
 
 ## 프로젝트 개요
 
@@ -10,7 +10,7 @@
 - **UI 라이브러리**: lucide-react (아이콘)
 - **스타일**: CSS 변수 시스템 (Tailwind/CSS-in-JS 미사용)
 
-**버전**: v5.0.0
+**버전**: v6.0.0
 
 ---
 
@@ -217,6 +217,15 @@ desktop/
 
 ---
 
+### v6.0 변경 사항 (기능 변경 0% — 코드 품질 개선)
+- **UI 대형 컴포넌트 분할**: ProcessHub 1,149→277줄, AgentsCatalog 430→185줄, SourcesPage 527→46줄, SettingsPage.css 모듈화
+- **접근성(a11y) 강화**: 모달 ARIA 속성, useFocusTrap/useKeyboardNav 훅, Button aria-busy
+- **React Query 최적화**: queryKeys 팩토리, 도메인별 staleTime/gcTime, QueryClient 분리
+- **Main Process 안정성**: console.log→logger, IPC 채널 타입 상수화, 마이그레이션 에러 처리
+- **테스트 커버리지 확대**: pkce, secureStore, policyEngine, migrationRunner 테스트 추가
+- **Zustand persist 통일**: 수동 localStorage → persist 미들웨어 전환
+- **빌드 파이프라인**: esbuild CJS 번들링 (Electron portable/NSIS 호환)
+
 ### v5.0 신규 기능
 - **DB 마이그레이션 시스템**: `src/main/storage/migrationRunner.ts` + `migrations/`
 - **LLM 스트리밍**: Provider 레벨 `sendMessageStream()`, IPC 스트리밍 채널
@@ -230,6 +239,7 @@ desktop/
 
 | 버전 | 날짜 | 변경 사항 |
 |------|------|----------|
+| 6.0.0 | 2026-03-15 | v6.0 코드 품질 개선: UI 분할, a11y, 캐싱, 안정성, 테스트, Zustand 통일, CJS 번들링 |
 | 5.0.0 | 2026-03-11 | v5.0 전체 구현: 스트리밍, 스케줄, 정책 엔진, 에러 복원력, DB 마이그레이션 |
 | 3.0.0 | 2026-03-09 | 프로젝트별 CLAUDE.md 작성 (초안) |
 

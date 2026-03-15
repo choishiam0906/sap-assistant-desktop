@@ -1,0 +1,464 @@
+/* ─── Add Connection Button ──────────────── */
+
+.add-connection-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  gap: 6px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-minimal);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  margin-top: 12px;
+}
+
+.add-connection-btn:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text);
+}
+
+/* ─── Fullscreen Setup Wizard (craft OnboardingWizard 패턴) ── */
+
+.setup-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  animation: wizardFadeIn 0.2s ease-out;
+}
+
+@keyframes wizardFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.setup-close-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-minimal);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  z-index: 101;
+  transition: color var(--transition-fast);
+}
+
+.setup-close-btn:hover {
+  color: var(--color-text);
+}
+
+/* Wizard centered card — craft StepFormLayout: w-[28rem] flex-col items-center */
+
+.setup-wizard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28rem;
+  max-width: 90vw;
+  animation: wizardSlideUp 0.25s ease-out;
+}
+
+@keyframes wizardSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.setup-wizard-icon {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+}
+
+.setup-wizard-icon-svg {
+  color: var(--color-primary);
+}
+
+.setup-wizard-icon-success {
+  color: var(--color-success);
+}
+
+.setup-wizard-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.setup-wizard-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+  max-width: 24rem;
+  margin: 0;
+}
+
+.setup-wizard-content {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.setup-wizard-actions {
+  margin-top: 24px;
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Wizard Provider Cards — craft ProviderSelectStep */
+
+.wizard-provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wizard-provider-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-minimal);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.wizard-provider-card:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+}
+
+.wizard-provider-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wizard-provider-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.wizard-provider-icon img {
+  border-radius: 4px;
+}
+
+.wizard-provider-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.wizard-provider-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.wizard-provider-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.wizard-connected-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-success);
+  background: var(--color-success-bg, rgba(34, 197, 94, 0.1));
+  border-radius: var(--radius-full, 999px);
+}
+
+/* Wizard Back/Connect buttons — craft BackButton/ContinueButton */
+
+.wizard-back-btn {
+  flex: 1;
+  max-width: 200px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-minimal);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.wizard-back-btn:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.wizard-connect-btn {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* ─── Setup Form (reused in wizard credentials step) ── */
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.setup-form-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.setup-form-hint code {
+  font-family: var(--font-mono);
+  background: var(--color-bg-tertiary);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+/* ─── API Key Input ──────────────────────── */
+
+.api-key-input-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.api-key-input {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: inherit;
+}
+
+.api-key-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.toggle-visibility {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-visibility:hover {
+  color: var(--color-text);
+}
+
+/* ─── Auth Method Selection (OAuth 하이브리드) ── */
+
+.auth-method-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.auth-method-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-minimal);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.auth-method-card:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.auth-method-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-method-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.auth-method-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.auth-method-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.auth-method-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* OAuth 대기 spinner */
+
+.oauth-waiting-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 성공 화면 Provider 아이콘 */
+
+.setup-success-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setup-success-provider {
+  border-radius: 4px;
+}
+
+/* ─── Device Code (GitHub Copilot) ─── */
+
+.device-code-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: var(--color-surface-elevated, var(--color-bg-secondary));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  margin-bottom: 16px;
+}
+
+.device-code-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  color: var(--color-text-primary);
+  user-select: all;
+}
+
+.device-code-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.device-code-copy-btn:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.device-code-hint {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.device-code-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.device-code-link:hover {
+  text-decoration: underline;
+}
+
+.device-code-waiting-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+}
+
+.device-code-waiting-indicator .oauth-waiting-spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}

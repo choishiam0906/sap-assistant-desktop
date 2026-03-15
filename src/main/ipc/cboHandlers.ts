@@ -11,38 +11,39 @@ import type {
 } from "../contracts.js";
 import { parseCboFile } from "../cbo/parser.js";
 import type { IpcContext } from "./types.js";
+import { IPC } from "./channels.js";
 
 let folderAbortController: AbortController | null = null;
 
 export function registerCboHandlers(ctx: IpcContext): void {
-  ipcMain.handle("cbo:analyzeText", async (_event, input: CboAnalyzeTextInput) => {
+  ipcMain.handle(IPC.CBO_ANALYZE_TEXT, async (_event, input: CboAnalyzeTextInput) => {
     return ctx.cboAnalyzer.analyzeText(input);
   });
 
-  ipcMain.handle("cbo:analyzeFile", async (_event, input: CboAnalyzeFileInput) => {
+  ipcMain.handle(IPC.CBO_ANALYZE_FILE, async (_event, input: CboAnalyzeFileInput) => {
     return ctx.cboAnalyzer.analyzeFile(input);
   });
 
-  ipcMain.handle("cbo:analyzeFolder", async (_event, input: CboAnalyzeFolderInput) => {
+  ipcMain.handle(IPC.CBO_ANALYZE_FOLDER, async (_event, input: CboAnalyzeFolderInput) => {
     folderAbortController = new AbortController();
     const mainWindow = ctx.getMainWindow();
     try {
       return await ctx.cboBatchRuntime.analyzeFolder(input, {
         signal: folderAbortController.signal,
-        onProgress: (event) => mainWindow?.webContents.send("cbo:progress", event),
+        onProgress: (event) => mainWindow?.webContents.send(IPC.CBO_PROGRESS, event),
       });
     } finally {
       folderAbortController = null;
     }
   });
 
-  ipcMain.handle("cbo:cancelFolder", () => {
+  ipcMain.handle(IPC.CBO_CANCEL_FOLDER, () => {
     folderAbortController?.abort();
     folderAbortController = null;
   });
 
   ipcMain.handle(
-    "cbo:pickAndAnalyzeFile",
+    IPC.CBO_PICK_AND_ANALYZE_FILE,
     async (_event, input: CboAnalyzePickInput = {}) => {
       const dialogOptions: OpenDialogOptions = {
         title: "CBO 소스 파일 선택",
@@ -81,7 +82,7 @@ export function registerCboHandlers(ctx: IpcContext): void {
   );
 
   ipcMain.handle(
-    "cbo:pickAndAnalyzeFolder",
+    IPC.CBO_PICK_AND_ANALYZE_FOLDER,
     async (_event, input: CboAnalyzeFolderPickInput = {}) => {
       const mainWindow = ctx.getMainWindow();
       const selection = mainWindow
@@ -117,7 +118,7 @@ export function registerCboHandlers(ctx: IpcContext): void {
           },
           {
             signal: folderAbortController.signal,
-            onProgress: (event) => mainWindow?.webContents.send("cbo:progress", event),
+            onProgress: (event) => mainWindow?.webContents.send(IPC.CBO_PROGRESS, event),
           }
         );
       } finally {
@@ -132,25 +133,25 @@ export function registerCboHandlers(ctx: IpcContext): void {
     }
   );
 
-  ipcMain.handle("cbo:runs:list", async (_event, limit = 20) => {
+  ipcMain.handle(IPC.CBO_RUNS_LIST, async (_event, limit = 20) => {
     return ctx.cboBatchRuntime.listRuns(limit);
   });
 
   ipcMain.handle(
-    "cbo:runs:detail",
+    IPC.CBO_RUNS_DETAIL,
     async (_event, runId: string, limitFiles = 500) => {
       return ctx.cboBatchRuntime.getRunDetail(runId, limitFiles);
     }
   );
 
   ipcMain.handle(
-    "cbo:runs:syncKnowledge",
+    IPC.CBO_RUNS_SYNC_KNOWLEDGE,
     async (_event, input: CboSyncKnowledgeInput) => {
       return ctx.cboBatchRuntime.syncRunToKnowledge(input);
     }
   );
 
-  ipcMain.handle("cbo:runs:diff", async (_event, input: CboRunDiffInput) => {
+  ipcMain.handle(IPC.CBO_RUNS_DIFF, async (_event, input: CboRunDiffInput) => {
     return ctx.cboBatchRuntime.diffRuns(input);
   });
 }

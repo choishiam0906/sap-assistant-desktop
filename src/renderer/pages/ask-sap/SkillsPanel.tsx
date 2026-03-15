@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Wrench, ShieldCheck, X, FileCode, BookOpen, CheckCircle2, AlertCircle } from 'lucide-react'
+import { queryKeys } from '../../hooks/queryKeys.js'
 import type { SapSkillDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore.js'
@@ -18,13 +19,13 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
   const [selectedSkill, setSelectedSkill] = useState<SapSkillDefinition | null>(null)
 
   const { data: skillPacks = [] } = useQuery({
-    queryKey: ['skills', 'packs'],
+    queryKey: queryKeys.skills.packs(),
     queryFn: () => api.listSkillPacks(),
     staleTime: 60_000,
   })
 
   const { data: skills = [] } = useQuery({
-    queryKey: ['skills', 'all'],
+    queryKey: queryKeys.skills.all(),
     queryFn: () => api.listSkills(),
     staleTime: 60_000,
   })

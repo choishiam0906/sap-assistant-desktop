@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import type { ClosingStep, SapLabel, StepStatus } from '../../../main/contracts'
 import { SAP_LABELS } from '../../../main/types/session'
 import { useUpdateStep } from '../../hooks/useClosingPlans'
+import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 
 const STEP_STATUSES: { value: StepStatus; label: string }[] = [
   { value: 'pending', label: '대기' },
@@ -23,6 +24,7 @@ export function StepEditModal({ step, onClose }: StepEditModalProps) {
   const [deadline, setDeadline] = useState(step.deadline)
   const [status, setStatus] = useState<StepStatus>(step.status)
   const updateStep = useUpdateStep()
+  const trapRef = useFocusTrap<HTMLDivElement>()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -46,10 +48,17 @@ export function StepEditModal({ step, onClose }: StepEditModalProps) {
 
   return (
     <div className="closing-modal-backdrop" onClick={onClose}>
-      <div className="closing-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={trapRef}
+        className="closing-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="step-edit-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="closing-modal-header">
-          <h2>Step 수정</h2>
-          <button type="button" className="cockpit-icon-btn" onClick={onClose}>
+          <h2 id="step-edit-title">Step 수정</h2>
+          <button type="button" className="cockpit-icon-btn" onClick={onClose} aria-label="닫기">
             <X size={16} />
           </button>
         </div>

@@ -2,20 +2,33 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../workspaceStore'
 import type { DomainPack } from '../../../main/contracts'
 
+const PERSIST_KEY = 'workspace-store'
+
+function getPersistedDomainPack(): string | null {
+  const raw = localStorage.getItem(PERSIST_KEY)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw).state.domainPack ?? null
+  } catch {
+    return null
+  }
+}
+
 describe('workspaceStore', () => {
   beforeEach(() => {
+    vi.restoreAllMocks()
+    localStorage.clear()
     useWorkspaceStore.setState({
       domainPack: 'ops',
     })
-    vi.restoreAllMocks()
   })
 
   describe('setDomainPack', () => {
-    it('domainPack을 변경하고 localStorage에 저장한다', () => {
+    it('domainPack을 변경하고 persist 미들웨어를 통해 저장한다', () => {
       useWorkspaceStore.getState().setDomainPack('functional')
 
       expect(useWorkspaceStore.getState().domainPack).toBe('functional')
-      expect(localStorage.getItem('sap-assistant-domain-pack')).toBe('functional')
+      expect(getPersistedDomainPack()).toBe('functional')
     })
 
     it('모든 domainPack 값을 설정할 수 있다', () => {
@@ -33,18 +46,17 @@ describe('workspaceStore', () => {
       useWorkspaceStore.getState().applyRecommendedCboWorkspace()
 
       expect(useWorkspaceStore.getState().domainPack).toBe('cbo-maintenance')
-      expect(localStorage.getItem('sap-assistant-domain-pack')).toBe('cbo-maintenance')
+      expect(getPersistedDomainPack()).toBe('cbo-maintenance')
     })
   })
 
-  describe('localStorage 에러 처리', () => {
-    it('localStorage.setItem 실패 시에도 상태는 정상 업데이트된다', () => {
-      vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
-        throw new Error('QuotaExceededError')
-      })
+  describe('persist 미들웨어 동작', () => {
+    it('persist 미들웨어가 workspace-store 키에 상태를 저장한다', () => {
+      useWorkspaceStore.getState().setDomainPack('pi-integration')
 
-      useWorkspaceStore.getState().setDomainPack('functional')
-      expect(useWorkspaceStore.getState().domainPack).toBe('functional')
+      const raw = localStorage.getItem(PERSIST_KEY)
+      expect(raw).not.toBeNull()
+      expect(JSON.parse(raw!).state.domainPack).toBe('pi-integration')
     })
   })
 

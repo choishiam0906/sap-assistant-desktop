@@ -6,12 +6,13 @@ import type {
   SessionFilter,
   TodoStateKind,
 } from '../../main/contracts'
+import { queryKeys } from './queryKeys.js'
 
 const api = window.sapOpsDesktop
 
 export function useSessionsFiltered(filter: SessionFilter, limit = 50) {
   return useQuery<ChatSessionMeta[]>({
-    queryKey: ['sessions:filtered', filter, limit],
+    queryKey: queryKeys.sessions.filtered(filter, limit),
     queryFn: async () => {
       const list = await api.listSessionsFiltered(filter, limit)
       return Array.isArray(list) ? list : []
@@ -21,7 +22,7 @@ export function useSessionsFiltered(filter: SessionFilter, limit = 50) {
 
 export function useSessionStats() {
   return useQuery<CockpitStats>({
-    queryKey: ['sessions:stats'],
+    queryKey: queryKeys.sessions.stats(),
     queryFn: () => api.getSessionStats(),
     refetchInterval: 30_000,
   })
@@ -31,7 +32,7 @@ function useInvalidateCockpit() {
   const qc = useQueryClient()
   return () => {
     qc.invalidateQueries({ queryKey: ['sessions:filtered'] })
-    qc.invalidateQueries({ queryKey: ['sessions:stats'] })
+    qc.invalidateQueries({ queryKey: queryKeys.sessions.stats() })
   }
 }
 

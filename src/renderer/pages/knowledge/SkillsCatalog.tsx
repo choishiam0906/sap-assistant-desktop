@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, FolderOpen, Pencil, Trash2 } from 'lucide-react'
+import { queryKeys } from '../../hooks/queryKeys.js'
 import type { SapSkillDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
@@ -18,7 +19,7 @@ export function SkillsCatalog() {
   const [editingSkill, setEditingSkill] = useState<SapSkillDefinition | null>(null)
 
   const { data: customSkills = [] } = useQuery({
-    queryKey: ['skills', 'custom'],
+    queryKey: queryKeys.skills.custom(),
     queryFn: () => api.listCustomSkills(),
     staleTime: 30_000,
   })

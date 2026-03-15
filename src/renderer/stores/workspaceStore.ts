@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { DomainPack } from '../../main/contracts'
 
 export type { DomainPack }
@@ -11,8 +12,6 @@ interface DomainPackDetail {
   inputPlaceholder: string
   suggestions: string[]
 }
-
-const DOMAIN_PACK_KEY = 'sap-assistant-domain-pack'
 
 export const DOMAIN_PACK_DETAILS: Record<DomainPack, DomainPackDetail> = {
   ops: {
@@ -83,47 +82,41 @@ interface WorkspaceState {
   applyRecommendedCboWorkspace: () => void
 }
 
-function getInitialDomainPack(): DomainPack {
-  try {
-    const stored = localStorage.getItem(DOMAIN_PACK_KEY)
-    if (
-      stored === 'ops' ||
-      stored === 'functional' ||
-      stored === 'cbo-maintenance' ||
-      stored === 'pi-integration' ||
-      stored === 'btp-rap-cap'
-    ) {
-      return stored
+const OLD_KEY = 'sap-assistant-domain-pack'
+
+export const useWorkspaceStore = create<WorkspaceState>()(
+  persist(
+    (set) => ({
+      domainPack: 'ops' as DomainPack,
+      setDomainPack: (domainPack) => set({ domainPack }),
+      applyRecommendedCboWorkspace: () => set({ domainPack: 'cbo-maintenance' as DomainPack }),
+    }),
+    {
+      name: 'workspace-store',
+      partialize: (state) => ({ domainPack: state.domainPack }),
+      version: 1,
+      migrate: (persisted) => {
+        // 기존 분산 키에서 마이그레이션 (v0 → v1)
+        const state = persisted as Partial<Pick<WorkspaceState, 'domainPack'>>
+        if (!state.domainPack) {
+          try {
+            const legacy = localStorage.getItem(OLD_KEY)
+            if (
+              legacy === 'ops' ||
+              legacy === 'functional' ||
+              legacy === 'cbo-maintenance' ||
+              legacy === 'pi-integration' ||
+              legacy === 'btp-rap-cap'
+            ) {
+              localStorage.removeItem(OLD_KEY)
+              return { domainPack: legacy }
+            }
+          } catch {
+            // localStorage 접근 실패 무시
+          }
+        }
+        return state as Pick<WorkspaceState, 'domainPack'>
+      },
     }
-  } catch {
-    // localStorage 접근 실패는 무시하고 기본값을 사용한다.
-  }
-
-  return 'ops'
-}
-
-function persistWorkspace(partial: Partial<Pick<WorkspaceState, 'domainPack'>>): void {
-  try {
-    if (partial.domainPack) {
-      localStorage.setItem(DOMAIN_PACK_KEY, partial.domainPack)
-    }
-  } catch {
-    // 저장 실패는 무시하고 세션 상태만 갱신한다.
-  }
-}
-
-export const useWorkspaceStore = create<WorkspaceState>((set) => ({
-  domainPack: getInitialDomainPack(),
-  setDomainPack: (domainPack) => {
-    persistWorkspace({ domainPack })
-    set({ domainPack })
-  },
-  applyRecommendedCboWorkspace: () => {
-    persistWorkspace({
-      domainPack: 'cbo-maintenance',
-    })
-    set({
-      domainPack: 'cbo-maintenance',
-    })
-  },
-}))
+  )
+)

@@ -1,4 +1,5 @@
 import type { DomainPack } from '../../../main/contracts.js'
+import './WorkspaceSettingsPage.css'
 import {
   SettingsSection,
   SettingsRadioCard,

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Shield, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { queryKeys } from '../../hooks/queryKeys.js'
 import {
   SettingsSection,
   SettingsCard,
@@ -49,7 +50,7 @@ export function PolicySettingsPage() {
   const [newValue, setNewValue] = useState('')
 
   const { data: rules = [] } = useQuery<PolicyRule[]>({
-    queryKey: ['policy', 'rules'],
+    queryKey: queryKeys.policy.rules(),
     queryFn: () => api.listPolicyRules(),
     staleTime: 30_000,
   })
@@ -62,7 +63,7 @@ export function PolicySettingsPage() {
         action: newAction,
       }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['policy'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.policy.all })
       setShowCreate(false)
       setNewName('')
       setNewValue('')
@@ -72,12 +73,12 @@ export function PolicySettingsPage() {
   const toggleMutation = useMutation({
     mutationFn: (rule: PolicyRule) =>
       api.updatePolicyRule(rule.id, { enabled: !rule.enabled }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['policy'] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.policy.all }),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.deletePolicyRule(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['policy'] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.policy.all }),
   })
 
   return (

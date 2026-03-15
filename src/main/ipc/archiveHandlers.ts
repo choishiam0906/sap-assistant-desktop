@@ -8,6 +8,7 @@ import type {
   SaveArchiveFileInput,
 } from "../types/archive.js";
 import type { IpcContext } from "./types.js";
+import { IPC } from "./channels.js";
 
 const TEXT_EXTENSIONS = new Set([".txt", ".md", ".abap", ".log"]);
 
@@ -60,7 +61,7 @@ async function buildTree(
 }
 
 export function registerArchiveHandlers(ctx: IpcContext): void {
-  ipcMain.handle("archive:pickFolder", async () => {
+  ipcMain.handle(IPC.ARCHIVE_PICK_FOLDER, async () => {
     const mainWindow = ctx.getMainWindow();
     const selection = mainWindow
       ? await dialog.showOpenDialog(mainWindow, {
@@ -80,7 +81,7 @@ export function registerArchiveHandlers(ctx: IpcContext): void {
   });
 
   ipcMain.handle(
-    "archive:listContents",
+    IPC.ARCHIVE_LIST_CONTENTS,
     async (_event, input: ListArchiveContentsInput) => {
       const maxDepth = input.maxDepth ?? 3;
       return buildTree(input.folderPath, 1, maxDepth);
@@ -88,7 +89,7 @@ export function registerArchiveHandlers(ctx: IpcContext): void {
   );
 
   ipcMain.handle(
-    "archive:readFile",
+    IPC.ARCHIVE_READ_FILE,
     async (_event, input: ReadArchiveFileInput) => {
       const content = await fs.readFile(input.filePath, "utf-8");
       const stat = await fs.stat(input.filePath);
@@ -97,7 +98,7 @@ export function registerArchiveHandlers(ctx: IpcContext): void {
   );
 
   ipcMain.handle(
-    "archive:saveFile",
+    IPC.ARCHIVE_SAVE_FILE,
     async (_event, input: SaveArchiveFileInput) => {
       try {
         // 상위 디렉토리가 없으면 생성

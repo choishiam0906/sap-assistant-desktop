@@ -1,4 +1,5 @@
 import { SettingsSection, SettingsCard } from '../../components/settings/primitives/index.js'
+import './ShortcutsSettingsPage.css'
 
 const SHORTCUTS = {
   chat: [

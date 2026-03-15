@@ -14,6 +14,7 @@ import { Badge } from '../ui/Badge.js'
 import { SettingsCard } from '../ui/SettingsCard.js'
 import { DropdownSelect } from '../ui/DropdownSelect.js'
 import { ActionMenu } from '../ui/ActionMenu.js'
+import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import { useSettingsStore, type ThinkingLevel } from '../../stores/settingsStore.js'
 import {
   useWorkspaceStore,
@@ -188,6 +189,7 @@ export function SettingsAiSection() {
 
   // Setup wizard 상태
   const [showSetup, setShowSetup] = useState(false)
+  const setupTrapRef = useFocusTrap<HTMLDivElement>(showSetup)
   const [setupStep, setSetupStep] = useState<SetupStep>('connectionMethod')
   const [setupMode, setSetupMode] = useState<SetupMode>('add')
   const [setupProvider, setSetupProvider] = useState<ProviderType | null>(null)
@@ -740,7 +742,7 @@ export function SettingsAiSection() {
 
       {/* ── Fullscreen Setup Wizard ── */}
       {showSetup && (
-        <div className="setup-fullscreen" role="dialog" aria-modal="true" aria-label="연결 설정">
+        <div ref={setupTrapRef} className="setup-fullscreen" role="dialog" aria-modal="true" aria-label="연결 설정">
           <button className="setup-close-btn" onClick={closeSetup} aria-label="닫기" title="닫기 (Esc)">
             <X size={14} />
           </button>

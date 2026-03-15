@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { queryKeys } from '../../hooks/queryKeys.js'
 import type { ChatSession, SapSkillDefinition } from '../../../main/contracts.js'
 import {
   useChatSession,
@@ -48,17 +49,17 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
   const { data: messages = [] } = useMessages(currentSessionId ?? null)
   const sendMutation = useSendMessage()
   const { data: skills = [] } = useQuery({
-    queryKey: ['skills', 'all'],
+    queryKey: queryKeys.skills.all(),
     queryFn: () => api.listSkills(),
     staleTime: 60_000,
   })
   const { data: recommendations = [] } = useQuery({
-    queryKey: ['skills', 'recommend', domainPack],
+    queryKey: queryKeys.skills.recommend(domainPack),
     queryFn: () => api.recommendSkills({ domainPack, dataType: 'chat' }),
     staleTime: 30_000,
   })
   const { data: sources = [] } = useQuery({
-    queryKey: ['sources', domainPack, caseContext?.runId ?? '', caseContext?.filePath ?? '', caseContext?.objectName ?? ''],
+    queryKey: queryKeys.sources.list(domainPack, caseContext?.runId ?? '', caseContext?.filePath ?? '', caseContext?.objectName ?? ''),
     queryFn: () =>
       api.listSources({ domainPack, dataType: 'chat', caseContext: caseContext ?? undefined }),
     staleTime: 30_000,
@@ -99,7 +100,7 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
           setInput('')
           setCurrentSessionId(result.session.id)
           setLastExecutionMeta(result.meta)
-          queryClient.invalidateQueries({ queryKey: ['messages', result.session.id] })
+          queryClient.invalidateQueries({ queryKey: queryKeys.messages.list(result.session.id, 100) })
         },
         onError: (err) => {
           setError(err instanceof Error ? err.message : '메시지 전송에 실패했어요')

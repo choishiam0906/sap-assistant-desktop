@@ -1,6 +1,6 @@
 {
   "name": "sap-assistant-desktop-platform",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "private": true,
   "description": "SAP Assistant Desktop Platform desktop runtime (user OAuth: Codex + Copilot)",
   "author": "boxlogodev",
@@ -13,8 +13,8 @@
     "npm": ">=10.9.4 <11"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.preload.json && tsc -p tsconfig.json && vite build --config vite.renderer.config.ts",
-    "build:main": "tsc -p tsconfig.preload.json && tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.preload.json && tsc -p tsconfig.json && node scripts/bundle-main.mjs && vite build --config vite.renderer.config.ts",
+    "build:main": "tsc -p tsconfig.preload.json && tsc -p tsconfig.json && node scripts/bundle-main.mjs",
     "build:renderer": "vite build --config vite.renderer.config.ts",
     "check:runtime": "node ./scripts/check-runtime.mjs",
     "dev": "tsx src/main/index.ts",
@@ -79,6 +79,9 @@
     "vitest": "^4.0.18"
   },
   "build": {
+    "extraMetadata": {
+      "main": "dist/main/index.cjs"
+    },
     "appId": "com.boxlogodev.sap-assistant",
     "productName": "SAP Assistant Desktop Platform",
     "directories": {

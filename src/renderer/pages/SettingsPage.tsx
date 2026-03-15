@@ -4,7 +4,7 @@ import { SettingsNavigator } from './settings/SettingsNavigator.js'
 import { SETTINGS_PAGES } from './settings/settings-pages.js'
 import { PageHeader } from '../components/ui/PageHeader.js'
 import '../components/settings/primitives/settings-primitives.css'
-import './SettingsPage.css'
+import './settings/settings-common.css'
 
 export function SettingsPage() {
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('app')

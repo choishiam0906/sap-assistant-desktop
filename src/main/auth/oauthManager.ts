@@ -8,6 +8,7 @@ import {
   SetApiKeyInput,
 } from "../contracts.js";
 import type { AppConfig } from "../config.js";
+import { logger } from "../logger.js";
 import { ProviderAccountRepository } from "../storage/repositories/index.js";
 import { SecureStore } from "./secureStore.js";
 import { randomCodeVerifier, codeChallenge, randomState } from "./pkce.js";
@@ -193,7 +194,7 @@ export class OAuthManager {
 
     const authUrl = `${oauthConfig.authorizationUrl}?${params.toString()}`;
 
-    console.log(`[OAuth] ${provider} 인증 URL:`, authUrl);
+    logger.debug({ provider, authUrl }, '[OAuth] 인증 URL');
 
     this.pendingOAuth.set(provider, {
       provider,
@@ -352,14 +353,13 @@ export class OAuthManager {
       code_verifier: pending.codeVerifier,
     };
 
-    console.log(`[OAuth] ${provider} 토큰 교환 요청:`, {
+    logger.debug({
+      provider,
       url: oauthConfig.tokenUrl,
       contentType: oauthConfig.tokenContentType,
       codeLength: code.length,
-      codePrefix: code.slice(0, 8) + "...",
       hasState: !!codeState,
-      redirectUri: pending.redirectUri,
-    });
+    }, '[OAuth] 토큰 교환 요청');
 
     const tokenRes = await fetch(oauthConfig.tokenUrl, {
       method: "POST",
@@ -378,12 +378,12 @@ export class OAuthManager {
 
     if (!tokenRes.ok) {
       const errText = await tokenRes.text();
-      console.error(`[OAuth] ${provider} 토큰 교환 실패:`, {
+      logger.error({
+        provider,
         status: tokenRes.status,
         body: errText,
         codeLength: code.length,
-        hasHash: code.includes("#"),
-      });
+      }, '[OAuth] 토큰 교환 실패');
       throw new Error(
         `토큰 교환 실패 (${tokenRes.status}): ${errText} [code=${code.length}자, state=${codeState ? "있음" : "없음"}]`
       );
@@ -414,20 +414,17 @@ export class OAuthManager {
     let finalAccessToken = tokenData.access_token;
 
     if (oauthConfig.requiresTokenExchange && tokenData.id_token) {
-      console.log(`[OAuth] ${provider} id_token → API Key 변환 시도`);
+      logger.debug({ provider }, '[OAuth] id_token → API Key 변환 시도');
       try {
         const apiKey = await this.exchangeIdTokenForApiKey(
           oauthConfig,
           tokenData.id_token
         );
         finalAccessToken = apiKey;
-        console.log(`[OAuth] ${provider} API Key 변환 성공`);
+        logger.info({ provider }, '[OAuth] API Key 변환 성공');
       } catch (err) {
         // Codex CLI와 동일: 변환 실패 시 access_token으로 폴백
-        console.warn(
-          `[OAuth] ${provider} API Key 변환 실패 (access_token 사용):`,
-          err instanceof Error ? err.message : err
-        );
+        logger.warn({ provider, error: err instanceof Error ? err.message : err }, '[OAuth] API Key 변환 실패, access_token 사용');
       }
     }
 
@@ -535,12 +532,10 @@ export class OAuthManager {
       requested_token: "openai-api-key",
     });
 
-    console.log(`[OAuth] Token Exchange 요청:`, {
+    logger.debug({
       url: oauthConfig.tokenUrl,
-      grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
-      subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
-      requested_token: "openai-api-key",
-    });
+      grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+    }, '[OAuth] Token Exchange 요청');
 
     const res = await fetch(oauthConfig.tokenUrl, {
       method: "POST",
@@ -553,10 +548,7 @@ export class OAuthManager {
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error(`[OAuth] Token Exchange 실패:`, {
-        status: res.status,
-        body: errText,
-      });
+      logger.error({ status: res.status, body: errText }, '[OAuth] Token Exchange 실패');
       throw new Error(
         `API Key 변환 실패 (${res.status}): ${errText}`
       );

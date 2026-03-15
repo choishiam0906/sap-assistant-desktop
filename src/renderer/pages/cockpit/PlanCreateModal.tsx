@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import type { PlanType } from '../../../main/contracts'
 import { useCreatePlan } from '../../hooks/useClosingPlans'
+import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 
 const PLAN_TYPES: { value: PlanType; label: string }[] = [
   { value: 'monthly', label: '월마감' },
@@ -20,6 +21,7 @@ export function PlanCreateModal({ onClose }: PlanCreateModalProps) {
   const [type, setType] = useState<PlanType>('monthly')
   const [targetDate, setTargetDate] = useState('')
   const createPlan = useCreatePlan()
+  const trapRef = useFocusTrap<HTMLDivElement>()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,10 +40,17 @@ export function PlanCreateModal({ onClose }: PlanCreateModalProps) {
 
   return (
     <div className="closing-modal-backdrop" onClick={onClose}>
-      <div className="closing-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={trapRef}
+        className="closing-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="plan-create-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="closing-modal-header">
-          <h2>새 마감 Plan 생성</h2>
-          <button type="button" className="cockpit-icon-btn" onClick={onClose}>
+          <h2 id="plan-create-title">새 마감 Plan 생성</h2>
+          <button type="button" className="cockpit-icon-btn" onClick={onClose} aria-label="닫기">
             <X size={16} />
           </button>
         </div>

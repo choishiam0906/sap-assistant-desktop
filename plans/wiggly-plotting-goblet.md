@@ -1,222 +1,306 @@
-# v5.0 통합 계획: GitHub 원격 커밋 머지 + 소스 검색 고도화
+# v6.0 고도화: UI · 안정성 · 테스트 · DX 전반 개선
 
 ## Context
 
-### 현재 상황
-- **로컬 (HEAD=2d1de1c)**: v5.0 기능 구현 완료 (미커밋, 28+12 파일)
-  - DB 마이그레이션, LLM 스트리밍, 스케줄 자동실행, 정책 엔진, 에러 복원력
-- **원격 (origin/main=49cd70a)**: 1커밋 앞서있음 — `feat: expand knowledge workflows and source handoff`
-  - 코드랩 → Knowledge 메뉴 이동 (이미 완료!)
-  - ProcessHub 1149줄 신규 컴포넌트
-  - RoutineKnowledgeLink 시스템 (DB + Repository + IPC + UI)
-  - **Skill Registry 소스 검색 고도화** (핵심! 소스 원문 포함 + 키워드 랭킹)
+v5.0 기능 구현 + v5.0 코드 정리(Phase 1~4)가 완료된 상태에서, **신규 기능 추가 없이** UI 대형 컴포넌트 분할, 접근성 강화, 캐싱 전략 최적화, Main Process 안정성, 테스트 커버리지 확대, 상태 관리 통일을 수행한다.
 
-### 해결할 문제
-1. 로컬 v5.0 변경과 원격 커밋 충돌 해소 (10+ 파일 충돌 예상)
-2. 코드랩 소스를 Chat에서 찾지 못하는 문제 → 원격의 registry 개선 반영
-3. 원격 커밋의 미완성/개선 가능 영역 보완
+**기능 변경 0%** — 동작은 100% 동일하게 유지하면서 코드 품질만 개선.
 
----
-
-## Phase 1: v5.0 로컬 변경 커밋
-
-v5.0 작업을 먼저 커밋하여 merge 기반을 확보한다.
-
-```bash
-git add -A
-git commit -m "feat(v5.0): DB 마이그레이션 + 스트리밍 + 스케줄 + 정책엔진 + 에러복원력"
-```
+### 현재 기술 부채 요약
+- ProcessHub.tsx 1,149줄 (God Component)
+- AgentsCatalog.tsx 430줄, knowledge/SourcesPage.tsx 527줄
+- SettingsPage.css 1,353줄 단일 파일
+- Main Process 테스트 1/12 (skills/registry.test.ts만 존재)
+- React Query staleTime/gcTime 미설정 (전체 기본값)
+- Zustand persist 전략 혼재 (수동 localStorage vs persist 미들웨어)
+- console.log 직접 사용 2곳 (oauthManager, githubDeviceCode)
+- IPC 채널명 문자열 리터럴 분산 (타입 안전성 없음)
 
 ---
 
-## Phase 2: 원격 머지 + 충돌 해소
+## Phase A: UI 대형 컴포넌트 분할
 
-```bash
-git merge origin/main --no-ff
-```
+### A-1. ProcessHub.tsx (1,149줄 → 8개 모듈)
 
-### 충돌 파일별 해소 전략 (10개)
+현재 구조: 6개 인터페이스, 10개 useState, 8개 useQuery/useMutation, 1,100줄 JSX 혼재
 
-| # | 파일 | 로컬 변경 | 원격 변경 | 해소 전략 |
-|---|------|----------|----------|----------|
-| 1 | `src/main/index.ts` | schedule/policy repos 추가 | knowledgeLink repo 추가 | **양쪽 모두 유지** — knowledgeLink repo를 initRuntime()에 추가 |
-| 2 | `src/main/ipc/types.ts` | schedule/policy 타입 | knowledgeLink 타입 | **양쪽 모두 유지** — IpcContext에 `routineKnowledgeLinkRepo` 추가 |
-| 3 | `src/main/storage/sqlite.ts` | migration runner 도입 | knowledge_links 인라인 스키마 | **migration 004 생성** — 인라인 대신 `004_v5_knowledge_links.ts` 마이그레이션으로 전환 |
-| 4 | `src/main/storage/repositories.ts` | schedule repos export | knowledgeLink export | **양쪽 모두 유지** |
-| 5 | `src/preload/index.ts` | streaming/schedule/policy API | knowledge link API | **양쪽 모두 유지** |
-| 6 | `src/renderer/components/Sidebar.tsx` | v4.0→v5.0 버전 | 코드랩 Knowledge로 이동 | **원격 구조 채택 + v5.0 유지** |
-| 7 | `src/renderer/__tests__/setup.ts` | v5.0 mock 추가 | knowledge link mock 추가 | **양쪽 mock 모두 추가** |
-| 8 | `package.json` | node-cron, version 5.0.0 | scripts, deps | **양쪽 모두 유지** |
-| 9 | `CLAUDE.md` | v5.0 문서 | README/docs 변경 | **v5.0 문서 우선, 원격 추가사항 병합** |
-| 10 | `src/main/ipc/routineHandlers.ts` | (없음) | knowledge:link/unlink 핸들러 | **원격 채택** |
+**신규 파일:**
+- `src/renderer/pages/knowledge/process/ProcessFilterBar.tsx` (~120줄) — 빈도/상태 필터 UI
+- `src/renderer/pages/knowledge/process/ProcessListSection.tsx` (~180줄) — 프로세스 목록
+- `src/renderer/pages/knowledge/process/ProcessDetailSection.tsx` (~200줄) — 선택 프로세스 상세
+- `src/renderer/pages/knowledge/process/ProcessEditorModal.tsx` (~250줄) — 생성/편집 모달 + 스텝 폼
+- `src/renderer/pages/knowledge/process/RelatedKnowledgePanel.tsx` (~150줄) — Vault/문서 연결 패널
+- `src/renderer/pages/knowledge/process/useProcessHub.ts` (~100줄) — 데이터 페칭 훅 추출
 
-### 원격에서 가져오는 신규 파일 (충돌 없음)
+**수정 파일:**
+- `src/renderer/pages/knowledge/ProcessHub.tsx` — 1,149줄 → ~150줄 (오케스트레이션 + 레이아웃)
 
-| 파일 | 설명 |
-|------|------|
-| `src/renderer/pages/knowledge/ProcessHub.tsx` (1149줄) | 프로세스 관리 UI |
-| `src/renderer/pages/knowledge/ProcessHub.css` (698줄) | ProcessHub 스타일 |
-| `src/main/storage/repositories/routineKnowledgeLinkRepository.ts` | Knowledge 연결 CRUD |
-| `src/renderer/hooks/useRoutineTemplates.ts` | Routine 관련 React hooks |
-| `src/renderer/pages/__tests__/KnowledgePage.test.tsx` | Knowledge 페이지 테스트 |
-| `src/main/skills/__tests__/registry.test.ts` | Skill registry 테스트 |
-| `scripts/check-runtime.mjs`, `scripts/start-electron.mjs` | 실행 스크립트 |
-| `.node-version`, `.nvmrc` | Node 버전 파일 |
+**원칙:** 인터페이스(`ProcessDraft`, `ProcessDetail` 등)와 상수(`MODULE_OPTIONS`)는 부모에 유지, props로 전달.
+
+### A-2. AgentsCatalog.tsx (430줄 → 4개 모듈)
+
+**신규 파일:**
+- `src/renderer/pages/knowledge/agents/AgentListSection.tsx` (~120줄) — 프리셋/커스텀 탭 + 목록
+- `src/renderer/pages/knowledge/agents/AgentDetailPanel.tsx` (~100줄) — 선택 에이전트 상세 + 실행
+- `src/renderer/pages/knowledge/agents/AgentExecutionList.tsx` (~80줄) — 실행 이력
+
+**수정 파일:**
+- `src/renderer/pages/knowledge/AgentsCatalog.tsx` — 430줄 → ~130줄
+
+### A-3. knowledge/SourcesPage.tsx (527줄 → 3개 모듈)
+
+현재: 로컬 폴더 + MCP 탭이 하나의 컴포넌트에 혼재, useState 12개
+
+**신규 파일:**
+- `src/renderer/pages/knowledge/sources/KnLocalFolderTab.tsx` (~200줄) — 로컬 폴더 관리
+- `src/renderer/pages/knowledge/sources/KnMcpTab.tsx` (~200줄) — MCP 서버 관리
+
+**수정 파일:**
+- `src/renderer/pages/knowledge/SourcesPage.tsx` — 527줄 → ~80줄 (탭 라우터)
+
+**주의:** `pages/sources/` (SapAssistant 소스 탭)과 네이밍 충돌 방지 → `Kn` 접두사 사용
+
+### A-4. SettingsPage.css 모듈화 (1,353줄)
+
+**신규 파일:**
+- `src/renderer/pages/settings/settings-common.css` (~200줄) — 공유 레이아웃
+- `src/renderer/pages/settings/PolicySettingsPage.css` (~250줄) — 정책 페이지 전용
+- `src/renderer/pages/settings/AiSettingsPage.css` (~100줄) — AI 설정 전용
+- 기타 설정 페이지별 CSS (6~8개, 각 60~100줄)
+
+**수정 파일:**
+- `src/renderer/pages/SettingsPage.css` — **삭제**
+- `src/renderer/pages/SettingsPage.tsx` — import 경로 수정
+- 각 설정 페이지 .tsx — 자기 CSS import 추가
+
+**예상: 수정 ~5, 신규 ~20, 삭제 1**
 
 ---
 
-## Phase 3: 핵심 통합 작업
+## Phase B: 접근성(a11y) 강화
 
-### 3-1. Knowledge 메뉴 네비게이션 통합
+### B-1. ARIA 속성 보강
 
-**파일**: `src/renderer/components/Sidebar.tsx`
+**수정 파일 (모든 UI 컴포넌트 + 페이지):**
+- 모달 → `role="dialog"`, `aria-modal="true"`, `aria-labelledby`
+- 드롭다운 → `aria-expanded`, `aria-haspopup`
+- 로딩 영역 → `aria-busy`, `aria-live="polite"`
+- 인터랙티브 아이콘 버튼 → `aria-label` 추가
 
-원격의 구조를 채택하되 v5.0 변경(버전 표시, ChatMode 탭 버그 수정)을 유지:
+**대상 파일:** ~15개 (ProcessHub, AgentsCatalog, SourcesPage, CockpitPage, ChatPage 등)
 
-```
-SAP 어시스턴트
-  ├─ 대화
-  ├─ 중요 세션
-  └─ 보관함
+### B-2. 키보드 네비게이션 & 포커스 관리
 
-Knowledge (defaultSubPage: 'code-lab')
-  ├─ 프로세스      ← 원격 신규
-  ├─ 코드 랩       ← SAP 어시스턴트에서 이동
-  ├─ 스킬
-  ├─ 에이전트
-  └─ 볼트
-```
+**신규 파일:**
+- `src/renderer/hooks/useFocusTrap.ts` (~60줄) — 모달 포커스 갇히기
+- `src/renderer/hooks/useKeyboardNav.ts` (~50줄) — 리스트 화살표 키 탐색
 
-**파일**: `src/renderer/stores/appShellStore.ts` — 원격 버전 채택 (KnowledgeSubPage에 'process', CodeLabSubPage 포함)
+**수정 파일:**
+- 모달 사용 컴포넌트 — useFocusTrap 통합
+- ActionMenu, DropdownSelect — useKeyboardNav 통합
 
-**파일**: `src/renderer/pages/KnowledgePage.tsx` — 원격 버전 채택 (ProcessHub + CodeLabMode 렌더링)
+**예상: 수정 ~15, 신규 2**
 
-### 3-2. DB 마이그레이션에 Knowledge Links 통합
+---
 
-**신규 파일**: `src/main/storage/migrations/004_v5_knowledge_links.ts`
+## Phase C: React Query 캐싱 전략
+
+### C-1. queryKey 팩토리 패턴
+
+**신규 파일:**
+- `src/renderer/hooks/queryKeys.ts` (~80줄)
 
 ```typescript
-export const migration004: Migration = {
-  version: 4,
-  name: "v5_knowledge_links",
-  up(db) {
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS routine_knowledge_links (
-        id TEXT PRIMARY KEY,
-        template_id TEXT NOT NULL REFERENCES routine_templates(id) ON DELETE CASCADE,
-        target_type TEXT NOT NULL,
-        target_id TEXT NOT NULL,
-        title TEXT NOT NULL,
-        excerpt TEXT,
-        location TEXT,
-        classification TEXT,
-        source_type TEXT,
-        created_at TEXT NOT NULL
-      );
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_routine_knowledge_target
-      ON routine_knowledge_links(template_id, target_type, target_id);
-      CREATE INDEX IF NOT EXISTS idx_routine_knowledge_template
-      ON routine_knowledge_links(template_id, created_at DESC);
-    `);
-  },
-};
+export const queryKeys = {
+  sessions: { all: ['sessions'] as const, list: (limit: number) => ['sessions', limit] as const },
+  messages: { all: (sid: string) => ['messages', sid] as const },
+  routines: { templates: () => ['routine:templates'] as const, ... },
+  closing:  { plans: () => ['closing:plans'] as const, ... },
+  agents:   { all: () => ['agents'] as const, ... },
+  // ...
+}
 ```
 
-`sqlite.ts`에서 원격의 인라인 스키마는 제거하고, migration runner가 처리하도록 통합.
+### C-2. staleTime/gcTime 도메인별 명시
 
-### 3-3. Skill Registry 소스 검색 고도화 (핵심 버그 수정)
+**수정 파일 (11개 훅):**
 
-**파일**: `src/main/skills/registry.ts` — 원격 버전 전면 채택
+| 훅 | staleTime | gcTime | 근거 |
+|----|-----------|--------|------|
+| useMessages | 24시간 | 7일 | 과거 메시지 불변 |
+| useSessions | 30초 | 5분 | 중간 빈도 갱신 |
+| useRoutineTemplates | 60초 | 10분 | 정의 변경 드묾 |
+| useClosingPlans | 60초 | 10분 | 계획 변경 드묾 |
+| useAuditLogs | 30초 | 2분 | 빠른 갱신 필요 |
+| useCboRuns | 15초 | 5분 | 분석 중 갱신 |
+| useVault | 60초 | 10분 | 변경 드묾 |
 
-원격이 추가한 핵심 개선:
-- `buildInlineSourceContext(title, filePath, content)` — 소스 원문을 프롬프트에 포함 (최대 12K자)
-- `buildConfiguredSourceContext(title, documents)` — 문서 원문 포함 + 문서당 4K자 제한
-- `rankDocumentsForMessage(documents, message)` — 사용자 메시지 키워드로 관련성 정렬
-- `truncateForPrompt(content, maxChars)` — 안전한 잘림 처리 ("... (생략)")
-- 검색 limit 3 → 10, 랭킹 후 상위 3개 선택
+### C-3. QueryClient 기본값 + 전역 에러 핸들러
 
-**왜 이전에 소스를 못 찾았나**:
-1. 기존: configured-source 문서의 경로/요약만 프롬프트에 포함 → LLM이 원문 모름
-2. 개선: 문서 원문(contentText)을 직접 프롬프트 컨텍스트에 포함 → LLM이 실제 코드 참조 가능
+**신규 파일:**
+- `src/renderer/lib/queryClient.ts` (~30줄) — QueryClient 생성 + 기본 옵션
 
-### 3-4. CBO 분석 → Chat Handoff 개선
+**수정 파일:**
+- `src/renderer/main.tsx` — 인라인 QueryClient → import로 교체
 
-**파일**: `src/main/ipc/cboHandlers.ts` — 원격 채택
-- `pickAndAnalyzeCboFile`: 분석 결과에 `sourceContent` 포함
-- `AnalysisMode.tsx`의 `handoffToChat()`: `caseContext.sourceContent`에 원문 전달
-- Chat에서 후속 질문 시 skill registry가 원문을 프롬프트에 포함
+**예상: 수정 ~12, 신규 2**
 
 ---
 
-## Phase 4: 추가 고도화 (원격 커밋 보완)
+## Phase D: Main Process 안정성
 
-### 4-1. ProcessHub ↔ v5.0 RoutineScheduler 연결
+### D-1. console.log → logger 전환
 
-현재 ProcessHub는 루틴 템플릿 CRUD만 하고, v5.0의 RoutineScheduler(cron 자동실행)와 연결되지 않음.
+**수정 파일:**
+- `src/main/auth/oauthManager.ts` — console.log 6곳 → logger.debug/info
+- `src/main/auth/githubDeviceCode.ts` — console.log → logger.debug
 
-**추가 작업**:
-- ProcessHub에 "이 프로세스 자동 실행 예약" 버튼 추가
-- 클릭 시 `scheduled_tasks` 테이블에 cron 등록
-- ProcessHub 상세 화면에 다음 실행 시간 표시
+### D-2. IPC 채널명 타입 상수화
 
-### 4-2. 소스 검색 UX 개선
+**신규 파일:**
+- `src/main/ipc/channels.ts` (~120줄) — 전체 IPC 채널명 상수 + 타입
 
-Chat에서 어떤 소스가 실제로 사용됐는지 사용자에게 피드백:
-- 기존 `lastExecutionMeta.sources`에 `"(원문 포함)"` 표시 반영
-- Chat 결과에 "참고한 소스 N건" badge 표시 (이미 있음, 정확도 개선)
+```typescript
+export const IPC = {
+  AUTH_SET_API_KEY: 'auth:setApiKey',
+  CHAT_SEND: 'chat:send',
+  CHAT_STREAM: 'chat:stream-message',
+  // ... 119개 채널
+} as const
+export type IpcChannel = typeof IPC[keyof typeof IPC]
+```
+
+**수정 파일:**
+- `src/main/ipc/*.ts` (11개 핸들러) — 문자열 → `IPC.CHANNEL_NAME`
+- `src/preload/index.ts` — 문자열 → `IPC.CHANNEL_NAME`
+
+### D-3. 마이그레이션 에러 처리
+
+**수정 파일:**
+- `src/main/storage/migrationRunner.ts` — run() 내 개별 마이그레이션 try-catch + 로깅
+
+**예상: 수정 ~15, 신규 1**
 
 ---
 
-## 수정 파일 전체 목록
+## Phase E: 테스트 커버리지 확대
 
-### 충돌 해소 (Phase 2) — 10개
-1. `src/main/index.ts`
-2. `src/main/ipc/types.ts`
-3. `src/main/storage/sqlite.ts`
-4. `src/main/storage/repositories.ts`
-5. `src/main/storage/repositories/index.ts`
-6. `src/preload/index.ts`
-7. `src/renderer/components/Sidebar.tsx`
-8. `src/renderer/__tests__/setup.ts`
-9. `package.json` / `package-lock.json`
-10. `CLAUDE.md`
+### E-1. Main Process 테스트 추가
 
-### 통합 작업 (Phase 3) — 5개
-11. `src/renderer/stores/appShellStore.ts` (원격 채택)
-12. `src/renderer/pages/KnowledgePage.tsx` (원격 채택 + 병합)
-13. `src/main/skills/registry.ts` (원격 채택)
-14. `src/main/ipc/cboHandlers.ts` (원격 채택)
-15. `src/main/storage/migrations/004_v5_knowledge_links.ts` (신규)
-16. `src/main/storage/migrations/index.ts` (migration004 추가)
+**신규 파일:**
+- `src/main/auth/__tests__/oauthManager.test.ts` (~150줄)
+- `src/main/auth/__tests__/secureStore.test.ts` (~100줄)
+- `src/main/auth/__tests__/pkce.test.ts` (~80줄)
+- `src/main/policy/__tests__/policyEngine.test.ts` (~120줄)
+- `src/main/storage/__tests__/migrationRunner.test.ts` (~100줄)
+- `src/main/services/__tests__/routineExecutor.test.ts` (~100줄)
 
-### 원격 신규 파일 추가 — 8개
-17-24. ProcessHub, ProcessHub.css, routineKnowledgeLinkRepository, useRoutineTemplates, 테스트 2개, 스크립트 2개, 버전 파일 2개
+### E-2. vitest coverage threshold 설정
 
-### 고도화 (Phase 4) — 2~3개
-25. `src/renderer/pages/knowledge/ProcessHub.tsx` (스케줄 연결 버튼)
-26. `src/main/ipc/scheduleHandlers.ts` (ProcessHub 연동)
+**수정 파일:**
+- `vitest.config.ts` — coverage 섹션에 threshold 추가
+
+```typescript
+coverage: {
+  provider: 'v8',
+  reporter: ['text', 'json-summary'],
+  thresholds: { lines: 40, functions: 40, branches: 30 },
+}
+```
+
+### E-3. Main Process 테스트 환경 설정
+
+**신규 파일:**
+- `src/main/__tests__/setup.ts` (~30줄) — better-sqlite3 mock, logger mock
+
+**수정 파일:**
+- `vitest.config.ts` — Main process 테스트용 별도 설정 (environment: 'node')
+
+**예상: 수정 2, 신규 7~8**
 
 ---
 
-## 검증 계획
+## Phase F: Zustand 전략 통일
 
-### 타입 체크
-```bash
-npm run typecheck  # 3개 tsconfig 모두 통과 확인
+### F-1. 수동 localStorage → persist 미들웨어 통일
+
+**수정 파일:**
+- `src/renderer/stores/workspaceStore.ts` — 수동 localStorage → persist 미들웨어
+- `src/renderer/stores/settingsStore.ts` — 분산된 개별 persist → 통합 persist
+
+**패턴:**
+```typescript
+// Before (수동)
+const domainPack = localStorage.getItem('domainPack') || 'ops'
+set({ domainPack }); localStorage.setItem('domainPack', domainPack)
+
+// After (persist 미들웨어)
+create<State>()(persist((set) => ({ domainPack: 'ops', ... }), {
+  name: 'workspace-store',
+  partialize: (s) => ({ domainPack: s.domainPack }),
+}))
 ```
 
-### 테스트
-```bash
-npm run test:run   # 기존 78개 + 신규 테스트 모두 통과
+### F-2. partialize 패턴 확대
+
+휘발성 상태(isLoading, error 등)는 저장하지 않도록 partialize 적용.
+
+**수정 파일:** 5~6개 스토어
+
+**예상: 수정 ~6, 신규 0**
+
+---
+
+## 실행 순서 및 의존성
+
+```
+Phase A (UI 분할) ──────────────────────┐
+                                        ├─→ Phase B (a11y, A 분할 후 적용)
+Phase C (React Query, A와 독립) ────────┘
+Phase D (Main Process, 독립) ───────────→ Phase E (테스트, D 후)
+Phase F (Zustand, 독립)
 ```
 
-### 수동 테스트
-1. **소스 검색 확인**: 코드랩에 .ts 파일 추가 → Chat에서 해당 코드 질문 → 원문 기반 응답 확인
-2. **네비게이션**: Knowledge → 코드랩/프로세스/스킬/에이전트/볼트 전환 확인
-3. **ProcessHub**: 프로세스 생성 → Knowledge 연결 → 실행 이력 확인
-4. **탭 버그 수정**: SAP 어시스턴트 → 대화/중요세션/보관함 탭 클릭 정상 작동
+**병렬 실행 가능:**
+- A + C + D + F는 서로 독립 (파일 겹침 없음)
+- B는 A 이후 (분할된 컴포넌트에 a11y 적용)
+- E는 D 이후 (logger, 채널 타입화 후 테스트 작성)
 
-### 빌드
-```bash
-npm run dist:portable  # 포터블 exe 빌드 성공
-```
+**Teammate 에이전트 병렬 전략:**
+- **Agent 1**: Phase A (UI 분할) — frontend-builder
+- **Agent 2**: Phase C (React Query) — frontend-builder
+- **Agent 3**: Phase D (Main Process 안정성) — backend-builder
+- **Agent 4**: Phase F (Zustand 통일) — frontend-builder
+- 완료 후 → Agent 5: Phase B (a11y) — frontend-builder
+- 완료 후 → Agent 6: Phase E (테스트) — test-writer
+
+---
+
+## Phase별 검증
+
+| Phase | 검증 명령 | 기준 |
+|-------|----------|------|
+| A | `npm run typecheck && npm run test:run` | 83개 테스트 통과, 0 TS 에러 |
+| B | `npm run typecheck && npm run lint` | a11y 속성 추가 확인 |
+| C | `npm run typecheck && npm run test:run` | 기존 테스트 통과 |
+| D | `npm run typecheck && npm run test:run` | 기존 테스트 통과 |
+| E | `npm run test:run && npm run test:coverage` | 커버리지 40%+ |
+| F | `npm run typecheck && npm run test:run` | 기존 테스트 통과 |
+
+**최종:** `npm run verify`
+
+---
+
+## 수정 파일 요약
+
+| Phase | 수정 | 신규 | 삭제 |
+|-------|------|------|------|
+| A | ~5 | ~20 | 1 |
+| B | ~15 | 2 | 0 |
+| C | ~12 | 2 | 0 |
+| D | ~15 | 1 | 0 |
+| E | 2 | ~8 | 0 |
+| F | ~6 | 0 | 0 |
+| **합계** | **~55** | **~33** | **1** |
+
+**각 Phase 완료 후 커밋하여 원자적 롤백 가능하게 유지.**

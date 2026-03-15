@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { FileText } from 'lucide-react'
+import { queryKeys } from '../../hooks/queryKeys.js'
 import { useCboStore } from '../../stores/cboStore.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { LlmOptions } from '../../components/cbo/LlmOptions.js'
@@ -40,7 +41,7 @@ export function AnalysisMode() {
   const cboWorkspaceReady = domainPack === 'cbo-maintenance'
 
   const { data: libraryDocuments = [] } = useQuery({
-    queryKey: ['sources', 'documents', 'cbo-library', librarySearch, domainPack],
+    queryKey: queryKeys.sources.documents('cbo-library', librarySearch, domainPack),
     queryFn: () =>
       api.searchSourceDocuments({
         query: librarySearch.trim() || undefined,

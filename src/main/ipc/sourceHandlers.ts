@@ -10,34 +10,35 @@ import type { McpServerConfig } from "../sources/mcpConnector.js";
 import { listCustomSkillDefinitions } from "../skills/registry.js";
 import { saveCustomSkill, deleteCustomSkill, getSkillFolderPath } from "../skills/skillLoaderService.js";
 import type { IpcContext } from "./types.js";
+import { IPC } from "./channels.js";
 
 export function registerSourceHandlers(ctx: IpcContext): void {
-  ipcMain.handle("skills:list", async () => {
+  ipcMain.handle(IPC.SKILLS_LIST, async () => {
     return ctx.skillRegistry.listSkills();
   });
 
-  ipcMain.handle("skills:listPacks", async () => {
+  ipcMain.handle(IPC.SKILLS_LIST_PACKS, async () => {
     return ctx.skillRegistry.listPacks();
   });
 
-  ipcMain.handle("skills:recommend", async (_event, context: SkillExecutionContext) => {
+  ipcMain.handle(IPC.SKILLS_RECOMMEND, async (_event, context: SkillExecutionContext) => {
     return ctx.skillRegistry.recommendSkills(context);
   });
 
-  ipcMain.handle("sources:list", async (_event, context: SkillExecutionContext) => {
+  ipcMain.handle(IPC.SOURCES_LIST, async (_event, context: SkillExecutionContext) => {
     return ctx.skillRegistry.listSources(context);
   });
 
-  ipcMain.handle("sources:search", async (_event, query: string, context: SkillExecutionContext) => {
+  ipcMain.handle(IPC.SOURCES_SEARCH, async (_event, query: string, context: SkillExecutionContext) => {
     return ctx.skillRegistry.searchSources(query, context);
   });
 
-  ipcMain.handle("sources:listConfigured", async () => {
+  ipcMain.handle(IPC.SOURCES_LIST_CONFIGURED, async () => {
     return ctx.configuredSourceRepo.list();
   });
 
   ipcMain.handle(
-    "sources:pickAndAddLocalFolder",
+    IPC.SOURCES_PICK_AND_ADD_LOCAL_FOLDER,
     async (_event, input: PickAndAddLocalFolderSourceInput) => {
       const mainWindow = ctx.getMainWindow();
       const selection = mainWindow
@@ -67,7 +68,7 @@ export function registerSourceHandlers(ctx: IpcContext): void {
     }
   );
 
-  ipcMain.handle("sources:reindex", async (_event, sourceId: string) => {
+  ipcMain.handle(IPC.SOURCES_REINDEX, async (_event, sourceId: string) => {
     const summary = await ctx.localFolderLibrary.reindexSource(sourceId);
     return {
       source: ctx.configuredSourceRepo.getById(sourceId),
@@ -75,42 +76,42 @@ export function registerSourceHandlers(ctx: IpcContext): void {
     };
   });
 
-  ipcMain.handle("sources:searchDocuments", async (_event, input: SourceDocumentSearchInput) => {
+  ipcMain.handle(IPC.SOURCES_SEARCH_DOCUMENTS, async (_event, input: SourceDocumentSearchInput) => {
     return ctx.localFolderLibrary.searchDocuments(input);
   });
 
-  ipcMain.handle("sources:getDocument", async (_event, documentId: string) => {
+  ipcMain.handle(IPC.SOURCES_GET_DOCUMENT, async (_event, documentId: string) => {
     return ctx.sourceDocumentRepo.getById(documentId);
   });
 
   // ─── MCP IPC ───
 
-  ipcMain.handle("mcp:connect", async (_event, config: McpServerConfig) => {
+  ipcMain.handle(IPC.MCP_CONNECT, async (_event, config: McpServerConfig) => {
     await ctx.mcpConnector.connect(config);
     return { connected: true, name: config.name };
   });
 
-  ipcMain.handle("mcp:disconnect", async (_event, serverName: string) => {
+  ipcMain.handle(IPC.MCP_DISCONNECT, async (_event, serverName: string) => {
     await ctx.mcpConnector.disconnect(serverName);
     return { disconnected: true };
   });
 
-  ipcMain.handle("mcp:listServers", async () => {
+  ipcMain.handle(IPC.MCP_LIST_SERVERS, async () => {
     return ctx.mcpConnector.listConnectedServers();
   });
 
-  ipcMain.handle("mcp:listResources", async (_event, serverName: string) => {
+  ipcMain.handle(IPC.MCP_LIST_RESOURCES, async (_event, serverName: string) => {
     return ctx.mcpConnector.listResources(serverName);
   });
 
   ipcMain.handle(
-    "mcp:addSource",
+    IPC.MCP_ADD_SOURCE,
     async (_event, serverName: string, input: { title?: string; domainPack: DomainPack; classificationDefault: VaultClassification }) => {
       return ctx.mcpConnector.addSource(serverName, input);
     }
   );
 
-  ipcMain.handle("mcp:syncSource", async (_event, sourceId: string) => {
+  ipcMain.handle(IPC.MCP_SYNC_SOURCE, async (_event, sourceId: string) => {
     const summary = await ctx.mcpConnector.syncSource(sourceId);
     return {
       source: ctx.configuredSourceRepo.getById(sourceId),
@@ -120,19 +121,19 @@ export function registerSourceHandlers(ctx: IpcContext): void {
 
   // ─── 커스텀 스킬 CRUD ───
 
-  ipcMain.handle("skills:listCustom", () => {
+  ipcMain.handle(IPC.SKILLS_LIST_CUSTOM, () => {
     return listCustomSkillDefinitions();
   });
 
-  ipcMain.handle("skills:saveCustom", (_event, content: string, fileName: string) => {
+  ipcMain.handle(IPC.SKILLS_SAVE_CUSTOM, (_event, content: string, fileName: string) => {
     saveCustomSkill(content, fileName);
   });
 
-  ipcMain.handle("skills:deleteCustom", (_event, fileName: string) => {
+  ipcMain.handle(IPC.SKILLS_DELETE_CUSTOM, (_event, fileName: string) => {
     deleteCustomSkill(fileName);
   });
 
-  ipcMain.handle("skills:openFolder", async () => {
+  ipcMain.handle(IPC.SKILLS_OPEN_FOLDER, async () => {
     await shell.openPath(getSkillFolderPath());
   });
 }

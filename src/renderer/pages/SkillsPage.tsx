@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Sparkles, Wrench, ShieldCheck, X, FileCode, BookOpen, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Wrench, ShieldCheck, X, FileCode, BookOpen, CheckCircle2, AlertCircle } from 'lucide-react'
+import { queryKeys } from '../hooks/queryKeys.js'
 import type { SapSkillDefinition } from '../../main/contracts.js'
 import { Badge } from '../components/ui/Badge.js'
 import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../stores/workspaceStore.js'
+import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import './SkillsPage.css'
 
 const api = window.sapOpsDesktop
@@ -13,15 +15,16 @@ export function SkillsPage() {
   const packDetail = DOMAIN_PACK_DETAILS[domainPack]
   const [filterMode, setFilterMode] = useState<'compatible' | 'all'>('compatible')
   const [selectedSkill, setSelectedSkill] = useState<SapSkillDefinition | null>(null)
+  const skillModalRef = useFocusTrap<HTMLDivElement>(!!selectedSkill)
 
   const { data: skillPacks = [] } = useQuery({
-    queryKey: ['skills', 'packs'],
+    queryKey: queryKeys.skills.packs(),
     queryFn: () => api.listSkillPacks(),
     staleTime: 60_000,
   })
 
   const { data: skills = [] } = useQuery({
-    queryKey: ['skills', 'all'],
+    queryKey: queryKeys.skills.all(),
     queryFn: () => api.listSkills(),
     staleTime: 60_000,
   })
@@ -174,8 +177,10 @@ export function SkillsPage() {
       {selectedSkill && (
         <div className="skill-modal-backdrop" onClick={() => setSelectedSkill(null)}>
           <div
+            ref={skillModalRef}
             className="skill-modal"
             role="dialog"
+            aria-modal="true"
             aria-label={`${selectedSkill.title} 상세`}
             onClick={(event) => event.stopPropagation()}
           >

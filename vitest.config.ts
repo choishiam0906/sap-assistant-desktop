@@ -17,8 +17,20 @@ export default defineConfig({
     css: true,
     coverage: {
       provider: 'v8',
-      include: ['src/renderer/**/*.{ts,tsx}'],
-      exclude: ['src/renderer/__tests__/**', 'src/renderer/main.tsx'],
+      reporter: ['text', 'json-summary'],
+      include: ['src/renderer/**/*.{ts,tsx}', 'src/main/**/*.ts'],
+      exclude: [
+        'src/renderer/__tests__/**',
+        'src/renderer/main.tsx',
+        'src/main/**/__tests__/**',
+        'src/main/index.ts',
+        'src/main/logger.ts',
+      ],
+      thresholds: {
+        lines: 20,
+        functions: 20,
+        branches: 15,
+      },
     },
   },
 })

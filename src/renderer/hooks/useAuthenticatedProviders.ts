@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { ProviderType, ProviderAccount } from '../../main/contracts.js'
 import { PROVIDER_LABELS } from '../../main/contracts.js'
+import { queryKeys } from './queryKeys.js'
 
 const api = window.sapOpsDesktop
 
@@ -11,7 +12,7 @@ const ALL_PROVIDER_TYPES = Object.keys(PROVIDER_LABELS) as ProviderType[]
  */
 export function useAuthenticatedProviders() {
   const query = useQuery({
-    queryKey: ['auth', 'all-status'],
+    queryKey: queryKeys.auth.allStatus(),
     queryFn: async (): Promise<ProviderAccount[]> => {
       const results = await Promise.all(
         ALL_PROVIDER_TYPES.map(async (type) => {

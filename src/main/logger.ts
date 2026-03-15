@@ -15,11 +15,11 @@ function getLogPath(): string {
 
 const isDev = !app.isPackaged;
 
-const logger = pino({
-  level: isDev ? "debug" : "info",
-  transport: isDev
-    ? { target: "pino-pretty", options: { colorize: true, translateTime: "HH:MM:ss" } }
-    : { target: "pino/file", options: { destination: getLogPath() } },
-});
+const logger = isDev
+  ? pino({
+      level: "debug",
+      transport: { target: "pino-pretty", options: { colorize: true, translateTime: "HH:MM:ss" } },
+    })
+  : pino({ level: "info" }, pino.destination(getLogPath()));
 
 export { logger };

@@ -18,6 +18,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={`ui-btn ui-btn-${variant} ui-btn-${size} ${loading ? 'ui-btn-loading' : ''} ${className}`}
         disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...props}
       >
         {loading && <Loader2 size={size === 'sm' ? 14 : 16} className="ui-btn-spinner" aria-hidden="true" />}

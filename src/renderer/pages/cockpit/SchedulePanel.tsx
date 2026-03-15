@@ -7,6 +7,7 @@ import {
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
 import { PageHeader } from '../../components/ui/PageHeader.js'
+import { queryKeys } from '../../hooks/queryKeys.js'
 
 const api = window.sapOpsDesktop
 
@@ -62,19 +63,19 @@ export function SchedulePanel() {
   const [newTemplateId, setNewTemplateId] = useState('')
 
   const { data: tasks = [] } = useQuery<ScheduledTask[]>({
-    queryKey: ['schedule', 'tasks'],
+    queryKey: queryKeys.schedule.tasks(),
     queryFn: () => api.listScheduledTasks(),
     staleTime: 10_000,
   })
 
   const { data: templates = [] } = useQuery<RoutineTemplate[]>({
-    queryKey: ['routine', 'templates'],
+    queryKey: queryKeys.routines.templates(),
     queryFn: () => api.listRoutineTemplates(),
     staleTime: 60_000,
   })
 
   const { data: logs = [] } = useQuery<ScheduleLog[]>({
-    queryKey: ['schedule', 'logs', selectedTaskId],
+    queryKey: queryKeys.schedule.logs(selectedTaskId),
     queryFn: () =>
       selectedTaskId
         ? api.listScheduleLogs(selectedTaskId, 20)
@@ -88,7 +89,7 @@ export function SchedulePanel() {
       cronExpression: newCron,
     }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['schedule'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.schedule.all })
       setShowCreateForm(false)
       setNewCron('0 9 * * 1-5')
       setNewTemplateId('')
@@ -98,20 +99,20 @@ export function SchedulePanel() {
   const toggleMutation = useMutation({
     mutationFn: (task: ScheduledTask) =>
       api.updateScheduledTask(task.id, { enabled: !task.enabled }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['schedule'] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.schedule.all }),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.deleteScheduledTask(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['schedule'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.schedule.all })
       if (selectedTaskId) setSelectedTaskId(null)
     },
   })
 
   const executeNowMutation = useMutation({
     mutationFn: (id: string) => api.executeScheduleNow(id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['schedule'] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.schedule.all }),
   })
 
   const templateMap = new Map(templates.map((t) => [t.id, t]))

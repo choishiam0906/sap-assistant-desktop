@@ -8,31 +8,32 @@ import type {
 } from "../contracts.js";
 import type { IpcContext } from "./types.js";
 import { registerCrudHandlers } from "./helpers/registerCrudHandlers.js";
+import { IPC } from "./channels.js";
 
 export function registerRoutineHandlers(ctx: IpcContext): void {
   // ─── 순수 패스쓰루 ───
   registerCrudHandlers({
-    "routine:templates:list": () => ctx.routineTemplateRepo.list(),
-    "routine:templates:listByFrequency": (frequency: RoutineFrequency) =>
+    [IPC.ROUTINE_TEMPLATES_LIST]: () => ctx.routineTemplateRepo.list(),
+    [IPC.ROUTINE_TEMPLATES_LIST_BY_FREQUENCY]: (frequency: RoutineFrequency) =>
       ctx.routineTemplateRepo.listByFrequency(frequency, false),
-    "routine:templates:create": (input: RoutineTemplateInput) =>
+    [IPC.ROUTINE_TEMPLATES_CREATE]: (input: RoutineTemplateInput) =>
       ctx.routineTemplateRepo.create(input),
-    "routine:templates:update": (payload: { id: string; patch: RoutineTemplateUpdate }) =>
+    [IPC.ROUTINE_TEMPLATES_UPDATE]: (payload: { id: string; patch: RoutineTemplateUpdate }) =>
       ctx.routineTemplateRepo.update(payload.id, payload.patch),
-    "routine:templates:delete": (id: string) => ctx.routineTemplateRepo.delete(id),
-    "routine:templates:toggle": (id: string) => ctx.routineTemplateRepo.toggle(id),
-    "routine:knowledge:list": (templateId: string) =>
+    [IPC.ROUTINE_TEMPLATES_DELETE]: (id: string) => ctx.routineTemplateRepo.delete(id),
+    [IPC.ROUTINE_TEMPLATES_TOGGLE]: (id: string) => ctx.routineTemplateRepo.toggle(id),
+    [IPC.ROUTINE_KNOWLEDGE_LIST]: (templateId: string) =>
       ctx.routineKnowledgeLinkRepo.listByTemplateId(templateId),
-    "routine:knowledge:link": (input: RoutineKnowledgeLinkInput) =>
+    [IPC.ROUTINE_KNOWLEDGE_LINK]: (input: RoutineKnowledgeLinkInput) =>
       ctx.routineKnowledgeLinkRepo.upsert(input),
-    "routine:knowledge:unlink": (id: string) => ctx.routineKnowledgeLinkRepo.delete(id),
-    "routine:execute:now": () => ctx.routineExecutor.executeDueRoutines(),
-    "routine:executions:list": (date?: string) => ctx.routineExecutionRepo.listByDate(date),
-    "routine:executions:planIds": (date: string) => ctx.routineExecutionRepo.getPlanIdsByDate(date),
+    [IPC.ROUTINE_KNOWLEDGE_UNLINK]: (id: string) => ctx.routineKnowledgeLinkRepo.delete(id),
+    [IPC.ROUTINE_EXECUTE_NOW]: () => ctx.routineExecutor.executeDueRoutines(),
+    [IPC.ROUTINE_EXECUTIONS_LIST]: (date?: string) => ctx.routineExecutionRepo.listByDate(date),
+    [IPC.ROUTINE_EXECUTIONS_PLAN_IDS]: (date: string) => ctx.routineExecutionRepo.getPlanIdsByDate(date),
   });
 
   // ─── 커스텀 로직 (template + steps 결합) ───
-  ipcMain.handle("routine:templates:get", (_e, id: string) => {
+  ipcMain.handle(IPC.ROUTINE_TEMPLATES_GET, (_e, id: string) => {
     const template = ctx.routineTemplateRepo.getById(id);
     if (!template) return null;
     const steps = ctx.routineTemplateRepo.getSteps(id);
