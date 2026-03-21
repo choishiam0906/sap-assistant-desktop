@@ -2,21 +2,17 @@ import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Wrench, ShieldCheck, X, FileCode, BookOpen, CheckCircle2, AlertCircle } from 'lucide-react'
 import { queryKeys } from '../../hooks/queryKeys.js'
-import type { SapSkillDefinition } from '../../../main/contracts.js'
+import type { SkillDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
-import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 interface SkillsPanelProps {
-  onSelectSkill?: (skill: SapSkillDefinition) => void
+  onSelectSkill?: (skill: SkillDefinition) => void
 }
 
 export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
-  const [filterMode, setFilterMode] = useState<'compatible' | 'all'>('compatible')
-  const [selectedSkill, setSelectedSkill] = useState<SapSkillDefinition | null>(null)
+  const [selectedSkill, setSelectedSkill] = useState<SkillDefinition | null>(null)
 
   const { data: skillPacks = [] } = useQuery({
     queryKey: queryKeys.skills.packs(),
@@ -30,23 +26,7 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
     staleTime: 60_000,
   })
 
-  const visiblePacks = useMemo(
-    () => skillPacks.filter((pack) => pack.domainPacks.includes(domainPack)),
-    [domainPack, skillPacks]
-  )
-
-  const filteredSkills = useMemo(() => {
-    if (filterMode === 'all') return skills
-    return skills.filter(
-      (skill) => skill.supportedDomainPacks.includes(domainPack)
-    )
-  }, [skills, domainPack, filterMode])
-
-  function isCompatible(skill: SapSkillDefinition): boolean {
-    return skill.supportedDomainPacks.includes(domainPack)
-  }
-
-  function handleSkillClick(skill: SapSkillDefinition) {
+  function handleSkillClick(skill: SkillDefinition) {
     setSelectedSkill(skill)
     onSelectSkill?.(skill)
   }
@@ -57,11 +37,10 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
         <div>
           <h1 className="page-title">Skills</h1>
           <p className="skills-copy">
-            워크스페이스 설정에 맞는 SAP Skill을 확인하고, 각 Skill의 상세 정보를 살펴볼 수 있습니다.
+            등록된 Skill을 확인하고, 각 Skill의 상세 정보를 살펴볼 수 있습니다.
           </p>
         </div>
         <div className="skills-badges">
-          <Badge variant="neutral">{packDetail.label}</Badge>
           <Badge variant="success">엔터프라이즈 보호</Badge>
         </div>
       </div>
@@ -70,11 +49,11 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
         <div className="skills-section-header">
           <div>
             <span className="skills-eyebrow">Skill Packs</span>
-            <h2>현재 워크스페이스에서 활성인 pack</h2>
+            <h2>활성 Skill Pack</h2>
           </div>
         </div>
         <div className="skills-pack-grid">
-          {visiblePacks.map((pack) => (
+          {skillPacks.map((pack) => (
             <article key={pack.id} className="skills-pack-card">
               <div className="skills-pack-header">
                 <div>
@@ -84,15 +63,12 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
                 <Badge variant="info">{pack.audience}</Badge>
               </div>
               <div className="skills-pack-meta">
-                {pack.domainPacks.map((item) => (
-                  <Badge key={item} variant="neutral">{item}</Badge>
-                ))}
                 <Badge variant="neutral">{pack.skillIds.length} skills</Badge>
               </div>
             </article>
           ))}
-          {visiblePacks.length === 0 && (
-            <div className="skills-empty">현재 Domain Pack에 맞는 Skill Pack이 없습니다.</div>
+          {skillPacks.length === 0 && (
+            <div className="skills-empty">등록된 Skill Pack이 없습니다.</div>
           )}
         </div>
       </section>
@@ -101,81 +77,53 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
         <div className="skills-section-header">
           <div>
             <span className="skills-eyebrow">Curated Skills</span>
-            <h2>SAP Skill Catalog</h2>
+            <h2>Skill Catalog</h2>
           </div>
           <div className="skills-filter-group">
-            <button
-              type="button"
-              className={`skills-filter-btn ${filterMode === 'compatible' ? 'active' : ''}`}
-              onClick={() => setFilterMode('compatible')}
-            >
-              호환 가능
-            </button>
-            <button
-              type="button"
-              className={`skills-filter-btn ${filterMode === 'all' ? 'active' : ''}`}
-              onClick={() => setFilterMode('all')}
-            >
-              전체 보기
-            </button>
-            <Badge variant="neutral">{filteredSkills.length}개</Badge>
+            <Badge variant="neutral">{skills.length}개</Badge>
           </div>
         </div>
         <div className="skills-card-grid">
-          {filteredSkills.map((skill) => {
-            const compatible = isCompatible(skill)
-            return (
-              <article
-                key={skill.id}
-                className={`skill-card ${compatible ? '' : 'skill-card--incompatible'}`}
-                role="button"
-                tabIndex={0}
-                onClick={() => handleSkillClick(skill)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    handleSkillClick(skill)
-                  }
-                }}
-              >
-                <div className="skill-card-header">
+          {skills.map((skill) => (
+            <article
+              key={skill.id}
+              className="skill-card"
+              role="button"
+              tabIndex={0}
+              onClick={() => handleSkillClick(skill)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  handleSkillClick(skill)
+                }
+              }}
+            >
+              <div className="skill-card-header">
+                <div>
+                  <strong>{skill.title}</strong>
+                  <p>{skill.description}</p>
+                </div>
+                <CheckCircle2 size={16} className="skill-compat-icon" aria-label="사용 가능" />
+              </div>
+              <div className="skill-card-meta">
+                <Badge variant="neutral">{skill.outputFormat}</Badge>
+              </div>
+              <div className="skill-card-notes">
+                <div>
+                  <Wrench size={14} aria-hidden="true" />
+                  <span>{skill.suggestedInputs[0] ?? '입력 예시 없음'}</span>
+                </div>
+                {(skill.domainCodes?.length ?? 0) > 0 && (
                   <div>
-                    <strong>{skill.title}</strong>
-                    <p>{skill.description}</p>
+                    <FileCode size={14} aria-hidden="true" />
+                    <span>{skill.domainCodes?.join(', ')}</span>
                   </div>
-                  {compatible ? (
-                    <CheckCircle2 size={16} className="skill-compat-icon" aria-label="호환 가능" />
-                  ) : (
-                    <AlertCircle size={16} className="skill-incompat-icon" aria-label="비호환" />
-                  )}
-                </div>
-                <div className="skill-card-meta">
-                  <Badge variant="neutral">{skill.outputFormat}</Badge>
-                  {skill.supportedDomainPacks.map((item) => (
-                    <Badge key={item} variant={item === domainPack ? 'info' : 'neutral'}>{item}</Badge>
-                  ))}
-                </div>
-                <div className="skill-card-notes">
-                  <div>
-                    <Wrench size={14} aria-hidden="true" />
-                    <span>{skill.suggestedInputs[0] ?? '입력 예시 없음'}</span>
-                  </div>
-                  {skill.suggestedTcodes.length > 0 && (
-                    <div>
-                      <FileCode size={14} aria-hidden="true" />
-                      <span>{skill.suggestedTcodes.join(', ')}</span>
-                    </div>
-                  )}
-                </div>
-              </article>
-            )
-          })}
-          {filteredSkills.length === 0 && (
-            <div className="skills-empty">
-              {filterMode === 'compatible'
-                ? '현재 워크스페이스 설정과 호환되는 Skill이 없습니다. "전체 보기"를 눌러 확인하세요.'
-                : '등록된 Skill이 없습니다.'}
-            </div>
+                )}
+              </div>
+            </article>
+          ))}
+          {skills.length === 0 && (
+            <div className="skills-empty">등록된 Skill이 없습니다.</div>
           )}
         </div>
       </section>
@@ -211,14 +159,6 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
                 </h3>
                 <div className="skill-modal-compat">
                   <div>
-                    <span className="skill-modal-label">Domain Pack</span>
-                    <div className="skills-badges">
-                      {selectedSkill.supportedDomainPacks.map((item) => (
-                        <Badge key={item} variant={item === domainPack ? 'success' : 'neutral'}>{item}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
                     <span className="skill-modal-label">Data Type</span>
                     <div className="skills-badges">
                       {selectedSkill.supportedDataTypes.map((dt) => (
@@ -241,14 +181,14 @@ export function SkillsPanel({ onSelectSkill }: SkillsPanelProps) {
                 </ul>
               </div>
 
-              {selectedSkill.suggestedTcodes.length > 0 && (
+              {(selectedSkill.domainCodes?.length ?? 0) > 0 && (
                 <div className="skill-modal-section">
                   <h3>
                     <FileCode size={14} aria-hidden="true" />
                     관련 T-Code
                   </h3>
                   <div className="skills-badges">
-                    {selectedSkill.suggestedTcodes.map((tcode) => (
+                    {selectedSkill.domainCodes?.map((tcode) => (
                       <Badge key={tcode} variant="info">{tcode}</Badge>
                     ))}
                   </div>

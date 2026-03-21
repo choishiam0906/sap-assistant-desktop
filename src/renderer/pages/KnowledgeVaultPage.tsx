@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useVaultByClassification } from '../hooks/useVault'
-import { Badge } from '../components/ui/Badge'
-import type { DomainPack, VaultClassification, VaultEntry, VaultSourceType } from '../../main/contracts'
+import type { VaultClassification, VaultEntry, VaultSourceType } from '../../main/contracts'
 import './KnowledgeVaultPage.css'
 
 function formatDate(iso: string): string {
@@ -27,7 +26,6 @@ function VaultCard({ entry }: { entry: VaultEntry }) {
           ) : (
             <span className="vault-reference-badge">공개</span>
           )}
-          {entry.domainPack && <Badge variant="neutral">{entry.domainPack}</Badge>}
           <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
             {formatDate(entry.indexedAt)}
           </span>
@@ -41,7 +39,6 @@ function VaultCard({ entry }: { entry: VaultEntry }) {
 function VaultSection({ classification }: { classification: VaultClassification }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sourceType, setSourceType] = useState<'all' | VaultSourceType>('all')
-  const [domainPack, setDomainPack] = useState<'all' | DomainPack>('all')
   const { data: entries = [], isLoading } = useVaultByClassification(
     classification,
     searchQuery || undefined,
@@ -49,8 +46,7 @@ function VaultSection({ classification }: { classification: VaultClassification 
   )
   const filteredEntries = entries.filter((entry) => {
     const matchesSource = sourceType === 'all' || entry.sourceType === sourceType
-    const matchesDomain = domainPack === 'all' || entry.domainPack === domainPack
-    return matchesSource && matchesDomain
+    return matchesSource
   })
 
   return (
@@ -74,19 +70,6 @@ function VaultSection({ classification }: { classification: VaultClassification 
           <option value="cbo_analysis">CBO Analysis</option>
           <option value="sap_standard">SAP Standard</option>
           <option value="internal_memo">Internal Memo</option>
-        </select>
-        <select
-          className="vault-filter-select"
-          value={domainPack}
-          onChange={(e) => setDomainPack(e.target.value as 'all' | DomainPack)}
-          aria-label="domain pack 필터"
-        >
-          <option value="all">모든 Domain</option>
-          <option value="ops">ops</option>
-          <option value="functional">functional</option>
-          <option value="cbo-maintenance">cbo-maintenance</option>
-          <option value="pi-integration">pi-integration</option>
-          <option value="btp-rap-cap">btp-rap-cap</option>
         </select>
       </div>
       {isLoading ? (

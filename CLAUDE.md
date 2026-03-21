@@ -1,4 +1,4 @@
-# CLAUDE.md - SAP Assistant Desktop Platform v6.0.0
+# CLAUDE.md - Assistant Desktop v6.1.0
 
 ## 프로젝트 개요
 
@@ -10,7 +10,7 @@
 - **UI 라이브러리**: lucide-react (아이콘)
 - **스타일**: CSS 변수 시스템 (Tailwind/CSS-in-JS 미사용)
 
-**버전**: v6.0.0
+**버전**: v6.1.0
 
 ---
 
@@ -18,10 +18,10 @@
 
 ```
 Renderer (React)
-  ↔ Preload (src/preload/index.ts - IPC bridge, window.sapOpsDesktop)
+  ↔ Preload (src/preload/index.ts - IPC bridge, window.assistantDesktop)
   ↔ Main Process (Electron)
-    ├─ Policy Engine (src/main/policy/)
     ├─ Provider Router (src/main/providers/)
+    ├─ Domain Pack Registry (src/main/domains/)
     ├─ CBO Analyzer (src/main/cbo/)
     ├─ Source Manager (src/main/sources/)
     ├─ Auth (src/main/auth/ - OAuth, PKCE, keytar)
@@ -29,7 +29,7 @@ Renderer (React)
 ```
 
 ### 신뢰 경계 (Trust Boundary)
-- **Renderer → Main**: Preload IPC만 사용 (`window.sapOpsDesktop`)
+- **Renderer → Main**: Preload IPC만 사용 (`window.assistantDesktop`)
 - **직접 Node.js 접근 금지**: Renderer에서 Node.js 직접 호출 불가
 - **자격증명**: 시스템 키체인 저장 (keytar 사용)
 
@@ -67,7 +67,6 @@ Renderer (React)
   - `archiveHandlers`
   - `agentHandlers`
   - `scheduleHandlers` (v5.0)
-  - `policyHandlers` (v5.0)
 
 ### 스타일 시스템
 - **변수 파일**: `src/renderer/styles/variables.css`
@@ -152,7 +151,6 @@ npm run format        # Prettier 포맷팅
 ### 기존 테스트 커버리지
 - **페이지 테스트**: 8개
 - **스토어 테스트**: 2개
-- **Policy Engine 테스트**: 1개
 
 ### 테스트 작성 가이드
 - **Happy Path 중심**: 정상 케이스 우선
@@ -167,8 +165,8 @@ npm run format        # Prettier 포맷팅
 desktop/
 ├── src/
 │   ├── main/                  # 메인 프로세스
-│   │   ├── policy/            # 정책 엔진
 │   │   ├── providers/         # 프로바이더 라우터
+│   │   ├── domains/           # Domain Pack 시스템 (SAP, General)
 │   │   ├── cbo/               # CBO 분석기
 │   │   ├── sources/           # 소스 관리자
 │   │   ├── auth/              # OAuth, PKCE
@@ -217,12 +215,20 @@ desktop/
 
 ---
 
+### v6.1 변경 사항 (기능 변경 0% — 범용 플랫폼 전환)
+- **리브랜딩**: SAP Assistant Desktop Platform → Assistant Desktop
+- **타입 범용화**: SapSkillDefinition→SkillDefinition, SapSourceDefinition→SourceDefinition, SapLabel→DomainLabel, suggestedTcodes→domainCodes?
+- **IPC 범용화**: window.assistantDesktop (하위 호환 alias 유지), AppSection 'sap-assistant'→'assistant'
+- **Domain Pack 시스템**: DomainPack 인터페이스, DomainPackRegistry, SAP/General 팩 분리
+- **UI 범용화**: CSS 클래스 .ask-sap-*→.chat-*, 디렉토리 sap-assistant/→assistant/, 앱 브랜딩 텍스트 범용화
+- **호환성 유지**: contracts.ts deprecated alias, window.sapOpsDesktop alias, SapAssistantSubPage alias
+
 ### v6.0 변경 사항 (기능 변경 0% — 코드 품질 개선)
 - **UI 대형 컴포넌트 분할**: ProcessHub 1,149→277줄, AgentsCatalog 430→185줄, SourcesPage 527→46줄, SettingsPage.css 모듈화
 - **접근성(a11y) 강화**: 모달 ARIA 속성, useFocusTrap/useKeyboardNav 훅, Button aria-busy
 - **React Query 최적화**: queryKeys 팩토리, 도메인별 staleTime/gcTime, QueryClient 분리
 - **Main Process 안정성**: console.log→logger, IPC 채널 타입 상수화, 마이그레이션 에러 처리
-- **테스트 커버리지 확대**: pkce, secureStore, policyEngine, migrationRunner 테스트 추가
+- **테스트 커버리지 확대**: pkce, secureStore, migrationRunner 테스트 추가
 - **Zustand persist 통일**: 수동 localStorage → persist 미들웨어 전환
 - **빌드 파이프라인**: esbuild CJS 번들링 (Electron portable/NSIS 호환)
 
@@ -230,7 +236,7 @@ desktop/
 - **DB 마이그레이션 시스템**: `src/main/storage/migrationRunner.ts` + `migrations/`
 - **LLM 스트리밍**: Provider 레벨 `sendMessageStream()`, IPC 스트리밍 채널
 - **스케줄 자동 실행**: `node-cron` 기반 `RoutineScheduler`, Cockpit SchedulePanel
-- **정책 엔진**: `PolicyEngine` + DB 기반 규칙 관리, Settings PolicySettingsPage
+- **정책 엔진**: ~~`PolicyEngine` + DB 기반 규칙 관리~~ (v6.2에서 제거됨)
 - **에러 복원력**: `ProviderResilience` (Retry + Circuit Breaker + Fallback)
 - **Chat History 설정화**: configurable history window (2~100)
 - **다크 모드**: CSS 변수 + data-theme 속성 전환 (이미 v4에서 준비됨)
@@ -239,6 +245,7 @@ desktop/
 
 | 버전 | 날짜 | 변경 사항 |
 |------|------|----------|
+| 6.1.0 | 2026-03-21 | 범용 플랫폼 전환: 리브랜딩, 타입/IPC 범용화, Domain Pack 시스템, UI 범용화 |
 | 6.0.0 | 2026-03-15 | v6.0 코드 품질 개선: UI 분할, a11y, 캐싱, 안정성, 테스트, Zustand 통일, CJS 번들링 |
 | 5.0.0 | 2026-03-11 | v5.0 전체 구현: 스트리밍, 스케줄, 정책 엔진, 에러 복원력, DB 마이그레이션 |
 | 3.0.0 | 2026-03-09 | 프로젝트별 CLAUDE.md 작성 (초안) |

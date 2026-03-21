@@ -9,7 +9,7 @@ import { SkillSourceRegistry } from "../registry.js";
 function createRegistry() {
   return new SkillSourceRegistry(
     {
-      listByDomainPack: () => [],
+      list: () => [],
       getById: () => null,
     } as never,
     {
@@ -22,7 +22,6 @@ function createRegistry() {
           kind: "local-folder",
           title: "CBO Sources",
           rootPath: "C:/sap/cbo",
-          domainPack: "cbo-maintenance",
           classificationDefault: "confidential",
           includeGlobs: ["**/*.txt", "**/*.md"],
           enabled: true,
@@ -46,9 +45,8 @@ function createRegistry() {
           excerpt: "FORM validate_authority ...",
           contentText: "REPORT ZSD_BILLING.\nFORM validate_authority.\nENDFORM.",
           contentHash: "hash-1",
-          domainPack: "cbo-maintenance",
           classification: "confidential",
-          tags: ["local-folder", "cbo-maintenance"],
+          tags: ["local-folder"],
           indexedAt: new Date().toISOString(),
         },
       ],
@@ -64,7 +62,6 @@ describe("SkillSourceRegistry", () => {
       skillId: "cbo-impact-analysis",
       sourceIds: ["workspace-context", "local-imported-files"],
       context: {
-        domainPack: "cbo-maintenance",
         dataType: "chat",
         message: "권한 체크 누락을 설명해줘",
         caseContext: {
@@ -92,7 +89,6 @@ describe("SkillSourceRegistry", () => {
       skillId: "cbo-impact-analysis",
       sourceIds: ["configured-source:src-1"],
       context: {
-        domainPack: "cbo-maintenance",
         dataType: "chat",
         message: "validate_authority 관련 로직을 설명해줘",
       },

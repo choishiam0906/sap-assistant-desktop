@@ -5,150 +5,29 @@ import type {
   VaultRepository,
 } from "../storage/repositories/index.js";
 import type {
-  DomainPack,
   SkillPackDefinition,
-  SapSkillDefinition,
-  SapSourceDefinition,
+  SkillDefinition,
+  SourceDefinition,
   SkillExecutionContext,
   SkillExecutionMeta,
   SkillRecommendation,
   SourceReference,
 } from "../contracts.js";
 import { loadCustomSkills } from "./skillLoaderService.js";
+import { domainPackRegistry } from "../domains/index.js";
 
 const MAX_INLINE_SOURCE_CHARS = 12_000;
 const MAX_CONFIGURED_SOURCE_TOTAL_CHARS = 12_000;
 const MAX_CONFIGURED_SOURCE_DOCUMENTS = 3;
 const MAX_CONFIGURED_SOURCE_DOC_CHARS = 4_000;
 
-const PRESET_SKILLS: SapSkillDefinition[] = [
-  {
-    id: "cbo-impact-analysis",
-    title: "CBO 변경 영향 분석",
-    description: "CBO 소스와 추출물을 읽고 영향 범위, 리스크, 검증 체크포인트를 정리합니다.",
-    supportedDomainPacks: ["cbo-maintenance"],
-    supportedDataTypes: ["chat", "cbo"],
-
-    defaultPromptTemplate:
-      "당신은 SAP 운영팀의 CBO 유지보수 리뷰어입니다. 변경 영향, 리스크, 점검 항목을 구조적으로 정리하세요.",
-    outputFormat: "structured-report",
-    requiredSources: ["current-cbo-run", "vault-confidential"],
-    suggestedInputs: [
-      "이 변경이 어떤 객체와 운영 시나리오에 영향을 주는지 정리해줘",
-      "배포 전 점검 체크리스트를 만들어줘",
-      "리스크를 우선순위별로 다시 설명해줘",
-    ],
-    suggestedTcodes: ["SE80", "SE11", "SE38", "STMS"],
-  },
-  {
-    id: "transport-risk-review",
-    title: "Transport 리스크 리뷰",
-    description: "Transport 추출물 기준으로 변경 범위와 배포 전 확인 포인트를 요약합니다.",
-    supportedDomainPacks: ["ops", "cbo-maintenance", "functional"],
-    supportedDataTypes: ["chat"],
-
-    defaultPromptTemplate:
-      "SAP transport 검토자로서 변경 범위, 리스크, 승인 전 점검 항목을 운영 관점에서 정리하세요.",
-    outputFormat: "structured-report",
-    requiredSources: ["vault-confidential", "vault-reference"],
-    suggestedInputs: [
-      "이 transport의 배포 리스크를 검토해줘",
-      "승인 코멘트에 넣을 요약을 작성해줘",
-      "컷오버 전에 꼭 확인할 항목을 알려줘",
-    ],
-    suggestedTcodes: ["SE09", "SE10", "STMS"],
-  },
-  {
-    id: "incident-triage",
-    title: "운영 장애 트리아지",
-    description: "dump, spool, log를 기준으로 원인 후보와 점검 순서를 정리합니다.",
-    supportedDomainPacks: ["ops", "functional"],
-    supportedDataTypes: ["chat"],
-
-    defaultPromptTemplate:
-      "SAP 운영 장애 분석가로서 원인 후보, 확인 순서, 임시 우회책을 간결하게 제시하세요.",
-    outputFormat: "checklist",
-    requiredSources: ["vault-reference"],
-    suggestedInputs: [
-      "이 증상에서 먼저 볼 로그와 T-code를 알려줘",
-      "현업 보고용 장애 요약을 작성해줘",
-      "가장 가능성 높은 원인을 우선순위로 정리해줘",
-    ],
-    suggestedTcodes: ["ST22", "SM21", "SM37", "SM50"],
-  },
-  {
-    id: "ops-runbook-writer",
-    title: "운영 Runbook 작성",
-    description: "분석 결과를 운영 절차, 인수인계 메모, 변경 승인 코멘트로 변환합니다.",
-    supportedDomainPacks: ["ops", "cbo-maintenance", "functional", "pi-integration", "btp-rap-cap"],
-    supportedDataTypes: ["chat"],
-
-    defaultPromptTemplate:
-      "SAP 운영 문서 작성자로서 보고서, runbook, handoff memo를 짧고 명확하게 작성하세요.",
-    outputFormat: "structured-report",
-    requiredSources: ["vault-confidential", "vault-reference"],
-    suggestedInputs: [
-      "운영자 인수인계 메모 형식으로 정리해줘",
-      "현업 공유용 요약을 작성해줘",
-      "배포 승인 코멘트 템플릿으로 바꿔줘",
-    ],
-    suggestedTcodes: [],
-  },
-  {
-    id: "sap-explainer",
-    title: "SAP 설명 보조",
-    description: "기술 분석 결과를 운영자와 현업이 이해하기 쉬운 설명으로 바꿉니다.",
-    supportedDomainPacks: ["ops", "functional", "cbo-maintenance", "pi-integration", "btp-rap-cap"],
-    supportedDataTypes: ["chat"],
-
-    defaultPromptTemplate:
-      "SAP 도메인 설명가로서 기술 결과를 운영자와 현업 모두 이해할 수 있게 재구성하세요.",
-    outputFormat: "explanation",
-    requiredSources: ["vault-reference"],
-    suggestedInputs: [
-      "이 결과를 현업 언어로 다시 설명해줘",
-      "운영팀 관점에서 핵심만 요약해줘",
-      "기술 배경을 모르는 사람도 이해하게 설명해줘",
-    ],
-    suggestedTcodes: [],
-  },
-  {
-    id: "evidence-tagger",
-    title: "근거 태깅",
-    description: "분석 결과를 Vault에 저장하기 전에 classification, source type, 태그 방향을 제안합니다.",
-    supportedDomainPacks: ["ops", "functional", "cbo-maintenance", "pi-integration", "btp-rap-cap"],
-    supportedDataTypes: ["chat"],
-
-    defaultPromptTemplate:
-      "지식 큐레이터로서 근거 문서를 어떤 분류와 제목으로 저장해야 하는지 제안하세요.",
-    outputFormat: "checklist",
-    requiredSources: ["vault-confidential", "vault-reference"],
-    suggestedInputs: [
-      "이 결과를 Vault에 어떤 제목으로 저장하면 좋을까",
-      "classification과 source type을 추천해줘",
-      "재검색이 잘 되도록 키워드를 추천해줘",
-    ],
-    suggestedTcodes: [],
-  },
-];
-
-const SKILL_PACKS: SkillPackDefinition[] = [
-  {
-    id: "cbo-ops-starter",
-    title: "CBO + Ops Starter Pack",
-    description: "CBO 유지보수, transport, incident, runbook 흐름을 데스크톱 앱에 맞게 묶은 기본 pack입니다.",
-    audience: "mixed",
-    domainPacks: ["ops", "cbo-maintenance", "functional"],
-    skillIds: [
-      "cbo-impact-analysis",
-      "transport-risk-review",
-      "incident-triage",
-      "ops-runbook-writer",
-      "sap-explainer",
-      "evidence-tagger",
-    ],
-  },
-];
+// 도메인 팩에서 프리셋 스킬 & 스킬 팩 로드
+function getPresetSkills(): SkillDefinition[] {
+  return domainPackRegistry.getActive().presetSkills;
+}
+function getSkillPacks(): SkillPackDefinition[] {
+  return domainPackRegistry.getActive().skillPacks;
+}
 
 const SOURCE_TEMPLATES = {
   "vault-confidential": {
@@ -193,43 +72,42 @@ const SOURCE_TEMPLATES = {
   },
 } as const;
 
-function normalizeSkill(skill: SapSkillDefinition): SapSkillDefinition {
+function normalizeSkill(skill: SkillDefinition): SkillDefinition {
   return {
     ...skill,
     requiredSources: [...skill.requiredSources],
     suggestedInputs: [...skill.suggestedInputs],
-    suggestedTcodes: [...skill.suggestedTcodes],
+    domainCodes: [...(skill.domainCodes ?? [])],
   };
 }
 
-function mapVaultEntriesToSources(entries: Awaited<ReturnType<VaultRepository["list"]>>): SapSourceDefinition[] {
+function mapVaultEntriesToSources(entries: Awaited<ReturnType<VaultRepository["list"]>>): SourceDefinition[] {
   return entries.map((entry) => ({
     id: `vault-entry:${entry.id}`,
     title: entry.title,
     description: entry.excerpt ?? "Vault 항목",
     kind: "vault",
     classification: entry.classification,
-    domainPack: entry.domainPack,
     availability: "ready",
     sourceType: entry.sourceType,
     linkedId: entry.id,
   }));
 }
 
-function getAllSkills(): SapSkillDefinition[] {
+function getAllSkills(): SkillDefinition[] {
   const custom = loadCustomSkills();
-  const presetIds = new Set(PRESET_SKILLS.map((s) => s.id));
+  const presetIds = new Set(getPresetSkills().map((s) => s.id));
   const deduped = custom.filter((s) => !presetIds.has(s.id));
-  return [...PRESET_SKILLS, ...deduped];
+  return [...getPresetSkills(), ...deduped];
 }
 
-export function getSkillDefinition(skillId: string): SapSkillDefinition | null {
+export function getSkillDefinition(skillId: string): SkillDefinition | null {
   const all = getAllSkills();
   const skill = all.find((item) => item.id === skillId);
   return skill ? normalizeSkill(skill) : null;
 }
 
-export function listCustomSkillDefinitions(): SapSkillDefinition[] {
+export function listCustomSkillDefinitions(): SkillDefinition[] {
   return loadCustomSkills().map(normalizeSkill);
 }
 
@@ -241,14 +119,13 @@ export class SkillSourceRegistry {
     private readonly sourceDocumentRepo: SourceDocumentRepository
   ) {}
 
-  listSkills(): SapSkillDefinition[] {
+  listSkills(): SkillDefinition[] {
     return getAllSkills().map(normalizeSkill);
   }
 
   listPacks(): SkillPackDefinition[] {
-    return SKILL_PACKS.map((pack) => ({
+    return getSkillPacks().map((pack) => ({
       ...pack,
-      domainPacks: [...pack.domainPacks],
       skillIds: [...pack.skillIds],
     }));
   }
@@ -256,34 +133,31 @@ export class SkillSourceRegistry {
   recommendSkills(context: SkillExecutionContext): SkillRecommendation[] {
     const compatible = getAllSkills().filter(
       (skill) =>
-        skill.supportedDomainPacks.includes(context.domainPack) &&
         skill.supportedDataTypes.includes(context.dataType)
     );
 
     return compatible.map((skill, index) => ({
       skill: normalizeSkill(skill),
       reason:
-        index === 0 && context.domainPack === "cbo-maintenance"
-          ? "현재 Domain Pack과 가장 잘 맞는 기본 작업입니다."
-          : `${context.domainPack} 워크스페이스에서 바로 사용할 수 있는 작업입니다.`,
+        index === 0
+          ? "권장되는 기본 작업입니다."
+          : "워크스페이스에서 바로 사용할 수 있는 작업입니다.",
       recommendedSourceIds: skill.requiredSources,
     }));
   }
 
-  listSources(context: SkillExecutionContext): SapSourceDefinition[] {
-    const domainEntries = this.vaultRepo.listByDomainPack(context.domainPack, 20);
+  listSources(context: SkillExecutionContext): SourceDefinition[] {
+    const domainEntries = this.vaultRepo.list(20);
     const confidentialCount = domainEntries.filter((entry) => entry.classification === "confidential").length;
     const referenceCount = domainEntries.filter((entry) => entry.classification === "reference").length;
     const configuredLocalSources = this.configuredSourceRepo
       .list("local-folder")
-      .filter((source) => !source.domainPack || source.domainPack === context.domainPack)
       .map((source) => ({
         id: `configured-source:${source.id}`,
         title: source.title,
         description: source.rootPath ?? "Local Folder source",
         kind: "local-folder" as const,
         classification: source.classificationDefault,
-        domainPack: source.domainPack,
         availability: source.documentCount > 0 ? "ready" as const : "empty" as const,
         sourceType: "local_folder_library" as const,
         configuredSourceId: source.id,
@@ -294,38 +168,33 @@ export class SkillSourceRegistry {
     return [
       {
         ...SOURCE_TEMPLATES["workspace-context"],
-        domainPack: context.domainPack,
         availability: "ready",
       },
       {
         ...SOURCE_TEMPLATES["vault-confidential"],
-        domainPack: context.domainPack,
         availability: confidentialCount > 0 ? "ready" : "empty",
       },
       {
         ...SOURCE_TEMPLATES["vault-reference"],
-        domainPack: context.domainPack,
         availability: referenceCount > 0 ? "ready" : "empty",
       },
       {
         ...SOURCE_TEMPLATES["current-cbo-run"],
-        domainPack: context.domainPack,
         availability: context.caseContext?.runId ? "ready" : "unavailable",
       },
       {
         ...SOURCE_TEMPLATES["local-imported-files"],
-        domainPack: context.domainPack,
         availability: context.caseContext?.filePath ? "ready" : "unavailable",
       },
       ...configuredLocalSources,
     ];
   }
 
-  searchSources(query: string, context: SkillExecutionContext): SapSourceDefinition[] {
+  searchSources(query: string, context: SkillExecutionContext): SourceDefinition[] {
     const keyword = query.trim().toLowerCase();
     const baseSources = this.listSources(context);
     const domainEntries = this.vaultRepo
-      .listByDomainPack(context.domainPack, 50)
+      .list(50)
       .filter((entry) => {
         if (!keyword) return true;
         const haystack = `${entry.title} ${entry.excerpt ?? ""}`.toLowerCase();
@@ -347,8 +216,8 @@ export class SkillSourceRegistry {
     sourceIds?: string[];
     context: SkillExecutionContext;
   }): {
-    skill: SapSkillDefinition;
-    selectedSources: SapSourceDefinition[];
+    skill: SkillDefinition;
+    selectedSources: SourceDefinition[];
     promptContext: string[];
     meta: SkillExecutionMeta;
   } {
@@ -356,7 +225,7 @@ export class SkillSourceRegistry {
     const selectedSkill =
       (input.skillId ? getSkillDefinition(input.skillId) : null) ??
       recommendedSkills[0]?.skill ??
-      normalizeSkill(PRESET_SKILLS[0]);
+      normalizeSkill(getPresetSkills()[0]);
 
     const availableSources = this.listSources(input.context);
     const requestedIds =
@@ -371,7 +240,7 @@ export class SkillSourceRegistry {
     const sourceReferences: SourceReference[] = [
       {
         id: "workspace-context",
-        title: labelDomainPack(input.context.domainPack),
+        title: "워크스페이스",
         category: "workspace",
         relevance_score: 1,
         description: "현재 워크스페이스 설정",
@@ -380,12 +249,12 @@ export class SkillSourceRegistry {
 
     const promptContext = [
       `[선택 Skill]\n${selectedSkill.title}\n${selectedSkill.description}`,
-      `[워크스페이스]\nDomain Pack: ${input.context.domainPack}`,
+      `[워크스페이스]\n현재 세션 컨텍스트`,
     ];
 
     for (const source of selectedSources) {
       if (source.id === "vault-confidential" || source.id === "vault-reference") {
-        const domainEntries = this.vaultRepo.listByDomainPack(input.context.domainPack, 5);
+        const domainEntries = this.vaultRepo.list(5);
         const filteredEntries = domainEntries.filter((entry) =>
           source.id === "vault-confidential"
             ? entry.classification === "confidential"
@@ -511,7 +380,7 @@ export class SkillSourceRegistry {
         sources: uniqueSourceRefs,
         sourceIds: selectedSources.map((source) => source.id),
         sourceCount: uniqueSourceRefs.length,
-        suggestedTcodes: selectedSkill.suggestedTcodes,
+        suggestedTcodes: selectedSkill.domainCodes ?? [],
       },
     };
   }
@@ -527,22 +396,6 @@ function dedupeSources(entries: SourceReference[]): SourceReference[] {
   });
 }
 
-function labelDomainPack(domainPack: DomainPack): string {
-  switch (domainPack) {
-    case "ops":
-      return "Ops";
-    case "functional":
-      return "Functional";
-    case "cbo-maintenance":
-      return "CBO Maintenance";
-    case "pi-integration":
-      return "PI Integration";
-    case "btp-rap-cap":
-      return "BTP / RAP / CAP";
-    default:
-      return domainPack;
-  }
-}
 
 function buildInlineSourceContext(title: string, filePath: string | undefined, sourceContent: string): string {
   const heading = [`[근거 Source: ${title}]`];

@@ -65,6 +65,44 @@ select:focus {
   border: 0;
 }
 
+/* ─── Custom Scrollbar ─── */
+
+/* 표준 CSS Scrollbar (Chromium 121+ / Electron 31+) —
+   Windows 11 오버레이 스크롤바 모드에서도 동작 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* WebKit 폴백 (오버레이 스크롤바 비활성 환경) */
+*::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ─── Typography Enhancement ─── */
+h1, h2, h3 {
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
+}
+
 /* 미디어 쿼리: 사용자가 애니메이션 축소 선호 시 */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { VaultClassification, VaultEntry } from '../../main/contracts'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function useVaultEntries(limit = 50) {
   return useQuery<VaultEntry[]>({

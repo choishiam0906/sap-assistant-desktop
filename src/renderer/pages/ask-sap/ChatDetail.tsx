@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { queryKeys } from '../../hooks/queryKeys.js'
-import type { ChatSession, SapSkillDefinition } from '../../../main/contracts.js'
+import type { ChatSession, SkillDefinition } from '../../../main/contracts.js'
 import {
   useChatSession,
   useChatInput,
@@ -10,21 +10,23 @@ import {
   useChatError,
   useChatSkillSources,
   useChatStreaming,
+  useChatAgentExecution,
 } from '../../stores/chatStore.js'
 import { useChatUIStore } from '../../stores/chatUIStore.js'
 import { useMessages } from '../../hooks/useMessages.js'
 import { useSendMessage } from '../../hooks/useSendMessage.js'
 import { MessageList } from '../../components/chat/MessageList.js'
 import { Composer } from '../../components/chat/Composer.js'
-import { useWorkspaceStore } from '../../stores/workspaceStore.js'
 import { ChatHeader } from './ChatHeader.js'
 import { SkillSelector } from './SkillSelector.js'
 import { SourceSelector } from './SourceSelector.js'
 import { ExecutionMetaPanel } from './ExecutionMetaPanel.js'
 import { EmptyState } from './EmptyState.js'
 import { StreamingIndicator } from './StreamingIndicator.js'
+import { AgentProgressBar } from '../../components/chat/AgentProgressBar.js'
+import { useAgentExecution } from '../../hooks/useAgentExecution.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 interface ChatDetailProps {
   currentSession: ChatSession | null
@@ -43,8 +45,11 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
   const {
     isStreaming, streamingContent, streamingMeta, resetStreaming,
   } = useChatStreaming()
+  const { agentExecution, clearAgentExecution } = useChatAgentExecution()
   const { skillsCollapsed, sourcesCollapsed, toggleSkillsCollapsed, toggleSourcesCollapsed } = useChatUIStore()
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
+
+  // 대화형 에이전트 IPC 이벤트 구독
+  useAgentExecution()
 
   const { data: messages = [] } = useMessages(currentSessionId ?? null)
   const sendMutation = useSendMessage()
@@ -54,14 +59,14 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
     staleTime: 60_000,
   })
   const { data: recommendations = [] } = useQuery({
-    queryKey: queryKeys.skills.recommend(domainPack),
-    queryFn: () => api.recommendSkills({ domainPack, dataType: 'chat' }),
+    queryKey: queryKeys.skills.recommend(),
+    queryFn: () => api.recommendSkills({ dataType: 'chat' }),
     staleTime: 30_000,
   })
   const { data: sources = [] } = useQuery({
-    queryKey: queryKeys.sources.list(domainPack, caseContext?.runId ?? '', caseContext?.filePath ?? '', caseContext?.objectName ?? ''),
+    queryKey: queryKeys.sources.list(caseContext?.runId ?? '', caseContext?.filePath ?? '', caseContext?.objectName ?? ''),
     queryFn: () =>
-      api.listSources({ domainPack, dataType: 'chat', caseContext: caseContext ?? undefined }),
+      api.listSources({ dataType: 'chat', caseContext: caseContext ?? undefined }),
     staleTime: 30_000,
   })
 
@@ -87,6 +92,23 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
     const text = input.trim()
     if (!text || sendMutation.isPending) return
     clearError()
+
+    // 대화형 에이전트 모드: 첫 전송 시 에이전트 실행
+    if (agentExecution && agentExecution.status === 'running' && agentExecution.currentStepIndex === 0) {
+      setInput('')
+      api.executeAgentInteractive({
+        agentId: agentExecution.agentId,
+        userMessage: text,
+        provider,
+        model,
+        sessionId: currentSession?.id,
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : '에이전트 실행에 실패했어요'
+        setError(msg)
+      })
+      return
+    }
+
     sendMutation.mutate(
       {
         sessionId: currentSession?.id,
@@ -109,7 +131,7 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
     )
   }
 
-  function handleSelectSkill(skill: SapSkillDefinition) {
+  function handleSelectSkill(skill: SkillDefinition) {
     setSelectedSkillId(skill.id)
     if (skill.suggestedInputs[0] && !input.trim()) {
       setInput(skill.suggestedInputs[0])
@@ -145,35 +167,42 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
   }, [availableSources, selectedSkill, selectedSourceIds, setSelectedSourceIds])
 
   return (
-    <div className="ask-sap-chat-detail">
-      <ChatHeader domainPack={domainPack} selectedSkill={selectedSkill} caseContext={caseContext} />
+    <div className="chat-chat-detail">
+      <ChatHeader selectedSkill={selectedSkill} caseContext={caseContext} />
 
-      <div className="ask-sap-toolbar">
+      {agentExecution && (
+        <AgentProgressBar
+          execution={agentExecution}
+          onDismiss={agentExecution.status !== 'running' ? clearAgentExecution : undefined}
+        />
+      )}
+
+      <div className="chat-toolbar">
         <button
           type="button"
-          className={`ask-sap-toolbar-toggle ${!skillsCollapsed ? 'active' : ''}`}
+          className={`chat-toolbar-toggle ${!skillsCollapsed ? 'active' : ''}`}
           onClick={toggleSkillsCollapsed}
           aria-expanded={!skillsCollapsed}
         >
           {skillsCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
           Skills
-          <span className="ask-sap-toolbar-count">
+          <span className="chat-toolbar-count">
             {recommendedSkills.length || skills.length}
           </span>
         </button>
         <button
           type="button"
-          className={`ask-sap-toolbar-toggle ${!sourcesCollapsed ? 'active' : ''}`}
+          className={`chat-toolbar-toggle ${!sourcesCollapsed ? 'active' : ''}`}
           onClick={toggleSourcesCollapsed}
           aria-expanded={!sourcesCollapsed}
         >
           {sourcesCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
           Sources
-          <span className="ask-sap-toolbar-count">{selectedSourceIds.length}</span>
+          <span className="chat-toolbar-count">{selectedSourceIds.length}</span>
         </button>
       </div>
 
-      <div className="ask-sap-content-area">
+      <div className="chat-content-area">
         {!skillsCollapsed && (
           <SkillSelector
             skills={skills}
@@ -197,7 +226,6 @@ export function ChatDetail({ currentSession }: ChatDetailProps) {
         ) : (
           !isStreaming && (
             <EmptyState
-              domainPack={domainPack}
               selectedSkill={selectedSkill}
               onSuggestionClick={setInput}
             />

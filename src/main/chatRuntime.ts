@@ -8,10 +8,10 @@ import {
   ProviderType,
   ChatMessage,
   ChatSession,
-  DomainPack,
 } from "./contracts.js";
 import { SecureStore } from "./auth/secureStore.js";
 import { LlmProvider, StreamChunk } from "./providers/base.js";
+import type { ProviderResilience } from "./providers/providerResilience.js";
 import { AuditRepository, MessageRepository, SessionRepository } from "./storage/repositories/index.js";
 import { SkillSourceRegistry } from "./skills/registry.js";
 
@@ -27,7 +27,8 @@ export class ChatRuntime {
     private readonly sessionRepo: SessionRepository,
     private readonly messageRepo: MessageRepository,
     private readonly auditRepo: AuditRepository,
-    private readonly skillRegistry: SkillSourceRegistry
+    private readonly skillRegistry: SkillSourceRegistry,
+    private readonly resilience?: ProviderResilience,
   ) {
     this.providers = new Map(
       providers.map((provider) => [provider.type, provider])
@@ -55,7 +56,6 @@ export class ChatRuntime {
       skillId: input.skillId,
       sourceIds: input.sourceIds,
       context: {
-        domainPack: input.domainPack,
         dataType: "chat",
         message: input.message,
         caseContext: input.caseContext,
@@ -94,11 +94,14 @@ export class ChatRuntime {
     }
 
     const message = this.composeMessage(input.message, execution.promptContext);
-    const llmResult = await provider.sendMessage(tokenRecord, {
+    const callFn = () => provider.sendMessage(tokenRecord, {
       model: input.model,
       message,
       history,
     });
+    const llmResult = this.resilience
+      ? await this.resilience.withProviderCall(input.provider, callFn)
+      : await callFn();
 
     const assistantMessage = this.messageRepo.append(
       session.id,
@@ -115,7 +118,6 @@ export class ChatRuntime {
       sessionId: session.id,
       runId: null,
       timestamp: new Date().toISOString(),
-      domainPack: input.domainPack,
       action: "send_message",
       externalTransfer: true,
       policyDecision: "ALLOWED",
@@ -147,7 +149,6 @@ export class ChatRuntime {
       skillId: input.skillId,
       sourceIds: input.sourceIds,
       context: {
-        domainPack: input.domainPack,
         dataType: "chat",
         message: input.message,
         caseContext: input.caseContext,
@@ -188,18 +189,24 @@ export class ChatRuntime {
 
     let llmResult;
     if (provider.sendMessageStream) {
-      llmResult = await provider.sendMessageStream(
+      const streamFn = () => provider.sendMessageStream!(
         tokenRecord,
         { model: input.model, message, history },
         onChunk,
       );
+      llmResult = this.resilience
+        ? await this.resilience.withProviderCall(input.provider, streamFn)
+        : await streamFn();
     } else {
       // 스트리밍 미지원 Provider: 동기 호출 후 전체 내용을 한 번에 전달
-      llmResult = await provider.sendMessage(tokenRecord, {
+      const callFn = () => provider.sendMessage(tokenRecord, {
         model: input.model,
         message,
         history,
       });
+      llmResult = this.resilience
+        ? await this.resilience.withProviderCall(input.provider, callFn)
+        : await callFn();
       onChunk({ delta: llmResult.content });
     }
 
@@ -217,7 +224,6 @@ export class ChatRuntime {
       sessionId: session.id,
       runId: null,
       timestamp: new Date().toISOString(),
-      domainPack: input.domainPack,
       action: "send_message_stream",
       externalTransfer: true,
       policyDecision: "ALLOWED",

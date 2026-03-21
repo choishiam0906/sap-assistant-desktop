@@ -75,8 +75,6 @@ export const IPC = {
   // ── Vault ──
   VAULT_LIST: 'vault:list',
   VAULT_SEARCH_BY_CLASSIFICATION: 'vault:searchByClassification',
-  VAULT_LIST_BY_DOMAIN_PACK: 'vault:listByDomainPack',
-
   // ── MCP ──
   MCP_CONNECT: 'mcp:connect',
   MCP_DISCONNECT: 'mcp:disconnect',
@@ -132,15 +130,26 @@ export const IPC = {
   AGENTS_SAVE_CUSTOM: 'agents:saveCustom',
   AGENTS_DELETE_CUSTOM: 'agents:deleteCustom',
   AGENTS_OPEN_FOLDER: 'agents:openFolder',
+  AGENTS_EXECUTION_PROGRESS: 'agents:execution:progress',
+  AGENTS_EXECUTE_INTERACTIVE: 'agents:execute:interactive',
+  AGENT_STEP_STARTED: 'agents:step:started',
+  AGENT_STEP_COMPLETED: 'agents:step:completed',
+  AGENT_EXECUTION_DONE: 'agents:execution:done',
+  AGENT_EXECUTION_ERROR: 'agents:execution:error',
 
-  // ── Policy (정책 엔진) ──
-  POLICY_RULES_LIST: 'policy:rules:list',
-  POLICY_RULES_CREATE: 'policy:rules:create',
-  POLICY_RULES_UPDATE: 'policy:rules:update',
-  POLICY_RULES_DELETE: 'policy:rules:delete',
-  POLICY_EVALUATE: 'policy:evaluate',
-  POLICY_APPROVALS_LIST: 'policy:approvals:list',
-  POLICY_APPROVALS_DECIDE: 'policy:approvals:decide',
+  // ── Email (메일 → 업무) ──
+  EMAIL_SYNC_INBOX: 'email:syncInbox',
+  EMAIL_LIST_INBOX: 'email:listInbox',
+  EMAIL_GET_DETAIL: 'email:getDetail',
+  EMAIL_ANALYZE_AND_CREATE_PLAN: 'email:analyzeAndCreatePlan',
+  EMAIL_LIST_LINKED_PLANS: 'email:listLinkedPlans',
+
+  // ── Code Analysis (코드 분석) ──
+  CODE_ANALYSIS_RUN: 'codeAnalysis:run',
+  CODE_ANALYSIS_RUN_FILE: 'codeAnalysis:runFile',
+  CODE_ANALYSIS_RUNS_LIST: 'codeAnalysis:runs:list',
+  CODE_ANALYSIS_RUN_DETAIL: 'codeAnalysis:runs:detail',
+  CODE_ANALYSIS_PROGRESS: 'codeAnalysis:progress',
 
   // ── Schedule (스케줄) ──
   SCHEDULE_LIST: 'schedule:list',

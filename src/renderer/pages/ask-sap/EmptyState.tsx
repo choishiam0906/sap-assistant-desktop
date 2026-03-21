@@ -1,16 +1,19 @@
 import { Sparkles, Code, ShieldCheck } from 'lucide-react'
-import type { SapSkillDefinition } from '../../../main/contracts.js'
+import type { SkillDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
-import type { DomainPack } from '../../stores/workspaceStore.js'
-import { DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore.js'
 
 interface EmptyStateProps {
-  domainPack: DomainPack
-  selectedSkill: SapSkillDefinition | null
+  selectedSkill: SkillDefinition | null
   onSuggestionClick: (text: string) => void
 }
 
 const SUGGESTION_ICONS = [Code, ShieldCheck, Sparkles]
+
+const DEFAULT_SUGGESTIONS = [
+  'ST22 덤프 발생 시 우선 점검할 T-code와 원인을 알려줘',
+  '커스텀 인터페이스 소스에서 COMMIT/ROLLBACK 위치가 위험한지 검토해줘',
+  'MM에서 입고 후 송장 처리 흐름을 현업 관점으로 정리해줘',
+]
 
 const QUICK_START_CARDS = [
   { label: 'CBO 분석', description: '커스텀 코드 품질 점검' },
@@ -24,20 +27,18 @@ const FREQUENT_TASKS = [
   'SAP 에러 메시지 설명',
 ]
 
-export function EmptyState({ domainPack, selectedSkill, onSuggestionClick }: EmptyStateProps) {
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
+export function EmptyState({ selectedSkill, onSuggestionClick }: EmptyStateProps) {
   const suggestions = selectedSkill?.suggestedInputs.length
     ? selectedSkill.suggestedInputs
-    : packDetail.suggestions
+    : DEFAULT_SUGGESTIONS
 
   return (
     <div className="chat-empty chat-empty--redesigned page-enter">
       <Sparkles size={40} className="empty-icon" aria-hidden="true" />
       <h2>새로운 대화를 시작하세요</h2>
-      <p>SAP 업무를 효율적으로 지원해 드릴게요</p>
+      <p>업무를 효율적으로 지원해 드릴게요</p>
 
       <div className="chat-empty-meta">
-        <Badge variant="neutral">{packDetail.label}</Badge>
         {selectedSkill && <Badge variant="info">{selectedSkill.title}</Badge>}
       </div>
 

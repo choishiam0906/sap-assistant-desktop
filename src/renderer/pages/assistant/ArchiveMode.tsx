@@ -8,7 +8,7 @@ import { useArchiveStore } from '../../stores/archiveStore.js'
 import { Button } from '../../components/ui/Button.js'
 import './ArchiveMode.css'
 
-const desktop = window.sapOpsDesktop
+const desktop = window.assistantDesktop
 
 export function ArchiveMode() {
   const {

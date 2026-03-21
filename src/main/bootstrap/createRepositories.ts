@@ -6,7 +6,10 @@ import {
   CboAnalysisRepository,
   ClosingPlanRepository,
   ClosingStepRepository,
+  CodeAnalysisRepository,
   ConfiguredSourceRepository,
+  EmailInboxRepository,
+  EmailTaskLinkRepository,
   MessageRepository,
   ProviderAccountRepository,
   RoutineExecutionRepository,
@@ -36,6 +39,9 @@ export interface Repositories {
   scheduledTaskRepo: ScheduledTaskRepository;
   scheduleLogRepo: ScheduleLogRepository;
   agentExecutionRepo: AgentExecutionRepository;
+  emailInboxRepo: EmailInboxRepository;
+  emailTaskLinkRepo: EmailTaskLinkRepository;
+  codeAnalysisRepo: CodeAnalysisRepository;
   secureStore: SecureStore;
 }
 
@@ -57,6 +63,9 @@ export function createRepositories(db: LocalDatabase): Repositories {
     scheduledTaskRepo: new ScheduledTaskRepository(db),
     scheduleLogRepo: new ScheduleLogRepository(db),
     agentExecutionRepo: new AgentExecutionRepository(db),
+    emailInboxRepo: new EmailInboxRepository(db),
+    emailTaskLinkRepo: new EmailTaskLinkRepository(db),
+    codeAnalysisRepo: new CodeAnalysisRepository(db),
     secureStore: new SecureStore("sap-ops-bot-desktop"),
   };
 }

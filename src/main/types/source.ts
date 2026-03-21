@@ -1,4 +1,3 @@
-import type { DomainPack } from './policy.js';
 import type { VaultClassification, VaultSourceType } from './vault.js';
 
 export interface SourceReference {
@@ -15,7 +14,7 @@ export type SkillOutputFormat =
   | "checklist"
   | "explanation";
 
-export type SapSourceKind =
+export type SourceKind =
   | "vault"
   | "run"
   | "local-file"
@@ -23,7 +22,7 @@ export type SapSourceKind =
   | "local-folder"
   | "mcp"
   | "api";
-export type SapSourceAvailability = "ready" | "empty" | "unavailable";
+export type SourceAvailability = "ready" | "empty" | "unavailable";
 export type ConfiguredSourceKind = "local-folder" | "mcp" | "api";
 export type SourceSyncStatus = "idle" | "indexing" | "ready" | "error";
 
@@ -32,7 +31,6 @@ export interface ConfiguredSource {
   kind: ConfiguredSourceKind;
   title: string;
   rootPath: string | null;
-  domainPack: DomainPack | null;
   classificationDefault: VaultClassification | null;
   includeGlobs: string[];
   enabled: boolean;
@@ -46,7 +44,6 @@ export interface ConfiguredSource {
 
 export interface PickAndAddLocalFolderSourceInput {
   title?: string;
-  domainPack: DomainPack;
   classificationDefault: VaultClassification;
   includeGlobs?: string[];
 }
@@ -90,7 +87,6 @@ export interface SourceDocument {
   excerpt: string | null;
   contentText: string;
   contentHash: string;
-  domainPack: DomainPack | null;
   classification: VaultClassification | null;
   tags: string[];
   indexedAt: string;
@@ -100,7 +96,6 @@ export interface SourceDocumentSearchInput {
   query?: string;
   sourceId?: string;
   sourceKind?: ConfiguredSourceKind;
-  domainPack?: DomainPack;
   limit?: number;
 }
 
@@ -109,32 +104,29 @@ export interface SkillPackDefinition {
   title: string;
   description: string;
   audience: "ops" | "functional" | "mixed";
-  domainPacks: DomainPack[];
   skillIds: string[];
 }
 
-export interface SapSkillDefinition {
+export interface SkillDefinition {
   id: string;
   title: string;
   description: string;
-  supportedDomainPacks: DomainPack[];
   supportedDataTypes: Array<"chat" | "cbo">;
   defaultPromptTemplate: string;
   outputFormat: SkillOutputFormat;
   requiredSources: string[];
   suggestedInputs: string[];
-  suggestedTcodes: string[];
-  isCustom?: boolean; // 커스텀 스킬 여부 (프리셋/커스텀 구분용)
+  domainCodes?: string[];
+  isCustom?: boolean;
 }
 
-export interface SapSourceDefinition {
+export interface SourceDefinition {
   id: string;
   title: string;
   description: string;
-  kind: SapSourceKind;
+  kind: SourceKind;
   classification: VaultClassification | "mixed" | null;
-  domainPack: DomainPack | null;
-  availability: SapSourceAvailability;
+  availability: SourceAvailability;
   sourceType:
     | VaultSourceType
     | "current_run"

@@ -52,6 +52,23 @@
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.15);
   --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.12);
   --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
+
+  /* Glow */
+  --glow-primary: 0 0 20px rgba(0, 110, 220, 0.15);
+  --glow-primary-subtle: 0 0 8px rgba(0, 110, 220, 0.08);
+
+  /* Scrollbar */
+  --scrollbar-width: 6px;
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+  --scrollbar-track: transparent;
+
+  /* Typography Enhancement */
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-wide: 0.02em;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
 
   /* Semantic: Severity */
   --color-severity-high: #991b1b;
@@ -86,14 +103,14 @@
 /* 다크모드: data-theme 속성 기반 (사용자 제어) */
 [data-theme="dark"] {
   --color-bg: #0f172a;
-  --color-bg-secondary: #1e293b;
+  --color-bg-secondary: #1a2332;
   --color-bg-tertiary: #334155;
-  --color-text: #e2e8f0;
-  --color-text-secondary: #94a3b8;
+  --color-text: #f0f4f8;
+  --color-text-secondary: #a0aec0;
   --color-text-muted: #64748b;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-subtle: rgba(59, 130, 246, 0.12);
+  --color-primary: #60a5fa;
+  --color-primary-hover: #3b82f6;
+  --color-primary-subtle: rgba(96, 165, 250, 0.12);
   --color-border: #334155;
   --color-border-light: #475569;
   --color-success: #22c55e;
@@ -106,8 +123,25 @@
   --color-info-bg: #0c4a6e;
   --color-code-bg: #1e293b;
   --color-code-text: #e2e8f0;
-  --focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.4);
-  --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --focus-ring: 0 0 0 3px rgba(96, 165, 250, 0.4);
+
+  /* Dark Shadows (강화) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --shadow-dropdown: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  /* Dark Glow */
+  --glow-primary: 0 0 20px rgba(96, 165, 250, 0.2);
+  --glow-primary-subtle: 0 0 8px rgba(96, 165, 250, 0.1);
+
+  /* Dark Scrollbar */
+  --scrollbar-thumb: rgba(148, 163, 184, 0.25);
+  --scrollbar-thumb-hover: rgba(148, 163, 184, 0.45);
+  --scrollbar-track: transparent;
+
   --color-severity-high: #fca5a5;
   --color-severity-high-bg: #450a0a;
   --color-severity-medium: #fcd34d;
@@ -123,14 +157,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --color-bg: #0f172a;
-    --color-bg-secondary: #1e293b;
+    --color-bg-secondary: #1a2332;
     --color-bg-tertiary: #334155;
-    --color-text: #e2e8f0;
-    --color-text-secondary: #94a3b8;
+    --color-text: #f0f4f8;
+    --color-text-secondary: #a0aec0;
     --color-text-muted: #64748b;
-    --color-primary: #3b82f6;
-    --color-primary-hover: #2563eb;
-    --color-primary-subtle: rgba(59, 130, 246, 0.12);
+    --color-primary: #60a5fa;
+    --color-primary-hover: #3b82f6;
+    --color-primary-subtle: rgba(96, 165, 250, 0.12);
     --color-border: #334155;
     --color-border-light: #475569;
     --color-success: #22c55e;
@@ -143,8 +177,18 @@
     --color-info-bg: #0c4a6e;
     --color-code-bg: #1e293b;
     --color-code-text: #e2e8f0;
-    --focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.4);
-    --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --focus-ring: 0 0 0 3px rgba(96, 165, 250, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+    --shadow-dropdown: 0 4px 20px rgba(0, 0, 0, 0.5);
+    --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --glow-primary: 0 0 20px rgba(96, 165, 250, 0.2);
+    --glow-primary-subtle: 0 0 8px rgba(96, 165, 250, 0.1);
+    --scrollbar-thumb: rgba(148, 163, 184, 0.25);
+    --scrollbar-thumb-hover: rgba(148, 163, 184, 0.45);
+    --scrollbar-track: transparent;
     --color-severity-high: #fca5a5;
     --color-severity-high-bg: #450a0a;
     --color-severity-medium: #fcd34d;

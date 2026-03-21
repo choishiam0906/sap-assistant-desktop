@@ -1,16 +1,14 @@
-// ─── skill.md 파일 파싱: YAML frontmatter → SapSkillDefinition 변환 ───
+// ─── skill.md 파일 파싱: YAML frontmatter → SkillDefinition 변환 ───
 
 import matter from "gray-matter";
-import type { SapSkillDefinition, SkillOutputFormat } from "../types/source.js";
-import type { DomainPack } from "../contracts.js";
+import type { SkillDefinition, SkillOutputFormat } from "../types/source.js";
 
-const VALID_DOMAIN_PACKS: DomainPack[] = ["ops", "functional", "cbo-maintenance", "pi-integration", "btp-rap-cap"];
 const VALID_OUTPUT_FORMATS: SkillOutputFormat[] = ["chat-answer", "structured-report", "checklist", "explanation"];
 const VALID_DATA_TYPES = ["chat", "cbo"] as const;
 
 export interface SkillParseResult {
   success: boolean;
-  skill?: SapSkillDefinition;
+  skill?: SkillDefinition;
   errors: string[];
 }
 
@@ -35,17 +33,6 @@ export function parseSkillFile(content: string, filePath: string): SkillParseRes
   }
   if (!data.description || typeof data.description !== "string") {
     errors.push("description 필드가 없거나 문자열이 아닙니다.");
-  }
-
-  // supportedDomainPacks 검증
-  if (!Array.isArray(data.supportedDomainPacks) || data.supportedDomainPacks.length === 0) {
-    errors.push("supportedDomainPacks 필드가 없거나 빈 배열입니다.");
-  } else {
-    for (const dp of data.supportedDomainPacks) {
-      if (!VALID_DOMAIN_PACKS.includes(dp as DomainPack)) {
-        errors.push(`유효하지 않은 domainPack: ${String(dp)}`);
-      }
-    }
   }
 
   // supportedDataTypes 검증
@@ -74,11 +61,10 @@ export function parseSkillFile(content: string, filePath: string): SkillParseRes
       ? (data.outputFormat as SkillOutputFormat)
       : "chat-answer";
 
-  const skill: SapSkillDefinition = {
+  const skill: SkillDefinition = {
     id: String(data.id),
     title: String(data.title),
     description: String(data.description),
-    supportedDomainPacks: data.supportedDomainPacks as DomainPack[],
     supportedDataTypes: data.supportedDataTypes as Array<"chat" | "cbo">,
     defaultPromptTemplate: String(data.defaultPromptTemplate),
     outputFormat,
@@ -88,8 +74,8 @@ export function parseSkillFile(content: string, filePath: string): SkillParseRes
     suggestedInputs: Array.isArray(data.suggestedInputs)
       ? (data.suggestedInputs as string[])
       : [],
-    suggestedTcodes: Array.isArray(data.suggestedTcodes)
-      ? (data.suggestedTcodes as string[])
+    domainCodes: Array.isArray(data.domainCodes)
+      ? (data.domainCodes as string[])
       : [],
     isCustom: true,
   };

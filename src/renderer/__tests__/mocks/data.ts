@@ -33,13 +33,12 @@ export const MOCK_SKILL = {
   id: 'cbo-impact-analysis',
   title: 'CBO 변경 영향 분석',
   description: 'CBO 영향 분석',
-  supportedDomainPacks: ['cbo-maintenance'],
   supportedDataTypes: ['chat', 'cbo'],
   defaultPromptTemplate: '',
   outputFormat: 'structured-report',
   requiredSources: ['workspace-context', 'vault-confidential'],
   suggestedInputs: ['이 변경이 어떤 객체에 영향을 주는지 정리해줘'],
-  suggestedTcodes: ['SE80'],
+  domainCodes: ['SE80'],
 }
 
 export const MOCK_SKILL_PACK = {
@@ -47,7 +46,6 @@ export const MOCK_SKILL_PACK = {
   title: 'CBO + Ops Starter Pack',
   description: 'CBO와 운영 중심 skill pack',
   audience: 'mixed',
-  domainPacks: ['ops', 'cbo-maintenance', 'functional'],
   skillIds: ['cbo-impact-analysis', 'incident-triage', 'transport-risk-review'],
 }
 
@@ -67,7 +65,6 @@ export const MOCK_SOURCES = [
     description: '현재 워크스페이스 설정',
     kind: 'workspace',
     classification: 'mixed',
-    domainPack: 'cbo-maintenance',
     availability: 'ready',
     sourceType: 'workspace_context',
   },
@@ -77,7 +74,6 @@ export const MOCK_SOURCES = [
     description: '기밀 운영 지식',
     kind: 'vault',
     classification: 'confidential',
-    domainPack: 'cbo-maintenance',
     availability: 'ready',
     sourceType: 'internal_memo',
   },
@@ -89,7 +85,6 @@ export function createMockConfiguredSource(overrides?: Record<string, unknown>) 
     kind: 'local-folder',
     title: 'FI CBO Sources',
     rootPath: 'C:/sap/cbo',
-    domainPack: 'cbo-maintenance',
     classificationDefault: 'confidential',
     includeGlobs: ['**/*.txt', '**/*.md'],
     enabled: true,
@@ -113,7 +108,6 @@ export function createMockDocument(overrides?: Record<string, unknown>) {
     excerpt: 'FORM validate_authority ...',
     contentText: 'REPORT ZSD_BILLING.',
     contentHash: 'hash-1',
-    domainPack: 'cbo-maintenance',
     classification: 'confidential',
     tags: ['local-folder', 'cbo-maintenance'],
     indexedAt: new Date().toISOString(),

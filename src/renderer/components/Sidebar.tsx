@@ -1,6 +1,7 @@
 import {
   MessageSquare, LayoutDashboard, Settings,
   PanelLeftClose, PanelLeft, BookOpen, Plus,
+  Mail, Code2,
 } from 'lucide-react'
 import type { AppSection } from '../stores/appShellStore'
 import { useAppShellStore } from '../stores/appShellStore'
@@ -26,9 +27,9 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
     ],
   },
   {
-    id: 'sap-assistant',
-    section: 'sap-assistant',
-    label: 'SAP 어시스턴트',
+    id: 'assistant',
+    section: 'assistant',
+    label: '어시스턴트',
     Icon: MessageSquare,
     position: 'main',
     children: [
@@ -51,6 +52,20 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
       { id: 'knowledge-vault', subPage: 'vault', label: '🔐 볼트' },
       { id: 'knowledge-code-lab', subPage: 'code-lab', label: '🧪 코드 랩' },
     ],
+  },
+  {
+    id: 'email',
+    section: 'email',
+    label: 'Email',
+    Icon: Mail,
+    position: 'main',
+  },
+  {
+    id: 'code-analysis',
+    section: 'code-analysis',
+    label: 'Code Analysis',
+    Icon: Code2,
+    position: 'main',
   },
 ]
 
@@ -82,7 +97,7 @@ export function Sidebar() {
     setCurrentSessionId(null)
     setCaseContext(null)
     setInput('')
-    setSection('sap-assistant', 'chat')
+    setSection('assistant', 'chat')
   }
 
   return (
@@ -90,8 +105,8 @@ export function Sidebar() {
       <div className="sidebar-header">
         {!sidebarCollapsed && (
           <div className="sidebar-brand">
-            <h1 className="sidebar-title">SAP Assistant</h1>
-            <span className="sidebar-version">by boxlogodev · v5.0</span>
+            <h1 className="sidebar-title">Assistant Desktop</h1>
+            <span className="sidebar-version">by boxlogodev · v6.0</span>
           </div>
         )}
         <button

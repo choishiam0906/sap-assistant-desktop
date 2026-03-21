@@ -1,6 +1,5 @@
 import type { ProviderType } from './provider.js';
-import type { DomainPack } from './policy.js';
-import type { SourceReference, SapSkillDefinition } from './source.js';
+import type { SourceReference, SkillDefinition } from './source.js';
 
 export interface ChatSession {
   id: string;
@@ -30,14 +29,13 @@ export interface CaseContext {
 }
 
 export interface SkillExecutionContext {
-  domainPack: DomainPack;
   dataType: "chat" | "cbo";
   message?: string;
   caseContext?: CaseContext;
 }
 
 export interface SkillRecommendation {
-  skill: SapSkillDefinition;
+  skill: SkillDefinition;
   reason: string;
   recommendedSourceIds: string[];
 }
@@ -56,7 +54,6 @@ export interface SendMessageInput {
   provider: ProviderType;
   model: string;
   message: string;
-  domainPack: DomainPack;
   skillId?: string;
   sourceIds?: string[];
   caseContext?: CaseContext;
@@ -129,8 +126,12 @@ export const TODO_STATES: Record<TodoStateKind, TodoStateDef> = {
   closed:        { kind: "closed",      label: "종료",   icon: "XCircle",     color: "#6B7280", category: "closed" },
 };
 
-export type SapLabel = "FI" | "CO" | "MM" | "SD" | "PP" | "BC" | "PI" | "BTP";
-export const SAP_LABELS: SapLabel[] = ["FI", "CO", "MM", "SD", "PP", "BC", "PI", "BTP"];
+/**
+ * DomainLabel — 활성 도메인 팩의 라벨 코드.
+ * SAP 팩 기준 하위 호환 유지. 런타임 동적 라벨은 domainPackRegistry.getActive().labelDefinitions 참조.
+ */
+export type DomainLabel = "FI" | "CO" | "MM" | "SD" | "PP" | "BC" | "PI" | "BTP" | (string & {});
+export const DOMAIN_LABELS: DomainLabel[] = ["FI", "CO", "MM", "SD", "PP", "BC", "PI", "BTP"];
 
 export interface SessionFilter {
   kind: "allSessions" | "state" | "label" | "flagged" | "archived";
@@ -141,7 +142,7 @@ export interface ChatSessionMeta extends ChatSession {
   todoState: TodoStateKind;
   isFlagged: boolean;
   isArchived: boolean;
-  labels: SapLabel[];
+  labels: DomainLabel[];
 }
 
 export interface SessionUpdateInput {
@@ -149,7 +150,7 @@ export interface SessionUpdateInput {
   todoState?: TodoStateKind;
   isFlagged?: boolean;
   isArchived?: boolean;
-  labels?: SapLabel[];
+  labels?: DomainLabel[];
 }
 
 export interface CockpitStats {

@@ -9,9 +9,10 @@ import type {
 import type { IpcContext } from "./types.js";
 import { registerCrudHandlers } from "./helpers/registerCrudHandlers.js";
 import { IPC } from "./channels.js";
+import { wrapHandler } from "./helpers/wrapHandler.js";
 
 export function registerRoutineHandlers(ctx: IpcContext): void {
-  // ─── 순수 패스쓰루 ───
+  // ─── 순수 패스쓰루 (registerCrudHandlers 내부에서 wrapHandler 적용) ───
   registerCrudHandlers({
     [IPC.ROUTINE_TEMPLATES_LIST]: () => ctx.routineTemplateRepo.list(),
     [IPC.ROUTINE_TEMPLATES_LIST_BY_FREQUENCY]: (frequency: RoutineFrequency) =>
@@ -33,10 +34,10 @@ export function registerRoutineHandlers(ctx: IpcContext): void {
   });
 
   // ─── 커스텀 로직 (template + steps 결합) ───
-  ipcMain.handle(IPC.ROUTINE_TEMPLATES_GET, (_e, id: string) => {
+  ipcMain.handle(IPC.ROUTINE_TEMPLATES_GET, wrapHandler(IPC.ROUTINE_TEMPLATES_GET, (_e, id: string) => {
     const template = ctx.routineTemplateRepo.getById(id);
     if (!template) return null;
     const steps = ctx.routineTemplateRepo.getSteps(id);
     return { template, steps };
-  });
+  }));
 }

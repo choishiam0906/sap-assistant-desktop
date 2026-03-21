@@ -1,5 +1,4 @@
 import type { ProviderType } from './provider.js';
-import type { DomainPack } from './policy.js';
 import type { SourceReference } from './source.js';
 
 export type CboRiskSeverity = "high" | "medium" | "low";
@@ -41,20 +40,17 @@ export interface CboAnalyzeTextInput {
   content: string;
   provider?: ProviderType;
   model?: string;
-  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzeFileInput {
   filePath: string;
   provider?: ProviderType;
   model?: string;
-  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzePickInput {
   provider?: ProviderType;
   model?: string;
-  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzePickOutput {
@@ -117,7 +113,6 @@ export interface CboAnalyzeFolderInput {
   provider?: ProviderType;
   model?: string;
   skipUnchanged?: boolean;
-  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzeFolderOutput {
@@ -130,7 +125,6 @@ export interface CboAnalyzeFolderPickInput {
   provider?: ProviderType;
   model?: string;
   skipUnchanged?: boolean;
-  domainPack?: DomainPack;
 }
 
 export interface CboAnalyzeFolderPickOutput {

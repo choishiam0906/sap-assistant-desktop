@@ -24,9 +24,13 @@ import type {
 import type { RoutineExecutor } from "../services/routineExecutor.js";
 import type { RoutineScheduler } from "../services/routineScheduler.js";
 import type { AgentExecutor } from "../agents/executor.js";
-import type { PolicyEngine } from "../policy/policyEngine.js";
-import type { ApprovalManager } from "../policy/approvalManager.js";
-
+import type { EmailManager } from "../email/emailManager.js";
+import type { CodeAnalyzer } from "../analysis/codeAnalyzer.js";
+import type {
+  EmailInboxRepository,
+  EmailTaskLinkRepository,
+  CodeAnalysisRepository,
+} from "../storage/repositories/index.js";
 export interface IpcContext {
   oauthManager: OAuthManager;
   chatRuntime: ChatRuntime;
@@ -51,7 +55,10 @@ export interface IpcContext {
   scheduleLogRepo: ScheduleLogRepository;
   agentExecutionRepo: AgentExecutionRepository;
   agentExecutor: AgentExecutor;
-  policyEngine: PolicyEngine;
-  approvalManager: ApprovalManager;
+  emailManager: EmailManager;
+  emailInboxRepo: EmailInboxRepository;
+  emailTaskLinkRepo: EmailTaskLinkRepository;
+  codeAnalyzer: CodeAnalyzer;
+  codeAnalysisRepo: CodeAnalysisRepository;
   getMainWindow: () => BrowserWindow | null;
 }

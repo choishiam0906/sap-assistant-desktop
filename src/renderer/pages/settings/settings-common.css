@@ -178,7 +178,7 @@
   border-radius: var(--radius-lg);
   background: var(--color-bg-secondary);
   box-shadow: var(--shadow-minimal);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .card-divider {

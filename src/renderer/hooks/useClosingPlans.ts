@@ -10,7 +10,7 @@ import type {
 } from '../../main/contracts'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 const CLOSING_STALE = 60_000
 const CLOSING_GC = 10 * 60_000

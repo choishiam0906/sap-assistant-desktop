@@ -130,7 +130,6 @@ export class LocalDatabase {
         run_id TEXT,
         timestamp TEXT NOT NULL DEFAULT (datetime('now')),
         security_mode TEXT NOT NULL,
-        domain_pack TEXT NOT NULL,
         action TEXT NOT NULL,
         external_transfer INTEGER NOT NULL DEFAULT 0,
         policy_decision TEXT NOT NULL,
@@ -151,7 +150,6 @@ export class LocalDatabase {
         id TEXT PRIMARY KEY,
         classification TEXT NOT NULL,
         source_type TEXT NOT NULL,
-        domain_pack TEXT,
         title TEXT NOT NULL,
         excerpt TEXT,
         source_id TEXT,
@@ -162,15 +160,11 @@ export class LocalDatabase {
       CREATE INDEX IF NOT EXISTS idx_vault_classification
       ON knowledge_vault (classification);
 
-      CREATE INDEX IF NOT EXISTS idx_vault_domain
-      ON knowledge_vault (domain_pack);
-
       CREATE TABLE IF NOT EXISTS configured_sources (
         id TEXT PRIMARY KEY,
         kind TEXT NOT NULL,
         title TEXT NOT NULL,
         root_path TEXT,
-        domain_pack TEXT,
         classification_default TEXT,
         include_globs TEXT NOT NULL DEFAULT '[]',
         enabled INTEGER NOT NULL DEFAULT 1,
@@ -190,7 +184,6 @@ export class LocalDatabase {
         excerpt TEXT,
         content_text TEXT NOT NULL,
         content_hash TEXT NOT NULL,
-        domain_pack TEXT,
         classification TEXT,
         tags_json TEXT NOT NULL DEFAULT '[]',
         indexed_at TEXT NOT NULL,
@@ -198,13 +191,11 @@ export class LocalDatabase {
       );
 
       CREATE INDEX IF NOT EXISTS idx_configured_sources_kind
-      ON configured_sources (kind, domain_pack, updated_at DESC);
+      ON configured_sources (kind, updated_at DESC);
 
       CREATE INDEX IF NOT EXISTS idx_source_documents_source
       ON source_documents (source_id, indexed_at DESC);
 
-      CREATE INDEX IF NOT EXISTS idx_source_documents_domain
-      ON source_documents (domain_pack, indexed_at DESC);
     `);
 
     // ─── Closing (마감 관리) 테이블 ───

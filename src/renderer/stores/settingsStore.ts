@@ -177,7 +177,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
       setChatHistoryLimit: (chatHistoryLimit) => {
         const clamped = Math.max(2, Math.min(100, chatHistoryLimit))
-        try { window.sapOpsDesktop?.setChatHistoryLimit(clamped) } catch { /* 무시 */ }
+        try { window.assistantDesktop?.setChatHistoryLimit(clamped) } catch { /* 무시 */ }
         set({ chatHistoryLimit: clamped })
       },
     }),

@@ -2,13 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type {
   ChatSessionMeta,
   CockpitStats,
-  SapLabel,
+  DomainLabel,
   SessionFilter,
   TodoStateKind,
 } from '../../main/contracts'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function useSessionsFiltered(filter: SessionFilter, limit = 50) {
   return useQuery<ChatSessionMeta[]>({
@@ -64,7 +64,7 @@ export function useToggleArchive() {
 export function useAddLabel() {
   const invalidate = useInvalidateCockpit()
   return useMutation({
-    mutationFn: ({ sessionId, label }: { sessionId: string; label: SapLabel }) =>
+    mutationFn: ({ sessionId, label }: { sessionId: string; label: DomainLabel }) =>
       api.addSessionLabel(sessionId, label),
     onSuccess: invalidate,
   })
@@ -73,7 +73,7 @@ export function useAddLabel() {
 export function useRemoveLabel() {
   const invalidate = useInvalidateCockpit()
   return useMutation({
-    mutationFn: ({ sessionId, label }: { sessionId: string; label: SapLabel }) =>
+    mutationFn: ({ sessionId, label }: { sessionId: string; label: DomainLabel }) =>
       api.removeSessionLabel(sessionId, label),
     onSuccess: invalidate,
   })

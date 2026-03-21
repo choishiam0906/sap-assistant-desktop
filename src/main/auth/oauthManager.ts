@@ -344,7 +344,7 @@ export class OAuthManager {
       throw new Error(`${provider} OAuth 설정을 찾을 수 없어요.`);
     }
 
-    // Craft OSS와 동일: state는 콜백 CSRF 검증에만 사용, 토큰 교환에는 포함하지 않음
+    // Anthropic은 비표준: state를 토큰 교환 body에도 포함 (다른 provider는 불필요)
     const tokenBody: Record<string, string> = {
       grant_type: "authorization_code",
       client_id: oauthConfig.clientId,
@@ -352,6 +352,9 @@ export class OAuthManager {
       redirect_uri: pending.redirectUri,
       code_verifier: pending.codeVerifier,
     };
+    if (codeState) {
+      tokenBody.state = codeState;
+    }
 
     logger.debug({
       provider,

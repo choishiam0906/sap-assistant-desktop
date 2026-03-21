@@ -8,20 +8,19 @@ import type {
 } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
-import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore.js'
 import { AgentExecutionModal } from './AgentExecutionModal.js'
 import { AgentEditor } from '../../components/knowledge/AgentEditor.js'
 import { AgentListSection } from './agents/AgentListSection.js'
 import { AgentDetailPanel } from './agents/AgentDetailPanel.js'
+import { useChatStore } from '../../stores/chatStore.js'
+import { useAppShellStore } from '../../stores/appShellStore.js'
 import '../../components/knowledge/AgentEditor.css'
 import './AgentsCatalog.css'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function AgentsCatalog() {
   const queryClient = useQueryClient()
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
 
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const [activeExecutionId, setActiveExecutionId] = useState<string | null>(null)
@@ -31,8 +30,8 @@ export function AgentsCatalog() {
 
   // ─── 에이전트 목록 조회 ───
   const { data: agents = [] } = useQuery({
-    queryKey: queryKeys.agents.list(domainPack),
-    queryFn: () => api.listAgents(domainPack),
+    queryKey: queryKeys.agents.list(),
+    queryFn: () => api.listAgents(),
     staleTime: 60_000,
   })
 
@@ -75,7 +74,7 @@ export function AgentsCatalog() {
 
   // ─── 실행 mutation ───
   const executeMutation = useMutation({
-    mutationFn: (agentId: string) => api.executeAgent(agentId, domainPack),
+    mutationFn: (agentId: string) => api.executeAgent(agentId),
     onSuccess: (executionId) => {
       setActiveExecutionId(executionId)
       void queryClient.invalidateQueries({ queryKey: queryKeys.agents.executions() })
@@ -91,6 +90,26 @@ export function AgentsCatalog() {
     },
   })
 
+  // ─── 대화형 실행 → Chat 페이지로 이동 ───
+  function handleExecuteInteractive() {
+    if (!selectedAgent) return
+    // chatStore에 에이전트 실행 상태 설정
+    useChatStore.setState({
+      agentExecution: {
+        executionId: '', // startInteractiveExecution 호출 후 업데이트됨
+        agentId: selectedAgent.id,
+        agentTitle: selectedAgent.title,
+        currentStepIndex: 0,
+        totalSteps: selectedAgent.steps.length,
+        currentStepLabel: '시작 대기 중...',
+        status: 'running',
+      },
+      currentSessionId: null,
+    })
+    // Chat 페이지로 이동
+    useAppShellStore.getState().setSection('assistant', 'chat')
+  }
+
   // ─── 이력 클릭 → 상세 모달 ───
   async function handleViewExecution(execId: string) {
     const exec = await api.getAgentExecution(execId)
@@ -100,7 +119,7 @@ export function AgentsCatalog() {
   // ─── 커스텀 에이전트 삭제 핸들러 ───
   async function handleDeleteAgent(agentId: string) {
     await api.deleteCustomAgent(`${agentId}.agent.md`)
-    void queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(domainPack) })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.agents.list() })
   }
 
   return (
@@ -108,7 +127,6 @@ export function AgentsCatalog() {
       <div className="agents-action-bar">
         <div className="agents-badges">
           <Badge variant="success">엔터프라이즈 보호</Badge>
-          <Badge variant="neutral">{packDetail.label}</Badge>
         </div>
         <div className="agents-actions">
           <Button variant="ghost" size="sm" onClick={() => api.openAgentFolder()}>
@@ -137,7 +155,7 @@ export function AgentsCatalog() {
           onSave={() => {
             setEditorMode('hidden')
             setEditingAgent(null)
-            void queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(domainPack) })
+            void queryClient.invalidateQueries({ queryKey: queryKeys.agents.list() })
           }}
           onCancel={() => {
             setEditorMode('hidden')
@@ -151,7 +169,6 @@ export function AgentsCatalog() {
           <AgentListSection
             agents={agents}
             selectedId={selectedAgentId}
-            domainPack={domainPack}
             onSelect={setSelectedAgentId}
             onEdit={(agent) => {
               setEditingAgent(agent)
@@ -167,6 +184,7 @@ export function AgentsCatalog() {
             isCancelling={cancelMutation.isPending}
             executions={executions}
             onExecute={() => executeMutation.mutate(selectedAgent!.id)}
+            onExecuteInteractive={handleExecuteInteractive}
             onCancel={() => cancelMutation.mutate(activeExecutionId!)}
             onViewExecution={handleViewExecution}
           />

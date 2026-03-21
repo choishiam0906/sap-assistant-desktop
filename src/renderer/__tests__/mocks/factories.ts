@@ -123,7 +123,6 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
         kind: 'mcp',
         title: 'Test MCP Server',
         rootPath: null,
-        domainPack: 'ops',
         classificationDefault: 'reference',
         includeGlobs: [],
         documentCount: 1,
@@ -154,7 +153,6 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
     searchAuditLogs: vi.fn().mockResolvedValue([]),
     listVaultEntries: vi.fn().mockResolvedValue([]),
     searchVaultByClassification: vi.fn().mockResolvedValue([]),
-    listVaultByDomainPack: vi.fn().mockResolvedValue([]),
 
     // Cockpit Sessions
     listSessionsFiltered: vi.fn().mockResolvedValue([]),
@@ -215,6 +213,11 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
     getAgentExecution: vi.fn().mockResolvedValue(null),
     listAgentExecutions: vi.fn().mockResolvedValue([]),
     cancelAgentExecution: vi.fn().mockResolvedValue(undefined),
+    executeAgentInteractive: vi.fn().mockResolvedValue('exec-interactive-1'),
+    onAgentStepStarted: vi.fn().mockReturnValue(() => {}),
+    onAgentStepCompleted: vi.fn().mockReturnValue(() => {}),
+    onAgentExecutionDone: vi.fn().mockReturnValue(() => {}),
+    onAgentExecutionError: vi.fn().mockReturnValue(() => {}),
     listCustomAgents: vi.fn().mockResolvedValue([]),
     saveCustomAgent: vi.fn().mockResolvedValue(undefined),
     deleteCustomAgent: vi.fn().mockResolvedValue(undefined),
@@ -224,14 +227,19 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
     deleteCustomSkill: vi.fn().mockResolvedValue(undefined),
     openSkillFolder: vi.fn().mockResolvedValue(undefined),
 
-    // Policy Engine
-    listPolicyRules: vi.fn().mockResolvedValue([]),
-    createPolicyRule: vi.fn().mockResolvedValue({ id: 'rule-1', name: '테스트 규칙', conditions: [], action: 'auto_approve', priority: 100, enabled: true, createdAt: '', updatedAt: '' }),
-    updatePolicyRule: vi.fn().mockResolvedValue(null),
-    deletePolicyRule: vi.fn().mockResolvedValue(true),
-    evaluatePolicy: vi.fn().mockResolvedValue({ action: 'auto_approve', matchedRule: null }),
-    listPendingApprovals: vi.fn().mockResolvedValue([]),
-    decideApproval: vi.fn().mockResolvedValue(undefined),
+    // Email
+    emailSyncInbox: vi.fn().mockResolvedValue({ added: 0, skipped: 0 }),
+    emailListInbox: vi.fn().mockResolvedValue([]),
+    emailGetDetail: vi.fn().mockResolvedValue(null),
+    emailAnalyzeAndCreatePlan: vi.fn().mockResolvedValue({ plan: {}, steps: [], link: {} }),
+    emailListLinkedPlans: vi.fn().mockResolvedValue([]),
+
+    // Code Analysis
+    codeAnalysisRun: vi.fn().mockResolvedValue({}),
+    codeAnalysisRunFile: vi.fn().mockResolvedValue(null),
+    codeAnalysisRunsList: vi.fn().mockResolvedValue([]),
+    codeAnalysisRunDetail: vi.fn().mockResolvedValue({ run: null, results: [] }),
+    onCodeAnalysisProgress: vi.fn().mockReturnValue(() => {}),
 
     // Schedule
     listScheduledTasks: vi.fn().mockResolvedValue([]),

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { ChatMessage } from '../../main/contracts'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function useMessages(sessionId: string | null, limit = 100) {
   return useQuery<ChatMessage[]>({

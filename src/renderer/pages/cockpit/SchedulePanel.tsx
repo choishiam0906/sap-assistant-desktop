@@ -9,7 +9,7 @@ import { Button } from '../../components/ui/Button.js'
 import { PageHeader } from '../../components/ui/PageHeader.js'
 import { queryKeys } from '../../hooks/queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 interface ScheduledTask {
   id: string

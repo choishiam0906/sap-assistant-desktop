@@ -3,7 +3,7 @@
 import { app } from "electron";
 import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
-import type { SapSkillDefinition } from "../types/source.js";
+import type { SkillDefinition } from "../types/source.js";
 import { parseSkillFile } from "./skillFileParser.js";
 import { logger } from "../logger.js";
 
@@ -15,9 +15,9 @@ function getSkillDir(): string {
   return dir;
 }
 
-export function loadCustomSkills(): SapSkillDefinition[] {
+export function loadCustomSkills(): SkillDefinition[] {
   const dir = getSkillDir();
-  const skills: SapSkillDefinition[] = [];
+  const skills: SkillDefinition[] = [];
 
   let files: string[];
   try {

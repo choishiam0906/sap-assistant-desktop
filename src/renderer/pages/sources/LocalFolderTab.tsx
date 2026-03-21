@@ -5,10 +5,9 @@ import { queryKeys } from '../../hooks/queryKeys.js'
 import type { ConfiguredSource, SourceDocument, VaultClassification } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
-import { useWorkspaceStore } from '../../stores/workspaceStore.js'
 import { formatTimestamp } from './utils.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function LocalFolderTab() {
   const queryClient = useQueryClient()
@@ -20,8 +19,6 @@ export function LocalFolderTab() {
   const [isAdding, setIsAdding] = useState(false)
   const [reindexingId, setReindexingId] = useState<string | null>(null)
   const [previewDoc, setPreviewDoc] = useState<SourceDocument | null>(null)
-
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
 
   const { data: configuredSources = [] } = useQuery({
     queryKey: queryKeys.sources.configured(),
@@ -35,13 +32,12 @@ export function LocalFolderTab() {
   )
 
   const { data: documents = [] } = useQuery({
-    queryKey: queryKeys.sources.documents(selectedSourceId, searchQuery, domainPack),
+    queryKey: queryKeys.sources.documents(selectedSourceId, searchQuery),
     queryFn: () =>
       api.searchSourceDocuments({
         query: searchQuery.trim() || undefined,
         sourceId: selectedSourceId || undefined,
         sourceKind: 'local-folder',
-        domainPack,
         limit: 20,
       }),
     staleTime: 10_000,
@@ -53,7 +49,6 @@ export function LocalFolderTab() {
     try {
       const result = await api.pickAndAddLocalFolderSource({
         title: newTitle.trim() || undefined,
-        domainPack,
         classificationDefault: classification,
         includeGlobs: ['**/*.txt', '**/*.md', '**/*.log'],
       })
@@ -147,7 +142,6 @@ export function LocalFolderTab() {
                 </div>
               </div>
               <div className="source-card-meta">
-                <span>{source.domainPack ?? 'all-domain'}</span>
                 <span>마지막 색인: {formatTimestamp(source.lastIndexedAt)}</span>
               </div>
               <div className="source-card-actions">
@@ -204,7 +198,6 @@ export function LocalFolderTab() {
             >
               <div className="source-doc-header">
                 <strong>{document.title}</strong>
-                <Badge variant="neutral">{document.domainPack ?? 'none'}</Badge>
               </div>
               <p className="source-doc-path">{document.relativePath}</p>
               {document.excerpt && <p className="source-doc-excerpt">{document.excerpt}</p>}

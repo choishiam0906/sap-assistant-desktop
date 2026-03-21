@@ -5,7 +5,6 @@ import { basename, extname, relative, resolve } from "node:path";
 
 import type {
   ConfiguredSource,
-  DomainPack,
   PickAndAddLocalFolderSourceInput,
   SourceDocument,
   SourceDocumentSearchInput,
@@ -39,7 +38,6 @@ export class LocalFolderSourceLibrary {
     const source = this.sourceRepo.createLocalFolder({
       title: input.title?.trim() || basename(resolvedRoot),
       rootPath: resolvedRoot,
-      domainPack: input.domainPack,
       classificationDefault: input.classificationDefault,
       includeGlobs: input.includeGlobs?.length ? input.includeGlobs : DEFAULT_INCLUDE_GLOBS,
     });
@@ -167,9 +165,8 @@ export class LocalFolderSourceLibrary {
           excerpt: buildExcerpt(contentText),
           contentText,
           contentHash: hashContent(buffer),
-          domainPack: source.domainPack as DomainPack | null,
           classification: source.classificationDefault as VaultClassification | null,
-          tags: [source.kind, source.domainPack ?? "unknown"],
+          tags: [source.kind],
         });
       } catch {
         failed += 1;

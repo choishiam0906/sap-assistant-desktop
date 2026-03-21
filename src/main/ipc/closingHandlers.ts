@@ -10,9 +10,10 @@ import type {
 import type { IpcContext } from "./types.js";
 import { registerCrudHandlers } from "./helpers/registerCrudHandlers.js";
 import { IPC } from "./channels.js";
+import { wrapHandler } from "./helpers/wrapHandler.js";
 
 export function registerClosingHandlers(ctx: IpcContext): void {
-  // ─── Plan CRUD (순수 패스쓰루) ───
+  // ─── Plan CRUD (순수 패스쓰루 — registerCrudHandlers 내부에서 wrapHandler 적용) ───
   registerCrudHandlers({
     [IPC.COCKPIT_PLANS_LIST]: (limit?: number) => ctx.closingPlanRepo.list(limit),
     [IPC.COCKPIT_PLANS_GET]: (planId: string) => ctx.closingPlanRepo.getById(planId),
@@ -29,25 +30,25 @@ export function registerClosingHandlers(ctx: IpcContext): void {
   });
 
   // ─── Step 사이드 이펙트 핸들러 (recalcProgress) ───
-  ipcMain.handle(IPC.COCKPIT_STEPS_CREATE, (_e, input: ClosingStepInput) => {
+  ipcMain.handle(IPC.COCKPIT_STEPS_CREATE, wrapHandler(IPC.COCKPIT_STEPS_CREATE, (_e, input: ClosingStepInput) => {
     const step = ctx.closingStepRepo.create(input);
     ctx.closingPlanRepo.recalcProgress(input.planId);
     return step;
-  });
+  }));
 
-  ipcMain.handle(IPC.COCKPIT_STEPS_UPDATE, (_e, payload: { stepId: string; update: ClosingStepUpdate }) => {
+  ipcMain.handle(IPC.COCKPIT_STEPS_UPDATE, wrapHandler(IPC.COCKPIT_STEPS_UPDATE, (_e, payload: { stepId: string; update: ClosingStepUpdate }) => {
     const step = ctx.closingStepRepo.update(payload.stepId, payload.update);
     if (step) {
       ctx.closingPlanRepo.recalcProgress(step.planId);
     }
     return step;
-  });
+  }));
 
-  ipcMain.handle(IPC.COCKPIT_STEPS_DELETE, (_e, stepId: string) => {
+  ipcMain.handle(IPC.COCKPIT_STEPS_DELETE, wrapHandler(IPC.COCKPIT_STEPS_DELETE, (_e, stepId: string) => {
     const { deleted, planId } = ctx.closingStepRepo.delete(stepId);
     if (deleted && planId) {
       ctx.closingPlanRepo.recalcProgress(planId);
     }
     return deleted;
-  });
+  }));
 }

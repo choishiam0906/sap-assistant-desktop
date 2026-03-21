@@ -1,4 +1,4 @@
-import type { SapLabel } from './session.js';
+import type { DomainLabel } from './session.js';
 
 // ─── Closing Plan (마감 프로세스) ───
 
@@ -39,7 +39,7 @@ export interface ClosingStep {
   title: string;
   description?: string;
   assignee?: string;
-  module?: SapLabel;
+  module?: DomainLabel;
   deadline: string; // YYYY-MM-DD
   status: StepStatus;
   sortOrder: number;
@@ -52,7 +52,7 @@ export interface ClosingStepInput {
   title: string;
   description?: string;
   assignee?: string;
-  module?: SapLabel;
+  module?: DomainLabel;
   deadline: string;
 }
 
@@ -60,7 +60,7 @@ export interface ClosingStepUpdate {
   title?: string;
   description?: string;
   assignee?: string;
-  module?: SapLabel;
+  module?: DomainLabel;
   deadline?: string;
   status?: StepStatus;
 }

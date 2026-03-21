@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { KnowledgePage } from '../KnowledgePage'
-import { mockApi, resetWorkspaceStore } from '../../__tests__/setup'
+import { mockApi } from '../../__tests__/setup'
 import { useAppShellStore } from '../../stores/appShellStore'
 
 function renderWithProviders(ui: React.ReactElement) {
@@ -13,7 +13,6 @@ function renderWithProviders(ui: React.ReactElement) {
 
 describe('KnowledgePage', () => {
   beforeEach(() => {
-    resetWorkspaceStore()
     useAppShellStore.setState({
       currentSection: 'knowledge',
       currentPage: 'process',
@@ -112,7 +111,6 @@ describe('KnowledgePage', () => {
         id: 'agent-1',
         title: '월마감 자동 점검',
         description: '월마감 예외 건을 자동으로 점검해요.',
-        domainPacks: ['ops'],
         category: 'automation',
         estimatedDuration: 180,
         steps: [
@@ -133,7 +131,6 @@ describe('KnowledgePage', () => {
             id: 'vault-1',
             classification: 'confidential',
             sourceType: 'internal_memo',
-            domainPack: 'ops',
             title: '월마감 운영 가이드',
             excerpt: '월마감 예외 처리 순서를 정리한 메모예요.',
             sourceId: 'memo-1',
@@ -148,7 +145,6 @@ describe('KnowledgePage', () => {
           id: 'vault-2',
           classification: 'reference',
           sourceType: 'sap_standard',
-          domainPack: 'ops',
           title: 'FI 마감 체크리스트',
           excerpt: '마감 전 검토할 표준 체크리스트예요.',
           sourceId: 'ref-1',
@@ -167,7 +163,6 @@ describe('KnowledgePage', () => {
         excerpt: 'FORM monthly_close_check ...',
         contentText: 'FORM monthly_close_check.',
         contentHash: 'hash-1',
-        domainPack: 'ops',
         classification: 'confidential',
         tags: ['ops', 'fi'],
         indexedAt: '2026-03-02T00:00:00Z',

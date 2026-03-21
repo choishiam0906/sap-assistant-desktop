@@ -1,9 +1,13 @@
 import '@testing-library/jest-dom/vitest'
-import { useWorkspaceStore } from '../stores/workspaceStore'
 import { createMockApi } from './mocks/factories'
 
 const mockApi = createMockApi()
 
+Object.defineProperty(window, 'assistantDesktop', {
+  value: mockApi,
+  writable: true,
+})
+// 하위 호환 alias
 Object.defineProperty(window, 'sapOpsDesktop', {
   value: mockApi,
   writable: true,
@@ -13,12 +17,5 @@ Object.defineProperty(window, 'sapOpsDesktop', {
 beforeEach(() => {
   Object.values(mockApi).forEach((fn) => fn.mockClear())
 })
-
-// workspaceStore 초기화를 위한 헬퍼
-export function resetWorkspaceStore() {
-  useWorkspaceStore.setState({
-    domainPack: 'ops',
-  })
-}
 
 export { mockApi }

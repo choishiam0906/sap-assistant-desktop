@@ -27,9 +27,9 @@ export default defineConfig({
         'src/main/logger.ts',
       ],
       thresholds: {
-        lines: 20,
-        functions: 20,
-        branches: 15,
+        lines: 35,
+        functions: 35,
+        branches: 25,
       },
     },
   },

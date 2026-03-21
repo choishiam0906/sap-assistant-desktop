@@ -57,11 +57,11 @@ export const queryKeys = {
     custom: () => ['skills', 'custom'] as const,
     list: () => ['skills', 'list'] as const,
     packs: () => ['skills', 'packs'] as const,
-    recommend: (domainPack: string) => ['skills', 'recommend', domainPack] as const,
+    recommend: () => ['skills', 'recommend'] as const,
   },
 
   agents: {
-    list: (domainPack: string) => ['agents', 'list', domainPack] as const,
+    list: () => ['agents', 'list'] as const,
     executions: (agentId?: string) => ['agents', 'executions', agentId] as const,
     execution: (executionId: string) => ['agents', 'execution', executionId] as const,
   },
@@ -78,8 +78,8 @@ export const queryKeys = {
   },
 
   process: {
-    knowledge: (templateId: string | undefined, domainPack: string, candidates: string) =>
-      ['process', 'knowledge', templateId, domainPack, candidates] as const,
+    knowledge: (templateId: string | undefined, candidates: string) =>
+      ['process', 'knowledge', templateId, candidates] as const,
   },
 
   schedule: {
@@ -88,8 +88,16 @@ export const queryKeys = {
     logs: (taskId: string | null) => ['schedule', 'logs', taskId] as const,
   },
 
-  policy: {
-    all: ['policy'] as const,
-    rules: () => ['policy', 'rules'] as const,
+  email: {
+    inbox: (options?: { limit?: number; unprocessedOnly?: boolean }) =>
+      ['email', 'inbox', options] as const,
+    detail: (emailId: string | null) => ['email', 'detail', emailId] as const,
+    linkedPlans: (emailId: string | null) => ['email', 'linkedPlans', emailId] as const,
   },
+
+  codeAnalysis: {
+    runs: (sourceId?: string, limit?: number) => ['codeAnalysis', 'runs', sourceId, limit] as const,
+    runDetail: (runId: string | null) => ['codeAnalysis', 'run', runId] as const,
+  },
+
 }

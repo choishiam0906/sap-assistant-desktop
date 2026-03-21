@@ -18,5 +18,8 @@
   },
   "include": [
     "src/main/**/*.ts"
+  ],
+  "exclude": [
+    "src/main/**/__tests__/**"
   ]
 }

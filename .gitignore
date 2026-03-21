@@ -56,3 +56,6 @@ coverage/
 
 # mypy
 .mypy_cache/
+
+# Website (별도 저장소)
+website/

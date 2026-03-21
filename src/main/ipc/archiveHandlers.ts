@@ -9,6 +9,7 @@ import type {
 } from "../types/archive.js";
 import type { IpcContext } from "./types.js";
 import { IPC } from "./channels.js";
+import { wrapHandler } from "./helpers/wrapHandler.js";
 
 const TEXT_EXTENSIONS = new Set([".txt", ".md", ".abap", ".log"]);
 
@@ -61,7 +62,7 @@ async function buildTree(
 }
 
 export function registerArchiveHandlers(ctx: IpcContext): void {
-  ipcMain.handle(IPC.ARCHIVE_PICK_FOLDER, async () => {
+  ipcMain.handle(IPC.ARCHIVE_PICK_FOLDER, wrapHandler(IPC.ARCHIVE_PICK_FOLDER, async () => {
     const mainWindow = ctx.getMainWindow();
     const selection = mainWindow
       ? await dialog.showOpenDialog(mainWindow, {
@@ -78,28 +79,28 @@ export function registerArchiveHandlers(ctx: IpcContext): void {
     }
 
     return { canceled: false, path: selection.filePaths[0] };
-  });
+  }));
 
   ipcMain.handle(
     IPC.ARCHIVE_LIST_CONTENTS,
-    async (_event, input: ListArchiveContentsInput) => {
+    wrapHandler(IPC.ARCHIVE_LIST_CONTENTS, async (_event, input: ListArchiveContentsInput) => {
       const maxDepth = input.maxDepth ?? 3;
       return buildTree(input.folderPath, 1, maxDepth);
-    },
+    }),
   );
 
   ipcMain.handle(
     IPC.ARCHIVE_READ_FILE,
-    async (_event, input: ReadArchiveFileInput) => {
+    wrapHandler(IPC.ARCHIVE_READ_FILE, async (_event, input: ReadArchiveFileInput) => {
       const content = await fs.readFile(input.filePath, "utf-8");
       const stat = await fs.stat(input.filePath);
       return { content, size: stat.size };
-    },
+    }),
   );
 
   ipcMain.handle(
     IPC.ARCHIVE_SAVE_FILE,
-    async (_event, input: SaveArchiveFileInput) => {
+    wrapHandler(IPC.ARCHIVE_SAVE_FILE, async (_event, input: SaveArchiveFileInput) => {
       try {
         // 상위 디렉토리가 없으면 생성
         await fs.mkdir(path.dirname(input.filePath), { recursive: true });
@@ -109,6 +110,6 @@ export function registerArchiveHandlers(ctx: IpcContext): void {
         const message = err instanceof Error ? err.message : String(err);
         return { success: false, error: message };
       }
-    },
+    }),
   );
 }

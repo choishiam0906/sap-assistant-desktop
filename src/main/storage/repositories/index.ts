@@ -15,3 +15,13 @@ export { ScheduledTaskRepository } from "./scheduledTaskRepository.js";
 export type { ScheduledTaskRow, ScheduledTaskInput } from "./scheduledTaskRepository.js";
 export { ScheduleLogRepository } from "./scheduleLogRepository.js";
 export type { ScheduleLogRow } from "./scheduleLogRepository.js";
+export { EmailInboxRepository, EmailTaskLinkRepository } from "./emailRepository.js";
+export type { EmailInbox, EmailInboxInput, EmailTaskLink, EmailTaskLinkInput } from "./emailRepository.js";
+export { CodeAnalysisRepository } from "./codeAnalysisRepository.js";
+export type {
+  CodeAnalysisRun,
+  CodeAnalysisResult,
+  CodeAnalysisResultInput,
+  CodeAnalysisRisk,
+  CodeAnalysisRecommendation,
+} from "./codeAnalysisRepository.js";

@@ -1,8 +1,8 @@
 {
-  "name": "sap-assistant-desktop-platform",
-  "version": "6.0.0",
+  "name": "assistant-desktop",
+  "version": "6.1.0",
   "private": true,
-  "description": "SAP Assistant Desktop Platform desktop runtime (user OAuth: Codex + Copilot)",
+  "description": "Assistant Desktop Platform — domain-agnostic AI assistant runtime",
   "author": "boxlogodev",
   "copyright": "Copyright (c) 2026 boxlogodev",
   "main": "dist/main/index.js",
@@ -82,8 +82,8 @@
     "extraMetadata": {
       "main": "dist/main/index.cjs"
     },
-    "appId": "com.boxlogodev.sap-assistant",
-    "productName": "SAP Assistant Desktop Platform",
+    "appId": "com.boxlogodev.assistant-desktop",
+    "productName": "Assistant Desktop",
     "directories": {
       "output": "release",
       "buildResources": "build"

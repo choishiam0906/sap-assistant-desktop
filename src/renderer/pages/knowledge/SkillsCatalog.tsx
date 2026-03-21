@@ -4,19 +4,19 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, FolderOpen, Pencil, Trash2 } from 'lucide-react'
 import { queryKeys } from '../../hooks/queryKeys.js'
-import type { SapSkillDefinition } from '../../../main/contracts.js'
+import type { SkillDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
 import { SkillEditor } from '../../components/knowledge/SkillEditor.js'
 import { SkillsPage } from '../SkillsPage.js'
 import '../../components/knowledge/AgentEditor.css'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function SkillsCatalog() {
   const queryClient = useQueryClient()
   const [editorMode, setEditorMode] = useState<'hidden' | 'new' | 'edit'>('hidden')
-  const [editingSkill, setEditingSkill] = useState<SapSkillDefinition | null>(null)
+  const [editingSkill, setEditingSkill] = useState<SkillDefinition | null>(null)
 
   const { data: customSkills = [] } = useQuery({
     queryKey: queryKeys.skills.custom(),
@@ -95,9 +95,6 @@ export function SkillsCatalog() {
                 <div className="agent-card-meta">
                   <Badge variant="warning">커스텀</Badge>
                   <Badge variant="neutral">{skill.outputFormat}</Badge>
-                  {skill.supportedDomainPacks.map((dp) => (
-                    <Badge key={dp} variant="neutral">{dp}</Badge>
-                  ))}
                 </div>
               </article>
             ))}

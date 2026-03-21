@@ -105,7 +105,7 @@ export class RoutineExecutor {
         planId: plan.id,
         title: step.title,
         description: step.description,
-        module: step.module as never, // SapLabel 호환
+        module: step.module as never, // DomainLabel 호환
         deadline: targetDate,
       });
     }

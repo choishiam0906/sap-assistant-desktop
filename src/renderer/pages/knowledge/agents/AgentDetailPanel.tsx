@@ -1,4 +1,4 @@
-import { Play, XCircle, CheckCircle2, Loader2, ArrowRight } from 'lucide-react'
+import { Play, MessageSquare, XCircle, CheckCircle2, Loader2, ArrowRight } from 'lucide-react'
 import type { AgentDefinition, AgentExecution, AgentExecutionSummary } from '../../../main/contracts.js'
 import { Button } from '../../../components/ui/Button.js'
 import { AgentExecutionList } from './AgentExecutionList.js'
@@ -10,6 +10,7 @@ interface AgentDetailPanelProps {
   isCancelling: boolean
   executions: AgentExecutionSummary[]
   onExecute: () => void
+  onExecuteInteractive?: () => void
   onCancel: () => void
   onViewExecution: (execId: string) => void
 }
@@ -21,6 +22,7 @@ export function AgentDetailPanel({
   isCancelling,
   executions,
   onExecute,
+  onExecuteInteractive,
   onCancel,
   onViewExecution,
 }: AgentDetailPanelProps) {
@@ -58,15 +60,27 @@ export function AgentDetailPanel({
                 취소
               </Button>
             ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={onExecute}
-                loading={isExecuting}
-              >
-                <Play size={14} aria-hidden="true" />
-                실행
-              </Button>
+              <>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={onExecute}
+                  loading={isExecuting}
+                >
+                  <Play size={14} aria-hidden="true" />
+                  실행
+                </Button>
+                {onExecuteInteractive && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={onExecuteInteractive}
+                  >
+                    <MessageSquare size={14} aria-hidden="true" />
+                    대화형 실행
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>

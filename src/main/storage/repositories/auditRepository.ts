@@ -11,7 +11,6 @@ interface AuditRow {
   runId: string | null;
   timestamp: string;
   securityMode: string;
-  domainPack: string;
   action: string;
   externalTransfer: number;
   policyDecision: string;
@@ -37,11 +36,11 @@ export class AuditRepository {
     this.db
       .prepare(
         `INSERT INTO audit_logs(
-          id, session_id, run_id, timestamp, security_mode, domain_pack,
+          id, session_id, run_id, timestamp, security_mode,
           action, external_transfer, policy_decision, provider, model,
           skill_id, source_ids, source_count
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         entry.id,
@@ -49,7 +48,6 @@ export class AuditRepository {
         entry.runId,
         entry.timestamp,
         "reference",
-        entry.domainPack,
         entry.action,
         entry.externalTransfer ? 1 : 0,
         entry.policyDecision,
@@ -70,7 +68,6 @@ export class AuditRepository {
           run_id AS runId,
           timestamp,
           security_mode AS securityMode,
-          domain_pack AS domainPack,
           action,
           external_transfer AS externalTransfer,
           policy_decision AS policyDecision,
@@ -96,7 +93,6 @@ export class AuditRepository {
           run_id AS runId,
           timestamp,
           security_mode AS securityMode,
-          domain_pack AS domainPack,
           action,
           external_transfer AS externalTransfer,
           policy_decision AS policyDecision,
@@ -139,7 +135,6 @@ export class AuditRepository {
           run_id AS runId,
           timestamp,
           security_mode AS securityMode,
-          domain_pack AS domainPack,
           action,
           external_transfer AS externalTransfer,
           policy_decision AS policyDecision,

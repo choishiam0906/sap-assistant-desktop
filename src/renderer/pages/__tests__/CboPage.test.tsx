@@ -7,7 +7,6 @@ import { mockApi } from '../../__tests__/setup'
 import { useCboStore } from '../../stores/cboStore'
 import { useChatStore } from '../../stores/chatStore'
 import { useAppShellStore } from '../../stores/appShellStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -26,7 +25,6 @@ describe('CboPage (AnalysisMode 래퍼)', () => {
         excerpt: 'FORM validate_authority ...',
         contentText: 'REPORT ZSD_BILLING.',
         contentHash: 'hash-1',
-        domainPack: 'cbo-maintenance',
         classification: 'confidential',
         tags: ['local-folder', 'cbo-maintenance'],
         indexedAt: new Date().toISOString(),
@@ -41,7 +39,6 @@ describe('CboPage (AnalysisMode 래퍼)', () => {
       excerpt: 'FORM validate_authority ...',
       contentText: 'REPORT ZSD_BILLING.',
       contentHash: 'hash-1',
-      domainPack: 'cbo-maintenance',
       classification: 'confidential',
       tags: ['local-folder', 'cbo-maintenance'],
       indexedAt: new Date().toISOString(),
@@ -71,7 +68,6 @@ describe('CboPage (AnalysisMode 래퍼)', () => {
       streamingMeta: null,
     })
     useAppShellStore.setState({ currentPage: 'cbo' })
-    useWorkspaceStore.setState({ domainPack: 'cbo-maintenance' })
   })
 
   it('2개 분석 탭(텍스트 분석, 파일 선택)을 렌더링한다', () => {
@@ -121,9 +117,7 @@ describe('CboPage (AnalysisMode 래퍼)', () => {
       expect(mockApi.analyzeCboText).toHaveBeenCalled()
     })
 
-    expect(mockApi.analyzeCboText).toHaveBeenCalledWith(expect.objectContaining({
-      domainPack: 'cbo-maintenance',
-    }))
+    expect(mockApi.analyzeCboText).toHaveBeenCalled()
   })
 
   it('파일 선택 탭으로 전환하면 파일 분석 버튼이 표시된다', async () => {

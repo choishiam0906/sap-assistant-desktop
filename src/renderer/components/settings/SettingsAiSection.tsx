@@ -4,7 +4,7 @@ import {
   Sparkles, Plus, X, Globe, Monitor, Github, Copy,
 } from 'lucide-react'
 import type {
-  ProviderType, AuthStatus, DomainPack,
+  ProviderType, AuthStatus,
   OAuthAvailability,
 } from '../../../main/contracts.js'
 import { PROVIDER_LABELS, PROVIDER_MODELS } from '../../../main/contracts.js'
@@ -16,11 +16,8 @@ import { DropdownSelect } from '../ui/DropdownSelect.js'
 import { ActionMenu } from '../ui/ActionMenu.js'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 import { useSettingsStore, type ThinkingLevel } from '../../stores/settingsStore.js'
-import {
-  useWorkspaceStore,
-} from '../../stores/workspaceStore.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 // ─── 타입 & 상수 ───────────────────────────────────
 
@@ -121,42 +118,11 @@ const THINKING_OPTIONS: { value: ThinkingLevel; label: string; description: stri
   { value: 'high', label: 'High', description: '깊은 사고 과정' },
 ]
 
-const WORKSPACE_SKILL_GUIDES: Record<DomainPack, {
-  skillId: string
-  title: string
-  outcome: string
-  primarySources: string[]
-}> = {
-  ops: {
-    skillId: 'incident-triage',
-    title: '운영 장애 트리아지',
-    outcome: '장애 증상과 운영 로그를 기준으로 원인 후보와 점검 순서를 정리합니다.',
-    primarySources: ['Reference Vault', 'Workspace Context', '운영 로그 요약'],
-  },
-  functional: {
-    skillId: 'sap-explainer',
-    title: '현업 문의 설명',
-    outcome: '오류와 프로세스를 현업 언어로 풀고, 업무 확인 항목으로 번역합니다.',
-    primarySources: ['Reference Vault', '업무 가이드', 'Workspace Context'],
-  },
-  'cbo-maintenance': {
-    skillId: 'cbo-impact-analysis',
-    title: 'CBO 변경 영향 분석',
-    outcome: 'CBO 소스 구조, 리스크, 검증 순서, 보고 포인트를 구조화합니다.',
-    primarySources: ['Local Imported Files', 'Current CBO Run', 'Confidential Vault', 'Workspace Context'],
-  },
-  'pi-integration': {
-    skillId: 'incident-triage',
-    title: '인터페이스 장애 트리아지',
-    outcome: '메시지 흐름, 어댑터, 채널, 모니터링 포인트를 운영 순서로 정리합니다.',
-    primarySources: ['Reference Vault', '운영 로그 요약', 'Workspace Context'],
-  },
-  'btp-rap-cap': {
-    skillId: 'sap-explainer',
-    title: 'BTP / RAP / CAP 설명',
-    outcome: '공개 지식을 기준으로 구조, 운영 포인트, 비교 설명을 제공합니다.',
-    primarySources: ['Reference Vault', 'Workspace Context', '공개 MCP Source'],
-  },
+const SOURCE_GUIDE = {
+  title: '운영 지원',
+  outcome: '장애 진단, 업무 설명, 코드 분석 등 운영 전반의 이슈를 구조적으로 정리합니다.',
+  primarySources: ['Reference Vault', 'Local Files', 'Workspace Context', 'MCP Connectors'],
+  skillId: 'incident-triage',
 }
 
 function errorMessage(err: unknown): string {
@@ -214,8 +180,6 @@ export function SettingsAiSection() {
     defaultProvider, defaultModel, setDefaultProvider, setDefaultModel,
     thinkingLevel, setThinkingLevel,
   } = useSettingsStore()
-
-  const { domainPack } = useWorkspaceStore()
 
   const checkAllStatus = useCallback(async () => {
     for (const p of ALL_PROVIDERS) {
@@ -516,7 +480,7 @@ export function SettingsAiSection() {
   const authenticatedProviders = ALL_PROVIDERS.filter((p) => states[p.type].status === 'authenticated')
   const allUnauthenticated = authenticatedProviders.length === 0
 
-  const currentPackGuide = WORKSPACE_SKILL_GUIDES[domainPack]
+  const currentPackGuide = SOURCE_GUIDE
 
   // ─── 렌더링 ───────────────────────────────────────
 
@@ -674,7 +638,7 @@ export function SettingsAiSection() {
                     <span className="row-desc">{currentPackGuide.primarySources.join(' / ')}</span>
                   </div>
                   <div className="row-right">
-                    <span className="row-value">{domainPack}</span>
+                    <Badge variant="info">all</Badge>
                   </div>
                 </div>
                 <div className="settings-row">
@@ -715,9 +679,7 @@ export function SettingsAiSection() {
                 <article className="source-capability-card">
                   <div className="source-capability-head">
                     <strong>Current Run</strong>
-                    <Badge variant={domainPack === 'cbo-maintenance' ? 'info' : 'neutral'}>
-                      {domainPack === 'cbo-maintenance' ? 'recommended' : 'optional'}
-                    </Badge>
+                    <Badge variant="info">ready</Badge>
                   </div>
                   <p>CBO 실행 이력과 최근 분석 run을 후속 질문의 근거로 연결합니다.</p>
                 </article>
@@ -753,7 +715,7 @@ export function SettingsAiSection() {
               <div className="setup-wizard-icon">
                 <Sparkles size={40} className="setup-wizard-icon-svg" />
               </div>
-              <h2 className="setup-wizard-title">Welcome to SAP Assistant</h2>
+              <h2 className="setup-wizard-title">Welcome to Assistant Desktop</h2>
               <p className="setup-wizard-desc">어떻게 연결하시겠어요?</p>
 
               <div className="setup-wizard-content">

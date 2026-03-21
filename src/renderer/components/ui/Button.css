@@ -38,6 +38,13 @@
 }
 .ui-btn-primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
+  box-shadow: var(--glow-primary), var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.ui-btn-primary:active:not(:disabled) {
+  transform: scale(0.97) translateY(0);
+  box-shadow: none;
 }
 
 .ui-btn-secondary {

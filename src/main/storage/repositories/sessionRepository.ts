@@ -5,7 +5,7 @@ import type {
   ChatSessionMeta,
   CockpitStats,
   ProviderType,
-  SapLabel,
+  DomainLabel,
   SessionFilter,
   TodoStateKind,
 } from "../../contracts.js";
@@ -40,10 +40,10 @@ function toSessionMeta(row: SessionMetaRow): ChatSessionMeta {
   };
 }
 
-function parseLabels(raw: string): SapLabel[] {
+function parseLabels(raw: string): DomainLabel[] {
   try {
     const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((e): e is SapLabel => typeof e === "string") : [];
+    return Array.isArray(parsed) ? parsed.filter((e): e is DomainLabel => typeof e === "string") : [];
   } catch {
     return [];
   }
@@ -167,28 +167,28 @@ export class SessionRepository {
       .run(nowIso(), sessionId);
   }
 
-  setLabels(sessionId: string, labels: SapLabel[]): void {
+  setLabels(sessionId: string, labels: DomainLabel[]): void {
     this.db
       .prepare(`UPDATE sessions SET labels = ?, updated_at = ? WHERE id = ?`)
       .run(JSON.stringify(labels), nowIso(), sessionId);
   }
 
-  addLabel(sessionId: string, label: SapLabel): void {
+  addLabel(sessionId: string, label: DomainLabel): void {
     const row = this.db
       .prepare(`SELECT labels FROM sessions WHERE id = ?`)
       .get(sessionId) as { labels: string } | undefined;
-    const current: SapLabel[] = row ? parseLabels(row.labels) : [];
+    const current: DomainLabel[] = row ? parseLabels(row.labels) : [];
     if (!current.includes(label)) {
       current.push(label);
       this.setLabels(sessionId, current);
     }
   }
 
-  removeLabel(sessionId: string, label: SapLabel): void {
+  removeLabel(sessionId: string, label: DomainLabel): void {
     const row = this.db
       .prepare(`SELECT labels FROM sessions WHERE id = ?`)
       .get(sessionId) as { labels: string } | undefined;
-    const current: SapLabel[] = row ? parseLabels(row.labels) : [];
+    const current: DomainLabel[] = row ? parseLabels(row.labels) : [];
     const filtered = current.filter((l) => l !== label);
     if (filtered.length !== current.length) {
       this.setLabels(sessionId, filtered);

@@ -4,13 +4,13 @@ import { ProcessHub } from './knowledge/ProcessHub.js'
 import { SkillsCatalog } from './knowledge/SkillsCatalog.js'
 import { AgentsCatalog } from './knowledge/AgentsCatalog.js'
 import { VaultSection } from './knowledge/VaultSection.js'
-import { CodeLabMode } from './sap-assistant/CodeLabMode.js'
+import { CodeLabMode } from './assistant/CodeLabMode.js'
 import { PageHeader } from '../components/ui/PageHeader.js'
 import './SourcesPage.css'
 import './KnowledgeVaultPage.css'
 
 const TAB_META: Record<string, { title: string; description: string }> = {
-  process: { title: 'Process', description: 'SAP 업무 프로세스를 정의하고 단계와 자동화를 연결하세요' },
+  process: { title: 'Process', description: '업무 프로세스를 정의하고 단계와 자동화를 연결하세요' },
   skills: { title: 'Skills', description: '프롬프트 스킬을 관리하고 실행하세요' },
   agents: { title: 'Agents', description: 'AI 에이전트를 구성하고 관리하세요' },
   vault: { title: 'Vault', description: '지식 저장소의 문서를 관리하세요' },

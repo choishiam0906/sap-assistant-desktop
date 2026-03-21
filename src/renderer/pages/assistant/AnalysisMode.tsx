@@ -10,13 +10,9 @@ import { Button } from '../../components/ui/Button.js'
 import { SkeletonText } from '../../components/ui/Skeleton.js'
 import { useAppShellStore } from '../../stores/appShellStore.js'
 import { useChatStore } from '../../stores/chatStore.js'
-import {
-  DOMAIN_PACK_DETAILS,
-  useWorkspaceStore,
-} from '../../stores/workspaceStore.js'
 import '../CboPage.css'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 type Tab = 'text' | 'file'
 
@@ -27,8 +23,6 @@ export function AnalysisMode() {
   const [activeLibrarySourceId, setActiveLibrarySourceId] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('text')
 
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
-  const applyRecommendedCboWorkspace = useWorkspaceStore((state) => state.applyRecommendedCboWorkspace)
   const setSection = useAppShellStore((state) => state.setSection)
   const setCurrentSessionId = useChatStore((state) => state.setCurrentSessionId)
   const setChatInput = useChatStore((state) => state.setInput)
@@ -37,16 +31,13 @@ export function AnalysisMode() {
   const setSelectedSkillId = useChatStore((state) => state.setSelectedSkillId)
   const setSelectedSourceIds = useChatStore((state) => state.setSelectedSourceIds)
   const setCaseContext = useChatStore((state) => state.setCaseContext)
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
-  const cboWorkspaceReady = domainPack === 'cbo-maintenance'
 
   const { data: libraryDocuments = [] } = useQuery({
-    queryKey: queryKeys.sources.documents('cbo-library', librarySearch, domainPack),
+    queryKey: queryKeys.sources.documents('cbo-library', librarySearch),
     queryFn: () =>
       api.searchSourceDocuments({
         query: librarySearch.trim() || undefined,
         sourceKind: 'local-folder',
-        domainPack,
         limit: 8,
       }),
     enabled: activeTab === 'text',
@@ -56,6 +47,7 @@ export function AnalysisMode() {
   const displayError = store.error
 
   useEffect(() => {
+    if (typeof api?.onCboProgress !== 'function') return
     const { setProgress, setStatus } = useCboStore.getState()
     const cleanup = api.onCboProgress((event) => {
       setProgress(event)
@@ -65,9 +57,8 @@ export function AnalysisMode() {
   }, [])
 
   function analysisOpts() {
-    const workspaceContext = { domainPack }
-    if (!store.useLlm) return workspaceContext
-    return { ...workspaceContext, provider: store.provider, model: store.model }
+    if (!store.useLlm) return {}
+    return { provider: store.provider, model: store.model }
   }
 
   function handoffToChat(prompt: string) {
@@ -96,7 +87,7 @@ export function AnalysisMode() {
       setChatModel(store.model)
     }
     setChatInput(prompt)
-    setSection('sap-assistant', 'chat')
+    setSection('assistant', 'chat')
   }
 
   async function loadLibraryDocument(documentId: string) {
@@ -150,27 +141,6 @@ export function AnalysisMode() {
 
   return (
     <div className="cbo-page">
-      <div className={`cbo-workspace-callout ${cboWorkspaceReady ? '' : 'warning'}`}>
-        <div className="cbo-workspace-copy">
-          <strong>
-            {cboWorkspaceReady
-              ? '현재 워크스페이스는 CBO 유지보수 분석에 맞게 설정되어 있습니다.'
-              : '현재 워크스페이스는 CBO 분석 권장 조합과 다릅니다.'}
-          </strong>
-          <p>
-            활성 Domain Pack: {packDetail.label}. CBO 소스는 기본적으로
-            <b> CBO Maintenance</b> Domain Pack을 권장합니다.
-          </p>
-        </div>
-        <div className="cbo-workspace-badges">
-          <Badge variant="neutral">{packDetail.label}</Badge>
-          {!cboWorkspaceReady && (
-            <Button variant="secondary" size="sm" onClick={applyRecommendedCboWorkspace}>
-              권장 워크스페이스로 전환
-            </Button>
-          )}
-        </div>
-      </div>
 
       <div className="cbo-tabs" role="tablist" aria-label="분석 입력 방식">
         {(['text', 'file'] as Tab[]).map((t) => (
@@ -268,7 +238,7 @@ export function AnalysisMode() {
       {activeTab === 'file' && (
         <div className="cbo-section">
           <p className="cbo-desc">
-            파일을 선택하여 CBO 규칙 분석을 실행합니다. 현재 워크스페이스는 {packDetail.label} 기준으로 동작합니다.
+            파일을 선택하여 CBO 규칙 분석을 실행합니다.
           </p>
           <div className="cbo-actions">
             <Button variant="primary" onClick={pickFile} loading={store.busy}>

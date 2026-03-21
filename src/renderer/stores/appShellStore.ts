@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 // ─── 새 계층형 네비게이션 타입 ───
 
-export type AppSection = 'cockpit' | 'sap-assistant' | 'knowledge' | 'settings'
+export type AppSection = 'cockpit' | 'assistant' | 'knowledge' | 'email' | 'code-analysis' | 'settings'
 
 export type CockpitSubPage = 'overview' | 'daily' | 'monthly' | 'yearly' | 'all-plans'
 export type CodeLabSubPage =
@@ -10,13 +10,15 @@ export type CodeLabSubPage =
   | 'code-lab:sources'
   | 'code-lab:analysis'
   | 'code-lab:archive'
-export type SapAssistantSubPage =
+export type AssistantSubPage =
   | 'chat'           // 대화 모드 (기본)
   | 'chat:flagged'   // 중요 세션 필터
   | 'chat:saved'     // 보관함 필터
   | 'analysis'       // 분석 모드 (레거시, code-lab:analysis로 리다이렉트)
   | 'archive'        // 소스코드 아카이브 (레거시, code-lab:archive로 리다이렉트)
   | CodeLabSubPage
+/** @deprecated Use AssistantSubPage */
+export type SapAssistantSubPage = AssistantSubPage
 export type KnowledgeSubPage = 'process' | 'skills' | 'agents' | 'vault' | CodeLabSubPage
 
 /** @deprecated Phase 1 호환 레이어 — AskSapSubPage는 SessionFilterTab으로 이전됨 */
@@ -44,7 +46,7 @@ interface AppShellState {
 function pageToSection(page: AppPage): { section: AppSection; subPage: string | null } {
   switch (page) {
     case 'audit': return { section: 'cockpit', subPage: 'overview' }
-    case 'chat': return { section: 'sap-assistant', subPage: 'chat' }
+    case 'chat': return { section: 'assistant', subPage: 'chat' }
     case 'process': return { section: 'knowledge', subPage: 'process' }
     case 'skills': return { section: 'knowledge', subPage: 'skills' }
     case 'cbo': return { section: 'knowledge', subPage: 'code-lab:analysis' }
@@ -58,13 +60,15 @@ function pageToSection(page: AppPage): { section: AppSection; subPage: string | 
 function sectionToPage(section: AppSection, subPage: string | null): AppPage {
   switch (section) {
     case 'cockpit': return 'audit'
-    case 'sap-assistant': return 'chat'
+    case 'assistant': return 'chat'
     case 'knowledge':
       if (subPage === 'process') return 'process'
       if (subPage === 'skills') return 'skills'
       if (subPage === 'vault') return 'vault'
       if (subPage === 'code-lab:analysis') return 'cbo'
       return 'sources'
+    case 'email': return 'chat'
+    case 'code-analysis': return 'cbo'
     case 'settings': return 'settings'
   }
 }

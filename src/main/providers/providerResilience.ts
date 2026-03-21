@@ -92,6 +92,20 @@ export class ProviderResilience {
     }
   }
 
+  /**
+   * 통합 래퍼: retry + circuit breaker를 한 번에 적용.
+   * ChatRuntime·CboAnalyzer의 LLM 호출에서 사용.
+   */
+  async withProviderCall<T>(
+    providerType: ProviderType,
+    fn: () => Promise<T>,
+    options?: { maxRetries?: number },
+  ): Promise<T> {
+    return this.withCircuitBreaker(providerType, () =>
+      this.withRetry(fn, options?.maxRetries ?? 2),
+    );
+  }
+
   private getCircuit(providerType: ProviderType): CircuitState {
     let circuit = this.circuits.get(providerType);
     if (!circuit) {

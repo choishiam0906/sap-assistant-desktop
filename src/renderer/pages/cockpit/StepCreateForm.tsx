@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import type { SapLabel } from '../../../main/contracts'
-import { SAP_LABELS } from '../../../main/types/session'
+import type { DomainLabel } from '../../../main/contracts'
+import { DOMAIN_LABELS } from '../../../main/types/session'
 import { useCreateStep } from '../../hooks/useClosingPlans'
 
 interface StepCreateFormProps {
@@ -13,7 +13,7 @@ export function StepCreateForm({ planId, defaultDeadline }: StepCreateFormProps)
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [assignee, setAssignee] = useState('')
-  const [module, setModule] = useState<SapLabel | ''>('')
+  const [module, setModule] = useState<DomainLabel | ''>('')
   const [deadline, setDeadline] = useState(defaultDeadline)
   const createStep = useCreateStep()
 
@@ -74,10 +74,10 @@ export function StepCreateForm({ planId, defaultDeadline }: StepCreateFormProps)
         <select
           className="closing-select"
           value={module}
-          onChange={(e) => setModule(e.target.value as SapLabel | '')}
+          onChange={(e) => setModule(e.target.value as DomainLabel | '')}
         >
           <option value="">모듈</option>
-          {SAP_LABELS.map((l) => (
+          {DOMAIN_LABELS.map((l) => (
             <option key={l} value={l}>{l}</option>
           ))}
         </select>

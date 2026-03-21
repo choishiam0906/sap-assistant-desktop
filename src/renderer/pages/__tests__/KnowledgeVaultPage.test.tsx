@@ -15,7 +15,6 @@ const mockEntry: VaultEntry = {
   id: 'v1',
   classification: 'confidential',
   sourceType: 'cbo_analysis',
-  domainPack: 'cbo-maintenance',
   title: '[CBO] Z_TEST_PROGRAM',
   excerpt: 'EXEC SQL 사용 감지 — Open SQL 전환 권고',
   sourceId: 'f1',

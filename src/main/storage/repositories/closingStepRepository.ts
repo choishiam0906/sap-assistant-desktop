@@ -4,7 +4,7 @@ import type {
   ClosingStep,
   ClosingStepInput,
   ClosingStepUpdate,
-  SapLabel,
+  DomainLabel,
   StepStatus,
 } from "../../contracts.js";
 import type { LocalDatabase } from "../sqlite.js";
@@ -31,7 +31,7 @@ function toStep(row: StepRow): ClosingStep {
     title: row.title,
     description: row.description ?? undefined,
     assignee: row.assignee ?? undefined,
-    module: (row.module as SapLabel) ?? undefined,
+    module: (row.module as DomainLabel) ?? undefined,
     deadline: row.deadline,
     status: row.status as StepStatus,
     sortOrder: row.sortOrder,

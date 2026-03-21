@@ -5,7 +5,6 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { ChatPage } from '../ChatPage'
 import { mockApi } from '../../__tests__/setup'
 import { useChatStore } from '../../stores/chatStore'
-import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore'
 import type { ChatSession } from '../../../main/contracts'
 
 function renderWithProviders(ui: React.ReactElement) {
@@ -22,9 +21,6 @@ const mockSession: ChatSession = {
   updatedAt: '2026-03-01T01:00:00Z',
 }
 
-// 기본 workspace: ops + secure-local
-const defaultPack = DOMAIN_PACK_DETAILS.ops
-
 describe('ChatPage', () => {
   beforeEach(() => {
     mockApi.listSessions.mockResolvedValue([])
@@ -34,13 +30,12 @@ describe('ChatPage', () => {
         id: 'incident-triage',
         title: '운영 장애 트리아지',
         description: '장애 증상을 분석합니다.',
-        supportedDomainPacks: ['ops'],
         supportedDataTypes: ['chat'],
         defaultPromptTemplate: '',
         outputFormat: 'checklist',
         requiredSources: ['vault-reference'],
         suggestedInputs: ['현재 장애 로그를 기준으로 먼저 볼 항목을 알려줘'],
-        suggestedTcodes: ['ST22'],
+        domainCodes: ['ST22'],
       },
     ])
     mockApi.recommendSkills.mockResolvedValue([
@@ -49,13 +44,12 @@ describe('ChatPage', () => {
           id: 'incident-triage',
           title: '운영 장애 트리아지',
           description: '장애 증상을 분석합니다.',
-          supportedDomainPacks: ['ops'],
-          supportedDataTypes: ['chat'],
+            supportedDataTypes: ['chat'],
           defaultPromptTemplate: '',
           outputFormat: 'checklist',
           requiredSources: ['workspace-context', 'vault-reference'],
           suggestedInputs: ['현재 장애 로그를 기준으로 먼저 볼 항목을 알려줘'],
-          suggestedTcodes: ['ST22'],
+          domainCodes: ['ST22'],
         },
         reason: 'ops 워크스페이스에서 바로 사용할 수 있는 작업입니다.',
         recommendedSourceIds: ['workspace-context', 'vault-reference'],
@@ -68,7 +62,6 @@ describe('ChatPage', () => {
         description: '현재 워크스페이스 설정',
         kind: 'workspace',
         classification: 'mixed',
-        domainPack: 'ops',
         availability: 'ready',
         sourceType: 'workspace_context',
       },
@@ -78,7 +71,6 @@ describe('ChatPage', () => {
         description: '공개 참조 지식',
         kind: 'vault',
         classification: 'reference',
-        domainPack: 'ops',
         availability: 'ready',
         sourceType: 'sap_standard',
       },
@@ -92,14 +84,10 @@ describe('ChatPage', () => {
       selectedSourceIds: [],
       lastExecutionMeta: null,
     })
-    useWorkspaceStore.setState({ domainPack: 'ops' })
   })
 
   it('빈 상태에서 안내 메시지를 표시한다', async () => {
     renderWithProviders(<ChatPage />)
-    await waitFor(() => {
-      expect(screen.getByText(defaultPack.chatTitle)).toBeInTheDocument()
-    })
     await waitFor(() => {
       expect(screen.getAllByText('운영 장애 트리아지').length).toBeGreaterThan(0)
     })

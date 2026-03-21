@@ -132,7 +132,6 @@ export class CboBatchRuntime {
         this.vaultRepo?.store({
           classification: "confidential",
           sourceType: "cbo_analysis",
-          domainPack: input.domainPack ?? null,
           title: `[CBO] ${parsed.fileName}`,
           excerpt: result.summary.slice(0, 500),
           sourceId: fileId,

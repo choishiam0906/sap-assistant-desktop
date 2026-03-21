@@ -64,7 +64,7 @@ export function getOAuthConfig(
         tokenUrl: "https://console.anthropic.com/v1/oauth/token",
         clientId,
         scopes: ["org:create_api_key", "user:profile", "user:inference"],
-        tokenContentType: "form",
+        tokenContentType: "json",
         useCallbackServer: false,
         redirectUri: "https://console.anthropic.com/oauth/code/callback",
       };
@@ -80,6 +80,7 @@ export function getOAuthConfig(
           "openid",
           "https://www.googleapis.com/auth/userinfo.email",
           "https://www.googleapis.com/auth/userinfo.profile",
+          "https://www.googleapis.com/auth/gmail.readonly",
         ],
         tokenContentType: "form",
         useCallbackServer: true,

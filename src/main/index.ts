@@ -13,14 +13,13 @@ import { seedData } from "./bootstrap/seedData.js";
 import { loadConfig } from "./config.js";
 import { registerAllIpcHandlers } from "./ipc/index.js";
 import type { IpcContext } from "./ipc/index.js";
-import { registerPolicyHandlers } from "./ipc/policyHandlers.js";
 import { logger } from "./logger.js";
 import { LocalDatabase } from "./storage/sqlite.js";
 
 let mainWindow: BrowserWindow | null = null;
 const mainDir = fileURLToPath(new URL(".", import.meta.url));
-const productName = "SAP Assistant Desktop Platform";
-const appUserModelId = "com.boxlogodev.sap-assistant";
+const productName = "Assistant Desktop";
+const appUserModelId = "com.boxlogodev.assistant-desktop";
 
 let ipcContext: IpcContext;
 
@@ -49,7 +48,7 @@ function createWindow(): void {
     height: config.windowHeight,
     icon: existsSync(windowIconPath) ? windowIconPath : undefined,
     webPreferences: {
-      preload: join(mainDir, "../preload/index.js"),
+      preload: join(mainDir, "../preload/index.cjs"),
     },
   });
 
@@ -73,7 +72,9 @@ function checkForUpdates(): void {
     logger.error({ err }, "자동 업데이트 에러");
   });
 
-  autoUpdater.checkForUpdatesAndNotify();
+  autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+    logger.warn({ err }, "자동 업데이트 확인 실패 (app-update.yml 부재 등)");
+  });
 }
 
 app.whenReady().then(() => {
@@ -84,10 +85,6 @@ app.whenReady().then(() => {
   logger.info({ version: app.getVersion() }, "앱 시작");
   initRuntime();
   registerAllIpcHandlers(ipcContext);
-  registerPolicyHandlers({
-    policyEngine: ipcContext.policyEngine,
-    approvalManager: ipcContext.approvalManager,
-  });
   createWindow();
   checkForUpdates();
   logger.info("윈도우 생성 완료");

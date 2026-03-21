@@ -5,8 +5,6 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { SettingsPage } from '../SettingsPage'
 import { mockApi } from '../../__tests__/setup'
 import { useSettingsStore } from '../../stores/settingsStore'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
-
 function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
@@ -27,9 +25,6 @@ describe('SettingsPage', () => {
       language: 'ko',
       thinkingLevel: 'medium',
     })
-    useWorkspaceStore.setState({
-      domainPack: 'ops',
-    })
     mockApi.getAuthStatus.mockResolvedValue({ status: 'unauthenticated', accountHint: null })
   })
 
@@ -38,7 +33,7 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('heading', { name: '설정' })).toBeInTheDocument()
   })
 
-  it('9개 카테고리 네비게이션을 표시한다', () => {
+  it('7개 카테고리 네비게이션을 표시한다', () => {
     renderWithProviders(<SettingsPage />)
     const nav = screen.getByRole('navigation', { name: '설정 카테고리' })
     expect(nav).toBeInTheDocument()
@@ -46,8 +41,6 @@ describe('SettingsPage', () => {
     expect(screen.getByText('모델, 사고 수준, 연결')).toBeInTheDocument()
     expect(screen.getByText('테마, 폰트')).toBeInTheDocument()
     expect(screen.getByText('전송 키, 맞춤법 검사')).toBeInTheDocument()
-    expect(screen.getByText('보안 모드, 도메인')).toBeInTheDocument()
-    expect(screen.getByText('정책 요약')).toBeInTheDocument()
     expect(screen.getByText('세션 레이블 관리')).toBeInTheDocument()
     expect(screen.getByText('키보드 단축키')).toBeInTheDocument()
     expect(screen.getByText('사용자 설정')).toBeInTheDocument()
@@ -95,7 +88,7 @@ describe('SettingsPage', () => {
     const addBtn = screen.getByRole('button', { name: '연결 추가' })
     await user.click(addBtn)
 
-    expect(screen.getByText('Welcome to SAP Assistant')).toBeInTheDocument()
+    expect(screen.getByText('Welcome to Assistant Desktop')).toBeInTheDocument()
     expect(screen.getByText('어떻게 연결하시겠어요?')).toBeInTheDocument()
     // Craft-style 연결 방법 카드
     expect(screen.getByText('Claude Pro / Max')).toBeInTheDocument()
@@ -172,17 +165,6 @@ describe('SettingsPage', () => {
     expect(screen.getByText('자동 대문자')).toBeInTheDocument()
     expect(screen.getByText('맞춤법 검사')).toBeInTheDocument()
     expect(screen.getByLabelText('메시지 전송 키')).toBeInTheDocument()
-  })
-
-  it('Workspace 카테고리에서 Domain Pack 선택을 표시한다', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<SettingsPage />)
-
-    const workspaceNav = screen.getByText('Workspace').closest('button')!
-    await user.click(workspaceNav)
-
-    expect(screen.getByRole('heading', { name: 'Workspace' })).toBeInTheDocument()
-    expect(screen.getByText('Domain Pack')).toBeInTheDocument()
   })
 
   it('Shortcuts 카테고리에서 단축키 레퍼런스를 표시한다', async () => {

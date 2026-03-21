@@ -19,9 +19,8 @@ import {
   useToggleRoutineTemplate,
   useUnpinRoutineKnowledgeLink,
 } from '../../../hooks/useRoutineTemplates.js'
-import { useWorkspaceStore } from '../../../stores/workspaceStore.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 type ProcessFrequencyFilter = 'all' | 'active' | RoutineFrequency
 
@@ -162,8 +161,6 @@ export function useProcessHub(
   frequencyFilter: ProcessFrequencyFilter,
   setFrequencyFilter: (filter: ProcessFrequencyFilter) => void
 ) {
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
-
   const { data: templates = [], isLoading: isTemplatesLoading } = useRoutineTemplates()
   const { data: executions = [] } = useRoutineExecutions()
   const createMutation = useCreateRoutineTemplate()
@@ -173,8 +170,8 @@ export function useProcessHub(
   const unpinKnowledgeMutation = useUnpinRoutineKnowledgeLink()
 
   const { data: agents = [] } = useQuery({
-    queryKey: queryKeys.agents.list(domainPack),
-    queryFn: () => api.listAgents(domainPack),
+    queryKey: queryKeys.agents.list(),
+    queryFn: () => api.listAgents(),
     staleTime: 60_000,
   })
 
@@ -314,7 +311,7 @@ export function useProcessHub(
     data: relatedKnowledge,
     isLoading: isLoadingRelatedKnowledge,
   } = useQuery({
-    queryKey: queryKeys.process.knowledge(selectedTemplate?.id, domainPack, knowledgeCandidates.join('|')),
+    queryKey: queryKeys.process.knowledge(selectedTemplate?.id ?? '', knowledgeCandidates),
     queryFn: async (): Promise<RelatedKnowledgeBundle> => {
       const [confidentialGroups, referenceGroups, sourceGroups] = await Promise.all([
         Promise.all(knowledgeCandidates.map((query) => api.searchVaultByClassification('confidential', query, 6))),
@@ -322,7 +319,6 @@ export function useProcessHub(
         Promise.all(knowledgeCandidates.map((query) => api.searchSourceDocuments({
           query,
           sourceKind: 'local-folder',
-          domainPack,
           limit: 6,
         }))),
       ])

@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import { FolderSearch, PlugZap } from 'lucide-react'
 import { Badge } from '../../components/ui/Badge.js'
-import { useWorkspaceStore, DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore.js'
 import { KnLocalFolderTab } from './sources/KnLocalFolderTab.js'
 import { KnMcpTab } from './sources/KnMcpTab.js'
 import '../SourcesPage.css'
 
 export function SourcesPage() {
   const [activeSourceType, setActiveSourceType] = useState<'local-folder' | 'mcp'>('local-folder')
-
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
 
   return (
     <div className="sources-page">
@@ -35,12 +31,11 @@ export function SourcesPage() {
         </div>
         <div className="sources-badges">
           <Badge variant="success">엔터프라이즈 보호</Badge>
-          <Badge variant="neutral">{packDetail.label}</Badge>
         </div>
       </div>
 
-      {activeSourceType === 'local-folder' && <KnLocalFolderTab domainPack={domainPack} />}
-      {activeSourceType === 'mcp' && <KnMcpTab domainPack={domainPack} />}
+      {activeSourceType === 'local-folder' && <KnLocalFolderTab />}
+      {activeSourceType === 'mcp' && <KnMcpTab />}
     </div>
   )
 }

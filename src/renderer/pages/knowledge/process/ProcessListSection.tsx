@@ -60,7 +60,7 @@ export function ProcessListSection({
       ) : filteredTemplates.length === 0 ? (
         <div className="process-empty-state">
           <strong>정의된 프로세스가 없어요</strong>
-          <p>루틴 템플릿을 프로세스로 정리해 두면 SAP 업무 흐름을 재사용하기 쉬워져요.</p>
+          <p>루틴 템플릿을 프로세스로 정리해 두면 업무 흐름을 재사용하기 쉬워져요.</p>
           <Button variant="primary" size="sm" onClick={onShowCreator}>
             <Plus size={14} aria-hidden="true" />
             첫 프로세스 만들기

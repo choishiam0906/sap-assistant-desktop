@@ -1,5 +1,4 @@
 import type { ProviderType } from './provider.js';
-import type { DomainPack } from './policy.js';
 
 export type AuditAction =
   | "send_message"
@@ -15,7 +14,6 @@ export interface AuditLogEntry {
   sessionId: string | null;
   runId: string | null;
   timestamp: string;
-  domainPack: DomainPack;
   action: AuditAction;
   externalTransfer: boolean;
   policyDecision: AuditPolicyDecision;

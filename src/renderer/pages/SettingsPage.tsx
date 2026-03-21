@@ -9,7 +9,7 @@ import './settings/settings-common.css'
 export function SettingsPage() {
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('app')
 
-  const PageComponent = SETTINGS_PAGES[activeCategory]
+  const PageComponent = SETTINGS_PAGES[activeCategory] ?? SETTINGS_PAGES.app
 
   return (
     <div className="settings-page">

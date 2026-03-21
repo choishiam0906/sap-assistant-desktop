@@ -61,18 +61,18 @@ export function SessionListPanel({
   }, [sessions, filterTab, searchQuery])
 
   return (
-    <div className="ask-sap-session-panel">
-      <Button variant="primary" onClick={onNewChat} className="ask-sap-new-btn" aria-label="새 세션">
+    <div className="chat-session-panel">
+      <Button variant="primary" onClick={onNewChat} className="chat-new-btn" aria-label="새 세션">
         <Plus size={16} aria-hidden="true" />
         새 세션
       </Button>
 
-      <div className="ask-sap-filter-tabs" role="tablist" aria-label="세션 필터">
+      <div className="chat-filter-tabs" role="tablist" aria-label="세션 필터">
         {FILTER_TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
             role="tab"
-            className={`ask-sap-filter-tab ${filterTab === id ? 'active' : ''}`}
+            className={`chat-filter-tab ${filterTab === id ? 'active' : ''}`}
             aria-selected={filterTab === id}
             onClick={() => handleFilterTabClick(id)}
             type="button"
@@ -85,7 +85,7 @@ export function SessionListPanel({
       </div>
 
       <input
-        className="ask-sap-search"
+        className="chat-search"
         type="text"
         placeholder="세션 검색..."
         value={searchQuery}
@@ -93,7 +93,7 @@ export function SessionListPanel({
         aria-label="세션 검색"
       />
 
-      <div className="ask-sap-session-list" role="listbox" aria-label="세션 목록">
+      <div className="chat-session-list" role="listbox" aria-label="세션 목록">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="session-item skeleton-item">

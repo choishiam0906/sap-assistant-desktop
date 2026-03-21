@@ -7,13 +7,9 @@ import { Badge } from '../../../components/ui/Badge.js'
 import { Button } from '../../../components/ui/Button.js'
 import { formatTimestamp } from './utils.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
-interface KnMcpTabProps {
-  domainPack: string
-}
-
-export function KnMcpTab({ domainPack }: KnMcpTabProps) {
+export function KnMcpTab() {
   const queryClient = useQueryClient()
 
   // MCP 탭 상태
@@ -91,7 +87,6 @@ export function KnMcpTab({ domainPack }: KnMcpTabProps) {
     try {
       const result = await api.mcpAddSource(serverName, {
         title: mcpSourceTitle.trim() || undefined,
-        domainPack,
         classificationDefault: mcpClassification,
       })
       setMcpStatus(`MCP Source 등록 완료: ${result.source.title} (${result.summary.indexed}개 색인)`)
@@ -198,7 +193,6 @@ export function KnMcpTab({ domainPack }: KnMcpTabProps) {
                     </div>
                   </div>
                   <div className="source-card-meta">
-                    <span>{source.domainPack ?? 'all-domain'}</span>
                     <span>마지막 동기화: {formatTimestamp(source.lastIndexedAt)}</span>
                   </div>
                   <div className="source-card-actions">

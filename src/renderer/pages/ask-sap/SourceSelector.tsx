@@ -1,13 +1,13 @@
-import type { SapSourceDefinition } from '../../../main/contracts.js'
+import type { SourceDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 
 interface SourceSelectorProps {
-  sources: SapSourceDefinition[]
+  sources: SourceDefinition[]
   selectedIds: string[]
   onToggle: (id: string) => void
 }
 
-function sourceLabel(source: SapSourceDefinition): string {
+function sourceLabel(source: SourceDefinition): string {
   if (source.availability === 'empty') return `${source.title} (비어 있음)`
   return source.title
 }

@@ -3,7 +3,7 @@ import type { ProviderType, ProviderAccount } from '../../main/contracts.js'
 import { PROVIDER_LABELS } from '../../main/contracts.js'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 const ALL_PROVIDER_TYPES = Object.keys(PROVIDER_LABELS) as ProviderType[]
 

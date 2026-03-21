@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { AuditLogEntry, AuditSearchFilters } from '../../main/contracts'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function useAuditLogs(limit = 50) {
   return useQuery<AuditLogEntry[]>({

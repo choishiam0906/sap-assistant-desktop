@@ -4,6 +4,10 @@ import type {
   AgentDefinition,
   AgentExecution,
   AgentExecutionSummary,
+  AgentStepStartedEvent,
+  AgentStepCompletedEvent,
+  AgentExecutionDoneEvent,
+  InteractiveAgentInput,
   ArchiveTreeNode,
   AuditSearchFilters,
   CboBatchProgressEvent,
@@ -22,7 +26,6 @@ import type {
   ConfiguredSource,
   CockpitStats,
   DeviceCodeInitResult,
-  DomainPack,
   ListArchiveContentsInput,
   McpResourceInfo,
   McpServerConfigInput,
@@ -38,7 +41,7 @@ import type {
   RoutineTemplateInput,
   RoutineTemplateStep,
   RoutineTemplateUpdate,
-  SapLabel,
+  DomainLabel,
   SaveArchiveFileInput,
   SendMessageInput,
   SessionFilter,
@@ -49,8 +52,8 @@ import type {
   OAuthAvailability,
   OAuthInitResult,
   ProviderAccount,
-  SapSkillDefinition,
-  SapSourceDefinition,
+  SkillDefinition,
+  SourceDefinition,
   SkillPackDefinition,
   SourceDocument,
   SourceDocumentSearchInput,
@@ -128,7 +131,7 @@ const desktopApi = {
   stopGeneration(): Promise<void> {
     return ipcRenderer.invoke(IPC.CHAT_STOP);
   },
-  listSkills(): Promise<SapSkillDefinition[]> {
+  listSkills(): Promise<SkillDefinition[]> {
     return ipcRenderer.invoke(IPC.SKILLS_LIST);
   },
   listSkillPacks(): Promise<SkillPackDefinition[]> {
@@ -137,10 +140,10 @@ const desktopApi = {
   recommendSkills(context: SkillExecutionContext): Promise<SkillRecommendation[]> {
     return ipcRenderer.invoke(IPC.SKILLS_RECOMMEND, context);
   },
-  listSources(context: SkillExecutionContext): Promise<SapSourceDefinition[]> {
+  listSources(context: SkillExecutionContext): Promise<SourceDefinition[]> {
     return ipcRenderer.invoke(IPC.SOURCES_LIST, context);
   },
-  searchSources(query: string, context: SkillExecutionContext): Promise<SapSourceDefinition[]> {
+  searchSources(query: string, context: SkillExecutionContext): Promise<SourceDefinition[]> {
     return ipcRenderer.invoke(IPC.SOURCES_SEARCH, query, context);
   },
   listConfiguredSources(): Promise<ConfiguredSource[]> {
@@ -214,10 +217,6 @@ const desktopApi = {
   searchVaultByClassification(classification: VaultClassification, query?: string, limit?: number) {
     return ipcRenderer.invoke(IPC.VAULT_SEARCH_BY_CLASSIFICATION, classification, query, limit);
   },
-  listVaultByDomainPack(pack: DomainPack, limit?: number) {
-    return ipcRenderer.invoke(IPC.VAULT_LIST_BY_DOMAIN_PACK, pack, limit);
-  },
-
   // ─── MCP API ───
 
   mcpConnect(config: McpServerConfigInput): Promise<{ connected: boolean; name: string }> {
@@ -234,7 +233,7 @@ const desktopApi = {
   },
   mcpAddSource(
     serverName: string,
-    input: { title?: string; domainPack: DomainPack; classificationDefault: VaultClassification }
+    input: { title?: string; classificationDefault: VaultClassification }
   ): Promise<{ source: ConfiguredSource; summary: SourceIndexSummary }> {
     return ipcRenderer.invoke(IPC.MCP_ADD_SOURCE, serverName, input);
   },
@@ -271,10 +270,10 @@ const desktopApi = {
   toggleSessionArchive(sessionId: string): Promise<void> {
     return ipcRenderer.invoke(IPC.SESSIONS_TOGGLE_ARCHIVE, sessionId);
   },
-  addSessionLabel(sessionId: string, label: SapLabel): Promise<void> {
+  addSessionLabel(sessionId: string, label: DomainLabel): Promise<void> {
     return ipcRenderer.invoke(IPC.SESSIONS_ADD_LABEL, sessionId, label);
   },
-  removeSessionLabel(sessionId: string, label: SapLabel): Promise<void> {
+  removeSessionLabel(sessionId: string, label: DomainLabel): Promise<void> {
     return ipcRenderer.invoke(IPC.SESSIONS_REMOVE_LABEL, sessionId, label);
   },
   getSessionStats(): Promise<CockpitStats> {
@@ -367,14 +366,14 @@ const desktopApi = {
 
   // ─── Agent (스킬 조합 워크플로우) API ───
 
-  listAgents(domainPack?: DomainPack): Promise<AgentDefinition[]> {
-    return ipcRenderer.invoke(IPC.AGENTS_LIST, domainPack);
+  listAgents(): Promise<AgentDefinition[]> {
+    return ipcRenderer.invoke(IPC.AGENTS_LIST);
   },
   getAgent(id: string): Promise<AgentDefinition | null> {
     return ipcRenderer.invoke(IPC.AGENTS_GET, id);
   },
-  executeAgent(agentId: string, domainPack: DomainPack): Promise<string> {
-    return ipcRenderer.invoke(IPC.AGENTS_EXECUTE, agentId, domainPack);
+  executeAgent(agentId: string): Promise<string> {
+    return ipcRenderer.invoke(IPC.AGENTS_EXECUTE, agentId);
   },
   getAgentExecution(execId: string): Promise<AgentExecution | null> {
     return ipcRenderer.invoke(IPC.AGENTS_EXECUTION_STATUS, execId);
@@ -384,6 +383,32 @@ const desktopApi = {
   },
   cancelAgentExecution(execId: string): Promise<void> {
     return ipcRenderer.invoke(IPC.AGENTS_EXECUTION_CANCEL, execId);
+  },
+
+  // ─── 대화형 에이전트 API ───
+
+  executeAgentInteractive(input: InteractiveAgentInput): Promise<string> {
+    return ipcRenderer.invoke(IPC.AGENTS_EXECUTE_INTERACTIVE, input);
+  },
+  onAgentStepStarted(callback: (event: AgentStepStartedEvent) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: AgentStepStartedEvent) => callback(data);
+    ipcRenderer.on(IPC.AGENT_STEP_STARTED, handler);
+    return () => { ipcRenderer.removeListener(IPC.AGENT_STEP_STARTED, handler); };
+  },
+  onAgentStepCompleted(callback: (event: AgentStepCompletedEvent) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: AgentStepCompletedEvent) => callback(data);
+    ipcRenderer.on(IPC.AGENT_STEP_COMPLETED, handler);
+    return () => { ipcRenderer.removeListener(IPC.AGENT_STEP_COMPLETED, handler); };
+  },
+  onAgentExecutionDone(callback: (event: AgentExecutionDoneEvent) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: AgentExecutionDoneEvent) => callback(data);
+    ipcRenderer.on(IPC.AGENT_EXECUTION_DONE, handler);
+    return () => { ipcRenderer.removeListener(IPC.AGENT_EXECUTION_DONE, handler); };
+  },
+  onAgentExecutionError(callback: (data: { executionId: string; error: string }) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: { executionId: string; error: string }) => callback(data);
+    ipcRenderer.on(IPC.AGENT_EXECUTION_ERROR, handler);
+    return () => { ipcRenderer.removeListener(IPC.AGENT_EXECUTION_ERROR, handler); };
   },
 
   // ─── 커스텀 에이전트 CRUD ───
@@ -401,28 +426,43 @@ const desktopApi = {
     return ipcRenderer.invoke(IPC.AGENTS_OPEN_FOLDER);
   },
 
-  // ─── Policy (정책 엔진) API ───
+  // ─── Email (메일 → 업무) API ───
 
-  listPolicyRules() {
-    return ipcRenderer.invoke(IPC.POLICY_RULES_LIST);
+  emailSyncInbox(sourceId: string): Promise<{ added: number; skipped: number }> {
+    return ipcRenderer.invoke(IPC.EMAIL_SYNC_INBOX, sourceId);
   },
-  createPolicyRule(input: { name: string; description?: string; conditions: unknown[]; action: string; priority?: number }) {
-    return ipcRenderer.invoke(IPC.POLICY_RULES_CREATE, input);
+  emailListInbox(options?: { limit?: number; unprocessedOnly?: boolean }) {
+    return ipcRenderer.invoke(IPC.EMAIL_LIST_INBOX, options);
   },
-  updatePolicyRule(id: string, patch: Record<string, unknown>) {
-    return ipcRenderer.invoke(IPC.POLICY_RULES_UPDATE, id, patch);
+  emailGetDetail(emailId: string) {
+    return ipcRenderer.invoke(IPC.EMAIL_GET_DETAIL, emailId);
   },
-  deletePolicyRule(id: string) {
-    return ipcRenderer.invoke(IPC.POLICY_RULES_DELETE, id);
+  emailAnalyzeAndCreatePlan(payload: { emailId: string; provider: string; model: string }) {
+    return ipcRenderer.invoke(IPC.EMAIL_ANALYZE_AND_CREATE_PLAN, payload);
   },
-  evaluatePolicy(context: { action: string; provider?: string; domainPack?: string; skillId?: string; externalTransfer?: boolean }) {
-    return ipcRenderer.invoke(IPC.POLICY_EVALUATE, context);
+  emailListLinkedPlans(emailId: string) {
+    return ipcRenderer.invoke(IPC.EMAIL_LIST_LINKED_PLANS, emailId);
   },
-  listPendingApprovals() {
-    return ipcRenderer.invoke(IPC.POLICY_APPROVALS_LIST);
+
+  // ─── Code Analysis (코드 분석) API ───
+
+  codeAnalysisRun(sourceId: string) {
+    return ipcRenderer.invoke(IPC.CODE_ANALYSIS_RUN, sourceId);
   },
-  decideApproval(requestId: string, approved: boolean) {
-    return ipcRenderer.invoke(IPC.POLICY_APPROVALS_DECIDE, requestId, approved);
+  codeAnalysisRunFile(documentId: string) {
+    return ipcRenderer.invoke(IPC.CODE_ANALYSIS_RUN_FILE, documentId);
+  },
+  codeAnalysisRunsList(sourceId?: string, limit?: number) {
+    return ipcRenderer.invoke(IPC.CODE_ANALYSIS_RUNS_LIST, sourceId, limit);
+  },
+  codeAnalysisRunDetail(runId: string) {
+    return ipcRenderer.invoke(IPC.CODE_ANALYSIS_RUN_DETAIL, runId);
+  },
+  onCodeAnalysisProgress(callback: (event: { runId: string; analyzedFiles: number; totalFiles: number }) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: { runId: string; analyzedFiles: number; totalFiles: number }) =>
+      callback(data);
+    ipcRenderer.on(IPC.CODE_ANALYSIS_PROGRESS, handler);
+    return () => { ipcRenderer.removeListener(IPC.CODE_ANALYSIS_PROGRESS, handler); };
   },
 
   // ─── Schedule (스케줄 자동 실행) API ───
@@ -456,7 +496,7 @@ const desktopApi = {
 
   // ─── 커스텀 스킬 CRUD ───
 
-  listCustomSkills(): Promise<SapSkillDefinition[]> {
+  listCustomSkills(): Promise<SkillDefinition[]> {
     return ipcRenderer.invoke(IPC.SKILLS_LIST_CUSTOM);
   },
   saveCustomSkill(content: string, fileName: string): Promise<void> {
@@ -470,6 +510,8 @@ const desktopApi = {
   },
 };
 
+contextBridge.exposeInMainWorld("assistantDesktop", desktopApi);
+// 하위 호환 alias
 contextBridge.exposeInMainWorld("sapOpsDesktop", desktopApi);
 
 export type DesktopApi = typeof desktopApi;

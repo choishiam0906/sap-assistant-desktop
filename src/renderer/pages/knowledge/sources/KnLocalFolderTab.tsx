@@ -7,13 +7,9 @@ import { Badge } from '../../../components/ui/Badge.js'
 import { Button } from '../../../components/ui/Button.js'
 import { formatTimestamp } from './utils.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
-interface KnLocalFolderTabProps {
-  domainPack: string
-}
-
-export function KnLocalFolderTab({ domainPack }: KnLocalFolderTabProps) {
+export function KnLocalFolderTab() {
   const queryClient = useQueryClient()
 
   // 로컬 폴더 탭 상태
@@ -37,13 +33,12 @@ export function KnLocalFolderTab({ domainPack }: KnLocalFolderTabProps) {
 
   // 색인된 문서 조회
   const { data: documents = [] } = useQuery({
-    queryKey: queryKeys.sources.documents(selectedSourceId, searchQuery, domainPack),
+    queryKey: queryKeys.sources.documents(selectedSourceId, searchQuery),
     queryFn: () =>
       api.searchSourceDocuments({
         query: searchQuery.trim() || undefined,
         sourceId: selectedSourceId || undefined,
         sourceKind: 'local-folder',
-        domainPack,
         limit: 20,
       }),
     staleTime: 10_000,
@@ -55,7 +50,6 @@ export function KnLocalFolderTab({ domainPack }: KnLocalFolderTabProps) {
     try {
       const result = await api.pickAndAddLocalFolderSource({
         title: newTitle.trim() || undefined,
-        domainPack,
         classificationDefault: classification,
         includeGlobs: ['**/*.txt', '**/*.md', '**/*.log'],
       })
@@ -149,7 +143,6 @@ export function KnLocalFolderTab({ domainPack }: KnLocalFolderTabProps) {
                 </div>
               </div>
               <div className="source-card-meta">
-                <span>{source.domainPack ?? 'all-domain'}</span>
                 <span>마지막 색인: {formatTimestamp(source.lastIndexedAt)}</span>
               </div>
               <div className="source-card-actions">
@@ -206,7 +199,6 @@ export function KnLocalFolderTab({ domainPack }: KnLocalFolderTabProps) {
             >
               <div className="source-doc-header">
                 <strong>{document.title}</strong>
-                <Badge variant="neutral">{document.domainPack ?? 'none'}</Badge>
               </div>
               <p className="source-doc-path">{document.relativePath}</p>
               {document.excerpt && <p className="source-doc-excerpt">{document.excerpt}</p>}

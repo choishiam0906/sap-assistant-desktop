@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { SourcesPage } from '../SourcesPage'
 import { mockApi } from '../../__tests__/setup'
-import { useWorkspaceStore } from '../../stores/workspaceStore'
 
 function renderWithProviders(ui: React.ReactElement) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -13,7 +12,7 @@ function renderWithProviders(ui: React.ReactElement) {
 
 describe('SourcesPage', () => {
   beforeEach(() => {
-    useWorkspaceStore.setState({ domainPack: 'cbo-maintenance' })
+    // Test setup
   })
 
   it('Local Folder / MCPs / APIs 탭을 표시한다', async () => {

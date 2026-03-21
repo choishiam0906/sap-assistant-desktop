@@ -56,7 +56,7 @@ export function ChatMode({ chatFilter }: ChatModeProps) {
     setFilterTab(tab)
     // appShellStore.subPage도 함께 동기화해야 useEffect 리셋 방지
     const sub = tab === 'all' ? 'chat' : `chat:${tab}`
-    useAppShellStore.getState().setSection('sap-assistant', sub)
+    useAppShellStore.getState().setSection('assistant', sub)
   }
 
   return (

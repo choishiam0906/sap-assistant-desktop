@@ -5,10 +5,9 @@ import { queryKeys } from '../../hooks/queryKeys.js'
 import type { ConfiguredSource, VaultClassification } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 import { Button } from '../../components/ui/Button.js'
-import { useWorkspaceStore } from '../../stores/workspaceStore.js'
 import { formatTimestamp } from './utils.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function McpSourcesTab() {
   const queryClient = useQueryClient()
@@ -22,8 +21,6 @@ export function McpSourcesTab() {
   const [mcpStatus, setMcpStatus] = useState('')
   const [selectedMcpServer, setSelectedMcpServer] = useState('')
   const [reindexingId, setReindexingId] = useState<string | null>(null)
-
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
 
   const { data: configuredSources = [] } = useQuery({
     queryKey: queryKeys.sources.configured(),
@@ -88,7 +85,6 @@ export function McpSourcesTab() {
     try {
       const result = await api.mcpAddSource(serverName, {
         title: mcpSourceTitle.trim() || undefined,
-        domainPack,
         classificationDefault: mcpClassification,
       })
       setMcpStatus(`MCP Source 등록 완료: ${result.source.title} (${result.summary.indexed}개 색인)`)
@@ -238,7 +234,6 @@ export function McpSourcesTab() {
                     </div>
                   </div>
                   <div className="source-card-meta">
-                    <span>{source.domainPack ?? 'all-domain'}</span>
                     <span>마지막 동기화: {formatTimestamp(source.lastIndexedAt)}</span>
                   </div>
                   <div className="source-card-actions">

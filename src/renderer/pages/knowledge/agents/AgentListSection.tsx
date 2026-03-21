@@ -6,7 +6,6 @@ import { categoryLabel, durationLabel } from './utils.js'
 interface AgentListSectionProps {
   agents: AgentDefinition[]
   selectedId: string | null
-  domainPack: string
   onSelect: (agentId: string) => void
   onEdit: (agent: AgentDefinition) => void
   onDelete: (agentId: string) => void
@@ -15,7 +14,6 @@ interface AgentListSectionProps {
 export function AgentListSection({
   agents,
   selectedId,
-  domainPack,
   onSelect,
   onEdit,
   onDelete,
@@ -64,14 +62,6 @@ export function AgentListSection({
               <Badge variant="info">{categoryLabel(agent.category)}</Badge>
               <Badge variant="neutral">{durationLabel(agent.estimatedDuration)}</Badge>
               <Badge variant="neutral">{agent.steps.length} steps</Badge>
-              {agent.domainPacks.map((dp) => (
-                <Badge
-                  key={dp}
-                  variant={dp === domainPack ? 'success' : 'neutral'}
-                >
-                  {dp}
-                </Badge>
-              ))}
             </div>
           </article>
         ))}
@@ -141,14 +131,6 @@ export function AgentListSection({
                   <Badge variant="info">{categoryLabel(agent.category)}</Badge>
                   <Badge variant="warning">커스텀</Badge>
                   <Badge variant="neutral">{agent.steps.length} steps</Badge>
-                  {agent.domainPacks.map((dp) => (
-                    <Badge
-                      key={dp}
-                      variant={dp === domainPack ? 'success' : 'neutral'}
-                    >
-                      {dp}
-                    </Badge>
-                  ))}
                 </div>
               </article>
             ))}

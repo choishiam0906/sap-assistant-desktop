@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { CboAnalysisRunSummary } from '../../main/contracts'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function useCboRuns(limit = 20, enabled = false) {
   return useQuery<CboAnalysisRunSummary[]>({

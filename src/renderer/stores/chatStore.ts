@@ -4,6 +4,17 @@ import type { CaseContext, ProviderType, SkillExecutionMeta } from '../../main/c
 import { DEFAULT_MODELS } from '../../main/contracts.js'
 import { useSettingsStore } from './settingsStore.js'
 
+export interface AgentExecutionState {
+  executionId: string
+  agentId: string
+  agentTitle: string
+  currentStepIndex: number
+  totalSteps: number
+  currentStepLabel: string
+  status: 'running' | 'completed' | 'failed'
+  errorMessage?: string
+}
+
 interface ChatUIState {
   currentSessionId: string | null
   input: string
@@ -23,6 +34,7 @@ interface ChatUIState {
     skill_title?: string
     source_count?: number
   } | null
+  agentExecution: AgentExecutionState | null
   setInput: (v: string) => void
   setCurrentSessionId: (v: string | null) => void
   setProvider: (v: ProviderType) => void
@@ -38,6 +50,8 @@ interface ChatUIState {
   appendStreamingContent: (token: string) => void
   setStreamingMeta: (meta: ChatUIState['streamingMeta']) => void
   resetStreaming: () => void
+  setAgentExecution: (v: AgentExecutionState | null) => void
+  clearAgentExecution: () => void
 }
 
 const settings = useSettingsStore.getState()
@@ -55,6 +69,7 @@ export const useChatStore = create<ChatUIState>((set) => ({
   caseContext: null,
   lastExecutionMeta: null,
   streamingMeta: null,
+  agentExecution: null,
   setCurrentSessionId: (currentSessionId) => set({ currentSessionId }),
   setInput: (input) => set({ input }),
   setProvider: (provider) => set({ provider, model: DEFAULT_MODELS[provider] }),
@@ -77,6 +92,8 @@ export const useChatStore = create<ChatUIState>((set) => ({
   setStreamingMeta: (streamingMeta) => set({ streamingMeta }),
   resetStreaming: () =>
     set({ isStreaming: false, streamingContent: '', streamingMeta: null }),
+  setAgentExecution: (agentExecution) => set({ agentExecution }),
+  clearAgentExecution: () => set({ agentExecution: null }),
 }))
 
 // ─── 셀렉터 훅 (부분 구독으로 불필요 리렌더링 방지) ───
@@ -120,6 +137,13 @@ export const useChatSkillSources = () =>
     setCaseContext: s.setCaseContext,
     toggleSourceId: s.toggleSourceId,
     setLastExecutionMeta: s.setLastExecutionMeta,
+  })))
+
+export const useChatAgentExecution = () =>
+  useChatStore(useShallow((s) => ({
+    agentExecution: s.agentExecution,
+    setAgentExecution: s.setAgentExecution,
+    clearAgentExecution: s.clearAgentExecution,
   })))
 
 export const useChatError = () =>

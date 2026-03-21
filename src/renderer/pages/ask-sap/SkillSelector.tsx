@@ -1,12 +1,12 @@
 import { CheckCircle2 } from 'lucide-react'
-import type { SapSkillDefinition } from '../../../main/contracts.js'
+import type { SkillDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
 
 interface SkillSelectorProps {
-  skills: SapSkillDefinition[]
-  recommendedSkills: SapSkillDefinition[]
-  selectedSkill: SapSkillDefinition | null
-  onSelect: (skill: SapSkillDefinition) => void
+  skills: SkillDefinition[]
+  recommendedSkills: SkillDefinition[]
+  selectedSkill: SkillDefinition | null
+  onSelect: (skill: SkillDefinition) => void
 }
 
 export function SkillSelector({ skills, recommendedSkills, selectedSkill, onSelect }: SkillSelectorProps) {
@@ -35,7 +35,7 @@ export function SkillSelector({ skills, recommendedSkills, selectedSkill, onSele
             <p>{skill.description}</p>
             <div className="chat-skill-chip-row">
               <Badge variant="neutral">{skill.outputFormat}</Badge>
-              <Badge variant="info">{skill.supportedDomainPacks[0]}</Badge>
+              <Badge variant="info">{skill.supportedDataTypes[0]}</Badge>
             </div>
           </button>
         ))}

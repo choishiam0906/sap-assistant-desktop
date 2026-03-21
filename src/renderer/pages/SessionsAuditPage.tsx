@@ -113,7 +113,6 @@ function AuditTable({ entries }: { entries: AuditLogEntry[] }) {
           <th>시간</th>
           <th>액션</th>
           <th>Skill</th>
-          <th>도메인 팩</th>
           <th>정책 결정</th>
           <th>외부 전송</th>
           <th>Provider</th>
@@ -126,7 +125,6 @@ function AuditTable({ entries }: { entries: AuditLogEntry[] }) {
             <td>{formatTimestamp(entry.timestamp)}</td>
             <td>{entry.action}</td>
             <td>{entry.skillId ?? '-'}</td>
-            <td>{entry.domainPack}</td>
             <td>
               <span className={policyBadgeClass(entry.policyDecision)}>
                 {entry.policyDecision}

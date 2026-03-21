@@ -7,6 +7,7 @@ import {
 } from "../contracts.js";
 import { SecureStore } from "../auth/secureStore.js";
 import { LlmProvider } from "../providers/base.js";
+import type { ProviderResilience } from "../providers/providerResilience.js";
 import { parseCboFile, parseCboText } from "./parser.js";
 import { analyzeByRules } from "./rules.js";
 import { getSkillDefinition } from "../skills/registry.js";
@@ -33,7 +34,8 @@ export class CboAnalyzer {
 
   constructor(
     providers: LlmProvider[],
-    private readonly secureStore: SecureStore
+    private readonly secureStore: SecureStore,
+    private readonly resilience?: ProviderResilience,
   ) {
     this.providers = new Map(providers.map((provider) => [provider.type, provider]));
   }
@@ -75,11 +77,14 @@ export class CboAnalyzer {
     }
 
     try {
-      const llmResponse = await provider.sendMessage(token, {
+      const callFn = () => provider.sendMessage(token, {
         model,
         message: buildLlmPrompt(baseResult, source),
         history: [],
       });
+      const llmResponse = this.resilience
+        ? await this.resilience.withProviderCall(providerType, callFn)
+        : await callFn();
 
       if (llmResponse.content.trim()) {
         return {
@@ -120,6 +125,6 @@ function withSkillMeta(result: CboAnalysisResult, fileName: string): CboAnalysis
     skillTitle: skill?.title ?? "CBO 변경 영향 분석",
     sourceIds: ["workspace-context", "local-imported-files"],
     sources,
-    suggestedTcodes: skill?.suggestedTcodes ?? ["SE80", "SE11", "SE38", "STMS"],
+    suggestedTcodes: skill?.domainCodes ?? ["SE80", "SE11", "SE38", "STMS"],
   };
 }

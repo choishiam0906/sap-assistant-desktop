@@ -5,23 +5,14 @@ import { Plus, Trash2, GripVertical, Save, Eye } from 'lucide-react'
 import { Button } from '../ui/Button.js'
 import { Badge } from '../ui/Badge.js'
 import type { AgentDefinition, AgentCategory, AgentStep } from '../../../main/contracts.js'
-import type { DomainPack } from '../../../main/contracts.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 const CATEGORY_OPTIONS: { value: AgentCategory; label: string }[] = [
   { value: 'analysis', label: '분석' },
   { value: 'documentation', label: '문서화' },
   { value: 'validation', label: '검증' },
   { value: 'automation', label: '자동화' },
-]
-
-const DOMAIN_PACK_OPTIONS: { value: DomainPack; label: string }[] = [
-  { value: 'ops', label: 'Ops' },
-  { value: 'functional', label: 'Functional' },
-  { value: 'cbo-maintenance', label: 'CBO Maintenance' },
-  { value: 'pi-integration', label: 'PI Integration' },
-  { value: 'btp-rap-cap', label: 'BTP/RAP/CAP' },
 ]
 
 interface AgentEditorProps {
@@ -46,7 +37,6 @@ export function AgentEditor({ agent, availableSkillIds, onSave, onCancel }: Agen
   const [title, setTitle] = useState(agent?.title ?? '')
   const [description, setDescription] = useState(agent?.description ?? '')
   const [category, setCategory] = useState<AgentCategory>(agent?.category ?? 'analysis')
-  const [domainPacks, setDomainPacks] = useState<DomainPack[]>(agent?.domainPacks ?? ['ops'])
   const [estimatedDuration, setEstimatedDuration] = useState(agent?.estimatedDuration ?? 300)
   const [steps, setSteps] = useState<AgentStep[]>(
     agent?.steps.length ? agent.steps : [createEmptyStep(0)]
@@ -54,12 +44,6 @@ export function AgentEditor({ agent, availableSkillIds, onSave, onCancel }: Agen
   const [showPreview, setShowPreview] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-
-  function toggleDomainPack(dp: DomainPack) {
-    setDomainPacks((prev) =>
-      prev.includes(dp) ? prev.filter((d) => d !== dp) : [...prev, dp]
-    )
-  }
 
   function updateStep(index: number, patch: Partial<AgentStep>) {
     setSteps((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)))
@@ -91,7 +75,6 @@ export function AgentEditor({ agent, availableSkillIds, onSave, onCancel }: Agen
 id: ${id}
 title: ${title}
 description: ${description}
-domainPacks: [${domainPacks.join(', ')}]
 category: ${category}
 estimatedDuration: ${estimatedDuration}
 steps:
@@ -204,22 +187,6 @@ ${yamlSteps.join('\n')}
                 min={0}
               />
             </label>
-          </div>
-
-          <div className="agent-editor-label">
-            도메인 팩
-            <div className="agent-editor-checkboxes">
-              {DOMAIN_PACK_OPTIONS.map((dp) => (
-                <label key={dp.value} className="agent-editor-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={domainPacks.includes(dp.value)}
-                    onChange={() => toggleDomainPack(dp.value)}
-                  />
-                  {dp.label}
-                </label>
-              ))}
-            </div>
           </div>
 
           <div className="agent-editor-steps-header">

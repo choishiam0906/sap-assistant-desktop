@@ -35,3 +35,19 @@ await build({
 });
 
 console.log("✓ Main process bundled → dist/main/index.cjs");
+
+// ── Preload도 동일하게 CJS 번들링 ──
+// preload가 require("../main/ipc/channels.js")로 ESM 파일을 참조하면
+// Node.js 20에서 ERR_REQUIRE_ESM가 발생하므로, esbuild로 의존성을 인라인한다.
+await build({
+  entryPoints: ["dist/preload/index.js"],
+  bundle: true,
+  platform: "node",
+  target: "node20",
+  format: "cjs",
+  outfile: "dist/preload/index.cjs",
+  sourcemap: true,
+  external: ["electron"],
+});
+
+console.log("✓ Preload bundled → dist/preload/index.cjs");

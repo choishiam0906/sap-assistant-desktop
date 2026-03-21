@@ -1,5 +1,4 @@
 import type { AgentDefinition } from "../types/agent.js";
-import type { DomainPack } from "../contracts.js";
 import { loadCustomAgents } from "./agentLoaderService.js";
 
 const PRESET_AGENTS: AgentDefinition[] = [
@@ -8,7 +7,6 @@ const PRESET_AGENTS: AgentDefinition[] = [
     title: "Transport 리뷰 Workflow",
     description:
       "Transport를 분석하고, 리스크를 평가한 후, Runbook을 자동 생성해요.",
-    domainPacks: ["ops", "cbo-maintenance"],
     category: "analysis",
     estimatedDuration: 300,
     steps: [
@@ -42,7 +40,6 @@ const PRESET_AGENTS: AgentDefinition[] = [
     title: "Incident 해결 Workflow",
     description:
       "장애를 트리아지하고, 현업에 설명하고, 대응 절차를 문서화해요.",
-    domainPacks: ["ops", "functional"],
     category: "automation",
     estimatedDuration: 240,
     steps: [
@@ -81,10 +78,9 @@ function getAllAgents(): AgentDefinition[] {
   return [...PRESET_AGENTS, ...deduped];
 }
 
-export function listAgentDefinitions(domainPack?: DomainPack): AgentDefinition[] {
+export function listAgentDefinitions(): AgentDefinition[] {
   const all = getAllAgents();
-  if (!domainPack) return all.map(cloneAgent);
-  return all.filter((agent) => agent.domainPacks.includes(domainPack)).map(cloneAgent);
+  return all.map(cloneAgent);
 }
 
 export function getAgentDefinition(id: string): AgentDefinition | null {
@@ -100,7 +96,6 @@ export function listCustomAgentDefinitions(): AgentDefinition[] {
 function cloneAgent(agent: AgentDefinition): AgentDefinition {
   return {
     ...agent,
-    domainPacks: [...agent.domainPacks],
     steps: agent.steps.map((step) => ({
       ...step,
       config: { ...step.config },

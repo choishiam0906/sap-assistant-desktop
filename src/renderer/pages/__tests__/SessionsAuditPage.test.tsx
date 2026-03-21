@@ -26,7 +26,6 @@ const mockAuditEntry: AuditLogEntry = {
   sessionId: 's1',
   runId: null,
   timestamp: '2026-03-01T12:00:00Z',
-  domainPack: 'ops',
   action: 'send_message',
   externalTransfer: true,
   policyDecision: 'ALLOWED',

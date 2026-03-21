@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 
 import type {
-  DomainPack,
   VaultClassification,
   VaultEntry,
 } from "../../contracts.js";
@@ -17,16 +16,15 @@ export class VaultRepository {
     this.db
       .prepare(
         `INSERT INTO knowledge_vault(
-          id, classification, source_type, domain_pack, title, excerpt,
+          id, classification, source_type, title, excerpt,
           source_id, file_path, indexed_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         id,
         entry.classification,
         entry.sourceType,
-        entry.domainPack,
         entry.title,
         entry.excerpt,
         entry.sourceId,
@@ -46,7 +44,7 @@ export class VaultRepository {
         .prepare(
           `SELECT
             id, classification, source_type AS sourceType,
-            domain_pack AS domainPack, title, excerpt,
+            title, excerpt,
             source_id AS sourceId, file_path AS filePath,
             indexed_at AS indexedAt
            FROM knowledge_vault
@@ -61,7 +59,7 @@ export class VaultRepository {
       .prepare(
         `SELECT
           id, classification, source_type AS sourceType,
-          domain_pack AS domainPack, title, excerpt,
+          title, excerpt,
           source_id AS sourceId, file_path AS filePath,
           indexed_at AS indexedAt
          FROM knowledge_vault
@@ -72,28 +70,12 @@ export class VaultRepository {
       .all(classification, limit) as VaultEntry[];
   }
 
-  listByDomainPack(pack: DomainPack, limit = 50): VaultEntry[] {
-    return this.db
-      .prepare(
-        `SELECT
-          id, classification, source_type AS sourceType,
-          domain_pack AS domainPack, title, excerpt,
-          source_id AS sourceId, file_path AS filePath,
-          indexed_at AS indexedAt
-         FROM knowledge_vault
-         WHERE domain_pack = ?
-         ORDER BY indexed_at DESC
-         LIMIT ?`
-      )
-      .all(pack, limit) as VaultEntry[];
-  }
-
   list(limit = 50): VaultEntry[] {
     return this.db
       .prepare(
         `SELECT
           id, classification, source_type AS sourceType,
-          domain_pack AS domainPack, title, excerpt,
+          title, excerpt,
           source_id AS sourceId, file_path AS filePath,
           indexed_at AS indexedAt
          FROM knowledge_vault
@@ -108,7 +90,7 @@ export class VaultRepository {
       .prepare(
         `SELECT
           id, classification, source_type AS sourceType,
-          domain_pack AS domainPack, title, excerpt,
+          title, excerpt,
           source_id AS sourceId, file_path AS filePath,
           indexed_at AS indexedAt
          FROM knowledge_vault

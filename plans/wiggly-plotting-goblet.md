@@ -1,306 +1,376 @@
-# v6.0 고도화: UI · 안정성 · 테스트 · DX 전반 개선
+# Assistant Desktop v7.0 — Email → Task + Git → Knowledge 통합
 
 ## Context
 
-v5.0 기능 구현 + v5.0 코드 정리(Phase 1~4)가 완료된 상태에서, **신규 기능 추가 없이** UI 대형 컴포넌트 분할, 접근성 강화, 캐싱 전략 최적화, Main Process 안정성, 테스트 커버리지 확대, 상태 관리 통일을 수행한다.
+Assistant Desktop v6.1은 범용 플랫폼으로 전환 완료되었다. 이제 엔터프라이즈 업무 자동화의 핵심 두 축을 추가한다:
 
-**기능 변경 0%** — 동작은 100% 동일하게 유지하면서 코드 품질만 개선.
+1. **메일 → 업무 자동화**: Gmail MCP로 메일을 읽고, AI가 분석하여 Closing Plan(일정/태스크) 자동 생성
+2. **Git → 지식 + 코드 분석**: GitHub/GitLab MCP로 레거시 소스코드를 색인하고, RAG 채팅 컨텍스트 + 코드 품질 분석 제공
 
-### 현재 기술 부채 요약
-- ProcessHub.tsx 1,149줄 (God Component)
-- AgentsCatalog.tsx 430줄, knowledge/SourcesPage.tsx 527줄
-- SettingsPage.css 1,353줄 단일 파일
-- Main Process 테스트 1/12 (skills/registry.test.ts만 존재)
-- React Query staleTime/gcTime 미설정 (전체 기본값)
-- Zustand persist 전략 혼재 (수동 localStorage vs persist 미들웨어)
-- console.log 직접 사용 2곳 (oauthManager, githubDeviceCode)
-- IPC 채널명 문자열 리터럴 분산 (타입 안전성 없음)
+**핵심 원칙**:
+- 기존 MCP 인프라(`mcpConnector.ts`) 최대 활용
+- 기존 Closing Plan 시스템에 자연스럽게 연결
+- 새 모듈은 기존 패턴(Repository → Service → IPC Handler → Preload) 준수
 
 ---
 
-## Phase A: UI 대형 컴포넌트 분할
+## Feature 1: Email → Task Pipeline
 
-### A-1. ProcessHub.tsx (1,149줄 → 8개 모듈)
+### 데이터 흐름
 
-현재 구조: 6개 인터페이스, 10개 useState, 8개 useQuery/useMutation, 1,100줄 JSX 혼재
+```
+Gmail MCP 서버
+  ↓ mcpConnector.connect()
+메일 목록 조회 (gmail_search_messages)
+  ↓
+메일 내용 읽기 (gmail_read_message)
+  ↓
+email_inbox 테이블에 저장 (미러링)
+  ↓
+LLM 분석 (ChatRuntime.sendMessage)
+  "이 메일에서 수행해야 할 업무와 마감일을 추출해줘"
+  ↓
+ActionItem[] 추출
+  ↓
+Closing Plan + Steps 자동 생성
+  ↓
+email_task_links로 원본 메일 ↔ Plan 연결
+```
 
-**신규 파일:**
-- `src/renderer/pages/knowledge/process/ProcessFilterBar.tsx` (~120줄) — 빈도/상태 필터 UI
-- `src/renderer/pages/knowledge/process/ProcessListSection.tsx` (~180줄) — 프로세스 목록
-- `src/renderer/pages/knowledge/process/ProcessDetailSection.tsx` (~200줄) — 선택 프로세스 상세
-- `src/renderer/pages/knowledge/process/ProcessEditorModal.tsx` (~250줄) — 생성/편집 모달 + 스텝 폼
-- `src/renderer/pages/knowledge/process/RelatedKnowledgePanel.tsx` (~150줄) — Vault/문서 연결 패널
-- `src/renderer/pages/knowledge/process/useProcessHub.ts` (~100줄) — 데이터 페칭 훅 추출
+### 시나리오 예시
 
-**수정 파일:**
-- `src/renderer/pages/knowledge/ProcessHub.tsx` — 1,149줄 → ~150줄 (오케스트레이션 + 레이아웃)
+> 구매팀 김대리가 "3월 송장 처리 요청" 메일 전송
+> → AI 분석: "송장 입력 (마감: 3/25)", "거래명세서 확인 (마감: 3/23)"
+> → Closing Plan: "[메일] 송장 처리 요청 — 김대리" (target_date: 3/25)
+> → Steps: "송장 입력 (3/25)", "거래명세서 확인 (3/23)"
 
-**원칙:** 인터페이스(`ProcessDraft`, `ProcessDetail` 등)와 상수(`MODULE_OPTIONS`)는 부모에 유지, props로 전달.
+### DB 스키마 (Migration 008)
 
-### A-2. AgentsCatalog.tsx (430줄 → 4개 모듈)
+```sql
+-- 메일 로컬 미러 (Gmail MCP → SQLite)
+CREATE TABLE email_inbox (
+  id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL,
+  provider_message_id TEXT UNIQUE NOT NULL,
+  from_email TEXT NOT NULL,
+  from_name TEXT,
+  subject TEXT NOT NULL,
+  body_text TEXT NOT NULL,
+  received_at TEXT NOT NULL,
+  labels_json TEXT DEFAULT '[]',
+  is_processed INTEGER DEFAULT 0,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (source_id) REFERENCES configured_sources(id) ON DELETE CASCADE
+);
 
-**신규 파일:**
-- `src/renderer/pages/knowledge/agents/AgentListSection.tsx` (~120줄) — 프리셋/커스텀 탭 + 목록
-- `src/renderer/pages/knowledge/agents/AgentDetailPanel.tsx` (~100줄) — 선택 에이전트 상세 + 실행
-- `src/renderer/pages/knowledge/agents/AgentExecutionList.tsx` (~80줄) — 실행 이력
+-- 메일 ↔ Closing Plan 연결
+CREATE TABLE email_task_links (
+  id TEXT PRIMARY KEY,
+  email_id TEXT NOT NULL,
+  plan_id TEXT NOT NULL,
+  ai_summary TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (email_id) REFERENCES email_inbox(id) ON DELETE CASCADE,
+  FOREIGN KEY (plan_id) REFERENCES closing_plans(id) ON DELETE CASCADE
+);
 
-**수정 파일:**
-- `src/renderer/pages/knowledge/AgentsCatalog.tsx` — 430줄 → ~130줄
+CREATE INDEX idx_email_inbox_processed ON email_inbox(is_processed, received_at DESC);
+CREATE INDEX idx_email_task_links_plan ON email_task_links(plan_id);
+```
 
-### A-3. knowledge/SourcesPage.tsx (527줄 → 3개 모듈)
+### 신규 파일
 
-현재: 로컬 폴더 + MCP 탭이 하나의 컴포넌트에 혼재, useState 12개
+| # | 파일 | 역할 |
+|---|------|------|
+| 1 | `src/main/storage/migrations/008_email_inbox.ts` | email_inbox + email_task_links 테이블 |
+| 2 | `src/main/storage/repositories/emailRepository.ts` | EmailInboxRepository + EmailTaskLinkRepository |
+| 3 | `src/main/email/emailManager.ts` | 메일 동기화 + AI 분석 + Plan 생성 핵심 로직 |
+| 4 | `src/main/email/emailAnalysisPrompt.ts` | LLM 분석 프롬프트 템플릿 |
+| 5 | `src/main/ipc/emailHandlers.ts` | Email IPC 핸들러 |
+| 6 | `src/renderer/pages/email/EmailInboxPage.tsx` | 메일 인박스 UI |
+| 7 | `src/renderer/pages/email/EmailInboxPage.css` | 스타일 |
+| 8 | `src/renderer/pages/email/EmailDetailModal.tsx` | 메일 상세 + Plan 생성 UI |
 
-**신규 파일:**
-- `src/renderer/pages/knowledge/sources/KnLocalFolderTab.tsx` (~200줄) — 로컬 폴더 관리
-- `src/renderer/pages/knowledge/sources/KnMcpTab.tsx` (~200줄) — MCP 서버 관리
+### 수정 파일
 
-**수정 파일:**
-- `src/renderer/pages/knowledge/SourcesPage.tsx` — 527줄 → ~80줄 (탭 라우터)
+| 파일 | 변경 |
+|------|------|
+| `src/main/auth/oauthProviders.ts` | Google OAuth scopes에 `gmail.readonly` 추가 |
+| `src/main/ipc/channels.ts` | `EMAIL_*` IPC 채널 상수 추가 |
+| `src/main/ipc/index.ts` | `registerEmailHandlers(ctx)` 등록 |
+| `src/main/ipc/types.ts` | IpcContext에 `emailManager` 추가 |
+| `src/main/bootstrap/createRepositories.ts` | emailInboxRepo, emailTaskLinkRepo 추가 |
+| `src/main/bootstrap/createServices.ts` | EmailManager 인스턴스 생성 |
+| `src/main/storage/migrations/index.ts` | migration008 등록 |
+| `src/main/storage/repositories/index.ts` | 신규 Repository 재내보내기 |
+| `src/preload/index.ts` | email 관련 API 노출 |
+| `src/renderer/stores/appShellStore.ts` | AppSection에 `'email'` 추가 |
+| `src/renderer/App.tsx` | Email 페이지 라우팅 |
+| `src/renderer/components/Sidebar.tsx` | Email 네비게이션 항목 |
 
-**주의:** `pages/sources/` (SapAssistant 소스 탭)과 네이밍 충돌 방지 → `Kn` 접두사 사용
-
-### A-4. SettingsPage.css 모듈화 (1,353줄)
-
-**신규 파일:**
-- `src/renderer/pages/settings/settings-common.css` (~200줄) — 공유 레이아웃
-- `src/renderer/pages/settings/PolicySettingsPage.css` (~250줄) — 정책 페이지 전용
-- `src/renderer/pages/settings/AiSettingsPage.css` (~100줄) — AI 설정 전용
-- 기타 설정 페이지별 CSS (6~8개, 각 60~100줄)
-
-**수정 파일:**
-- `src/renderer/pages/SettingsPage.css` — **삭제**
-- `src/renderer/pages/SettingsPage.tsx` — import 경로 수정
-- 각 설정 페이지 .tsx — 자기 CSS import 추가
-
-**예상: 수정 ~5, 신규 ~20, 삭제 1**
-
----
-
-## Phase B: 접근성(a11y) 강화
-
-### B-1. ARIA 속성 보강
-
-**수정 파일 (모든 UI 컴포넌트 + 페이지):**
-- 모달 → `role="dialog"`, `aria-modal="true"`, `aria-labelledby`
-- 드롭다운 → `aria-expanded`, `aria-haspopup`
-- 로딩 영역 → `aria-busy`, `aria-live="polite"`
-- 인터랙티브 아이콘 버튼 → `aria-label` 추가
-
-**대상 파일:** ~15개 (ProcessHub, AgentsCatalog, SourcesPage, CockpitPage, ChatPage 등)
-
-### B-2. 키보드 네비게이션 & 포커스 관리
-
-**신규 파일:**
-- `src/renderer/hooks/useFocusTrap.ts` (~60줄) — 모달 포커스 갇히기
-- `src/renderer/hooks/useKeyboardNav.ts` (~50줄) — 리스트 화살표 키 탐색
-
-**수정 파일:**
-- 모달 사용 컴포넌트 — useFocusTrap 통합
-- ActionMenu, DropdownSelect — useKeyboardNav 통합
-
-**예상: 수정 ~15, 신규 2**
-
----
-
-## Phase C: React Query 캐싱 전략
-
-### C-1. queryKey 팩토리 패턴
-
-**신규 파일:**
-- `src/renderer/hooks/queryKeys.ts` (~80줄)
+### 핵심 서비스: EmailManager
 
 ```typescript
-export const queryKeys = {
-  sessions: { all: ['sessions'] as const, list: (limit: number) => ['sessions', limit] as const },
-  messages: { all: (sid: string) => ['messages', sid] as const },
-  routines: { templates: () => ['routine:templates'] as const, ... },
-  closing:  { plans: () => ['closing:plans'] as const, ... },
-  agents:   { all: () => ['agents'] as const, ... },
-  // ...
+// src/main/email/emailManager.ts
+export class EmailManager {
+  constructor(
+    private mcpConnector: McpConnector,
+    private emailInboxRepo: EmailInboxRepository,
+    private emailTaskLinkRepo: EmailTaskLinkRepository,
+    private closingPlanRepo: ClosingPlanRepository,
+    private closingStepRepo: ClosingStepRepository,
+    private chatRuntime: ChatRuntime,
+    private secureStore: SecureStore,
+  ) {}
+
+  // Gmail MCP를 통해 최신 메일 가져와 email_inbox에 저장
+  async syncInbox(sourceId: string): Promise<{ added: number; skipped: number }>
+
+  // 메일 내용을 LLM으로 분석하여 Closing Plan + Steps 자동 생성
+  async analyzeAndCreatePlan(emailId: string): Promise<{ plan, steps, link }>
+
+  // 인박스 조회
+  listInbox(options: { limit?, unprocessedOnly? }): EmailInbox[]
 }
 ```
 
-### C-2. staleTime/gcTime 도메인별 명시
-
-**수정 파일 (11개 훅):**
-
-| 훅 | staleTime | gcTime | 근거 |
-|----|-----------|--------|------|
-| useMessages | 24시간 | 7일 | 과거 메시지 불변 |
-| useSessions | 30초 | 5분 | 중간 빈도 갱신 |
-| useRoutineTemplates | 60초 | 10분 | 정의 변경 드묾 |
-| useClosingPlans | 60초 | 10분 | 계획 변경 드묾 |
-| useAuditLogs | 30초 | 2분 | 빠른 갱신 필요 |
-| useCboRuns | 15초 | 5분 | 분석 중 갱신 |
-| useVault | 60초 | 10분 | 변경 드묾 |
-
-### C-3. QueryClient 기본값 + 전역 에러 핸들러
-
-**신규 파일:**
-- `src/renderer/lib/queryClient.ts` (~30줄) — QueryClient 생성 + 기본 옵션
-
-**수정 파일:**
-- `src/renderer/main.tsx` — 인라인 QueryClient → import로 교체
-
-**예상: 수정 ~12, 신규 2**
-
----
-
-## Phase D: Main Process 안정성
-
-### D-1. console.log → logger 전환
-
-**수정 파일:**
-- `src/main/auth/oauthManager.ts` — console.log 6곳 → logger.debug/info
-- `src/main/auth/githubDeviceCode.ts` — console.log → logger.debug
-
-### D-2. IPC 채널명 타입 상수화
-
-**신규 파일:**
-- `src/main/ipc/channels.ts` (~120줄) — 전체 IPC 채널명 상수 + 타입
+### IPC 채널
 
 ```typescript
-export const IPC = {
-  AUTH_SET_API_KEY: 'auth:setApiKey',
-  CHAT_SEND: 'chat:send',
-  CHAT_STREAM: 'chat:stream-message',
-  // ... 119개 채널
-} as const
-export type IpcChannel = typeof IPC[keyof typeof IPC]
+// channels.ts에 추가
+EMAIL_SYNC_INBOX: 'email:syncInbox',
+EMAIL_LIST_INBOX: 'email:listInbox',
+EMAIL_GET_DETAIL: 'email:getDetail',
+EMAIL_ANALYZE_AND_CREATE_PLAN: 'email:analyzeAndCreatePlan',
+EMAIL_LIST_LINKED_PLANS: 'email:listLinkedPlans',
 ```
 
-**수정 파일:**
-- `src/main/ipc/*.ts` (11개 핸들러) — 문자열 → `IPC.CHANNEL_NAME`
-- `src/preload/index.ts` — 문자열 → `IPC.CHANNEL_NAME`
-
-### D-3. 마이그레이션 에러 처리
-
-**수정 파일:**
-- `src/main/storage/migrationRunner.ts` — run() 내 개별 마이그레이션 try-catch + 로깅
-
-**예상: 수정 ~15, 신규 1**
-
 ---
 
-## Phase E: 테스트 커버리지 확대
+## Feature 2: Git → Knowledge + Code Analysis
 
-### E-1. Main Process 테스트 추가
+### 데이터 흐름
 
-**신규 파일:**
-- `src/main/auth/__tests__/oauthManager.test.ts` (~150줄)
-- `src/main/auth/__tests__/secureStore.test.ts` (~100줄)
-- `src/main/auth/__tests__/pkce.test.ts` (~80줄)
-- `src/main/policy/__tests__/policyEngine.test.ts` (~120줄)
-- `src/main/storage/__tests__/migrationRunner.test.ts` (~100줄)
-- `src/main/services/__tests__/routineExecutor.test.ts` (~100줄)
+```
+GitHub/GitLab MCP 서버
+  ↓ mcpConnector.connect()
+리포지토리 파일 목록 조회 (MCP listResources)
+  ↓
+파일 내용 읽기 (MCP readResource)
+  ↓
+source_documents 테이블에 색인 (기존 mcpConnector.syncSource 활용)
+  ↓
+[RAG] 채팅 시 관련 코드 자동 주입 (SkillSourceRegistry 기존 로직)
+  ↓
+[분석] LLM 기반 코드 품질/리스크 분석 → git_analysis_results 저장
+```
 
-### E-2. vitest coverage threshold 설정
+### 핵심 인사이트: MCP 재활용
 
-**수정 파일:**
-- `vitest.config.ts` — coverage 섹션에 threshold 추가
+**Git 연동은 별도 GitConnector가 필요 없다.** 기존 `mcpConnector`의 `syncSource()` 메서드가 이미:
+1. MCP 서버의 `listResources()` → 파일 목록 조회
+2. `readResource(uri)` → 파일 내용 읽기
+3. `replaceAllForSource()` → source_documents 저장
+4. SHA256 해시 기반 변경 감지
+
+를 수행한다. GitHub/GitLab MCP 서버를 연결하면 **코드 파일이 자동으로 source_documents에 색인**된다.
+
+추가로 필요한 것은 **코드 분석** 기능뿐이다.
+
+### DB 스키마 (Migration 009)
+
+```sql
+-- 코드 분석 실행 이력
+CREATE TABLE code_analysis_runs (
+  id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'running',
+  total_files INTEGER DEFAULT 0,
+  analyzed_files INTEGER DEFAULT 0,
+  risks_found INTEGER DEFAULT 0,
+  started_at TEXT NOT NULL,
+  completed_at TEXT,
+  FOREIGN KEY (source_id) REFERENCES configured_sources(id) ON DELETE CASCADE
+);
+
+-- 파일별 분석 결과
+CREATE TABLE code_analysis_results (
+  id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL,
+  document_id TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  language TEXT,
+  risks_json TEXT DEFAULT '[]',
+  recommendations_json TEXT DEFAULT '[]',
+  complexity_score REAL,
+  analyzed_at TEXT NOT NULL,
+  FOREIGN KEY (run_id) REFERENCES code_analysis_runs(id) ON DELETE CASCADE,
+  FOREIGN KEY (document_id) REFERENCES source_documents(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_code_analysis_runs_source ON code_analysis_runs(source_id, started_at DESC);
+CREATE INDEX idx_code_analysis_results_run ON code_analysis_results(run_id);
+```
+
+### 신규 파일
+
+| # | 파일 | 역할 |
+|---|------|------|
+| 1 | `src/main/storage/migrations/009_code_analysis.ts` | code_analysis_runs + results 테이블 |
+| 2 | `src/main/storage/repositories/codeAnalysisRepository.ts` | CodeAnalysisRepository |
+| 3 | `src/main/analysis/codeAnalyzer.ts` | LLM 기반 범용 코드 분석기 (CBO 패턴 확장) |
+| 4 | `src/main/analysis/analysisPrompts.ts` | 언어별/도메인별 분석 프롬프트 |
+| 5 | `src/main/ipc/codeAnalysisHandlers.ts` | 코드 분석 IPC 핸들러 |
+| 6 | `src/renderer/pages/analysis/CodeAnalysisPage.tsx` | 코드 분석 결과 UI |
+| 7 | `src/renderer/pages/analysis/CodeAnalysisPage.css` | 스타일 |
+
+### 수정 파일
+
+| 파일 | 변경 |
+|------|------|
+| `src/main/ipc/channels.ts` | `CODE_ANALYSIS_*` 채널 추가 |
+| `src/main/ipc/index.ts` | `registerCodeAnalysisHandlers(ctx)` 등록 |
+| `src/main/ipc/types.ts` | IpcContext에 codeAnalysisRepo, codeAnalyzer 추가 |
+| `src/main/bootstrap/createRepositories.ts` | codeAnalysisRepo 추가 |
+| `src/main/bootstrap/createServices.ts` | CodeAnalyzer 인스턴스 생성 |
+| `src/main/storage/migrations/index.ts` | migration009 등록 |
+| `src/main/storage/repositories/index.ts` | 재내보내기 |
+| `src/preload/index.ts` | codeAnalysis 관련 API 노출 |
+
+### 핵심 서비스: CodeAnalyzer
 
 ```typescript
-coverage: {
-  provider: 'v8',
-  reporter: ['text', 'json-summary'],
-  thresholds: { lines: 40, functions: 40, branches: 30 },
+// src/main/analysis/codeAnalyzer.ts — CBO 분석기 패턴 확장
+export class CodeAnalyzer {
+  constructor(
+    private providers: LlmProvider[],
+    private secureStore: SecureStore,
+    private providerResilience: ProviderResilience,
+    private codeAnalysisRepo: CodeAnalysisRepository,
+    private sourceDocumentRepo: SourceDocumentRepository,
+  ) {}
+
+  // 특정 MCP Source의 모든 코드 파일을 분석
+  async analyzeSource(sourceId: string): Promise<CodeAnalysisRun>
+
+  // 단일 파일 분석
+  async analyzeFile(documentId: string): Promise<CodeAnalysisResult>
+
+  // 언어 감지 (파일 확장자 기반)
+  private detectLanguage(filePath: string): string
 }
 ```
 
-### E-3. Main Process 테스트 환경 설정
+### IPC 채널
 
-**신규 파일:**
-- `src/main/__tests__/setup.ts` (~30줄) — better-sqlite3 mock, logger mock
-
-**수정 파일:**
-- `vitest.config.ts` — Main process 테스트용 별도 설정 (environment: 'node')
-
-**예상: 수정 2, 신규 7~8**
-
----
-
-## Phase F: Zustand 전략 통일
-
-### F-1. 수동 localStorage → persist 미들웨어 통일
-
-**수정 파일:**
-- `src/renderer/stores/workspaceStore.ts` — 수동 localStorage → persist 미들웨어
-- `src/renderer/stores/settingsStore.ts` — 분산된 개별 persist → 통합 persist
-
-**패턴:**
 ```typescript
-// Before (수동)
-const domainPack = localStorage.getItem('domainPack') || 'ops'
-set({ domainPack }); localStorage.setItem('domainPack', domainPack)
-
-// After (persist 미들웨어)
-create<State>()(persist((set) => ({ domainPack: 'ops', ... }), {
-  name: 'workspace-store',
-  partialize: (s) => ({ domainPack: s.domainPack }),
-}))
+CODE_ANALYSIS_RUN: 'codeAnalysis:run',
+CODE_ANALYSIS_RUN_FILE: 'codeAnalysis:runFile',
+CODE_ANALYSIS_RUNS_LIST: 'codeAnalysis:runs:list',
+CODE_ANALYSIS_RUN_DETAIL: 'codeAnalysis:runs:detail',
+CODE_ANALYSIS_PROGRESS: 'codeAnalysis:progress',
 ```
 
-### F-2. partialize 패턴 확대
+### RAG 통합
 
-휘발성 상태(isLoading, error 등)는 저장하지 않도록 partialize 적용.
+**기존 `SkillSourceRegistry.resolveSkillExecution()` 변경 불필요.**
 
-**수정 파일:** 5~6개 스토어
-
-**예상: 수정 ~6, 신규 0**
+MCP Source로 등록된 Git 리포의 파일들은 이미 `source_documents`에 저장되므로, 채팅 시 기존 문서 검색 → 컨텍스트 주입 로직이 자동으로 코드 파일도 포함한다. 추가 작업 없음.
 
 ---
 
-## 실행 순서 및 의존성
+## 실행 순서
 
 ```
-Phase A (UI 분할) ──────────────────────┐
-                                        ├─→ Phase B (a11y, A 분할 후 적용)
-Phase C (React Query, A와 독립) ────────┘
-Phase D (Main Process, 독립) ───────────→ Phase E (테스트, D 후)
-Phase F (Zustand, 독립)
+Phase 1: 인프라 (2일)
+├── Migration 008 (email_inbox, email_task_links)
+├── Migration 009 (code_analysis_runs, code_analysis_results)
+├── Google OAuth gmail.readonly 스코프 추가
+└── Repository 클래스 생성
+
+Phase 2: Email Pipeline (5일, Phase 1 완료 후)
+├── EmailManager 서비스
+├── Email IPC 핸들러 + channels 등록
+├── Preload API 확장
+├── Bootstrap 연결 (createServices, createRepositories)
+└── Email UI (InboxPage, DetailModal)
+
+Phase 3: Code Analysis (5일, Phase 1 완료 후, Phase 2와 병렬)
+├── CodeAnalyzer 서비스
+├── CodeAnalysis IPC 핸들러 + channels 등록
+├── Preload API 확장
+├── Bootstrap 연결
+└── CodeAnalysis UI (AnalysisPage)
+
+Phase 4: 통합 + 검증 (2일)
+├── Sidebar 네비게이션 추가 (Email, Code Analysis)
+├── AppShell 라우팅 업데이트
+├── 테스트 작성
+└── typecheck + lint + build 검증
 ```
-
-**병렬 실행 가능:**
-- A + C + D + F는 서로 독립 (파일 겹침 없음)
-- B는 A 이후 (분할된 컴포넌트에 a11y 적용)
-- E는 D 이후 (logger, 채널 타입화 후 테스트 작성)
-
-**Teammate 에이전트 병렬 전략:**
-- **Agent 1**: Phase A (UI 분할) — frontend-builder
-- **Agent 2**: Phase C (React Query) — frontend-builder
-- **Agent 3**: Phase D (Main Process 안정성) — backend-builder
-- **Agent 4**: Phase F (Zustand 통일) — frontend-builder
-- 완료 후 → Agent 5: Phase B (a11y) — frontend-builder
-- 완료 후 → Agent 6: Phase E (테스트) — test-writer
-
----
-
-## Phase별 검증
-
-| Phase | 검증 명령 | 기준 |
-|-------|----------|------|
-| A | `npm run typecheck && npm run test:run` | 83개 테스트 통과, 0 TS 에러 |
-| B | `npm run typecheck && npm run lint` | a11y 속성 추가 확인 |
-| C | `npm run typecheck && npm run test:run` | 기존 테스트 통과 |
-| D | `npm run typecheck && npm run test:run` | 기존 테스트 통과 |
-| E | `npm run test:run && npm run test:coverage` | 커버리지 40%+ |
-| F | `npm run typecheck && npm run test:run` | 기존 테스트 통과 |
-
-**최종:** `npm run verify`
 
 ---
 
 ## 수정 파일 요약
 
-| Phase | 수정 | 신규 | 삭제 |
-|-------|------|------|------|
-| A | ~5 | ~20 | 1 |
-| B | ~15 | 2 | 0 |
-| C | ~12 | 2 | 0 |
-| D | ~15 | 1 | 0 |
-| E | 2 | ~8 | 0 |
-| F | ~6 | 0 | 0 |
-| **합계** | **~55** | **~33** | **1** |
+| # | 파일 | 상태 | Phase |
+|---|------|------|-------|
+| 1 | `src/main/storage/migrations/008_email_inbox.ts` | 신규 | 1 |
+| 2 | `src/main/storage/migrations/009_code_analysis.ts` | 신규 | 1 |
+| 3 | `src/main/storage/migrations/index.ts` | 수정 | 1 |
+| 4 | `src/main/storage/repositories/emailRepository.ts` | 신규 | 1 |
+| 5 | `src/main/storage/repositories/codeAnalysisRepository.ts` | 신규 | 1 |
+| 6 | `src/main/storage/repositories/index.ts` | 수정 | 1 |
+| 7 | `src/main/auth/oauthProviders.ts` | 수정 | 1 |
+| 8 | `src/main/email/emailManager.ts` | 신규 | 2 |
+| 9 | `src/main/email/emailAnalysisPrompt.ts` | 신규 | 2 |
+| 10 | `src/main/ipc/emailHandlers.ts` | 신규 | 2 |
+| 11 | `src/main/analysis/codeAnalyzer.ts` | 신규 | 3 |
+| 12 | `src/main/analysis/analysisPrompts.ts` | 신규 | 3 |
+| 13 | `src/main/ipc/codeAnalysisHandlers.ts` | 신규 | 3 |
+| 14 | `src/main/ipc/channels.ts` | 수정 | 2+3 |
+| 15 | `src/main/ipc/index.ts` | 수정 | 2+3 |
+| 16 | `src/main/ipc/types.ts` | 수정 | 2+3 |
+| 17 | `src/main/bootstrap/createRepositories.ts` | 수정 | 2+3 |
+| 18 | `src/main/bootstrap/createServices.ts` | 수정 | 2+3 |
+| 19 | `src/preload/index.ts` | 수정 | 2+3 |
+| 20 | `src/renderer/pages/email/EmailInboxPage.tsx` | 신규 | 2 |
+| 21 | `src/renderer/pages/email/EmailInboxPage.css` | 신규 | 2 |
+| 22 | `src/renderer/pages/email/EmailDetailModal.tsx` | 신규 | 2 |
+| 23 | `src/renderer/pages/analysis/CodeAnalysisPage.tsx` | 신규 | 3 |
+| 24 | `src/renderer/pages/analysis/CodeAnalysisPage.css` | 신규 | 3 |
+| 25 | `src/renderer/stores/appShellStore.ts` | 수정 | 4 |
+| 26 | `src/renderer/App.tsx` | 수정 | 4 |
+| 27 | `src/renderer/components/Sidebar.tsx` | 수정 | 4 |
 
-**각 Phase 완료 후 커밋하여 원자적 롤백 가능하게 유지.**
+**총 27개 파일** (신규 15개, 수정 12개)
+
+---
+
+## 검증
+
+```bash
+npm run typecheck   # 모든 tsconfig 통과
+npm run test:run    # 기존 테스트 깨짐 없음
+npm run lint        # ESLint 통과
+npm run build       # 번들 정상 생성
+```
+
+수동 검증:
+1. Gmail MCP 연결 → 메일 동기화 → 인박스에 표시
+2. 메일 선택 → AI 분석 → Closing Plan 자동 생성 확인
+3. GitHub MCP 연결 → 리포 파일 색인 → 채팅에서 코드 컨텍스트 확인
+4. 코드 분석 실행 → 리스크/권장사항 표시
+
+---
+
+## 설계 결정 근거
+
+| 결정 | 이유 |
+|------|------|
+| Gmail MCP 활용 (직접 API 아님) | 기존 mcpConnector 재사용, MCP 표준 준수, Outlook 확장 용이 |
+| email_inbox 로컬 미러링 | 오프라인 접근, 빠른 검색, 분석 결과 연결 |
+| Closing Plan 자동 생성 | 기존 3계층(Plan→Step→Routine) 시스템에 자연스럽게 연결 |
+| Git도 MCP 활용 | 별도 GitConnector 불필요, mcpConnector.syncSource() 재사용 |
+| CodeAnalyzer 별도 분리 (CBO 아님) | CBO는 ABAP 전용, 새 분석기는 다국어 지원으로 확장 |
+| source_documents 테이블 확장 안함 | 기존 스키마로 충분, tags_json에 메타데이터 저장 가능 |

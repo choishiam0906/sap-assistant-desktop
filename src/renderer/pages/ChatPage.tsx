@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { MessageSquare, Sparkles, ShieldCheck, Code, Database, CheckCircle2 } from 'lucide-react'
 import { queryKeys } from '../hooks/queryKeys.js'
-import type { ChatSession, SapSkillDefinition, SapSourceDefinition } from '../../main/contracts.js'
+import type { ChatSession, SkillDefinition, SourceDefinition } from '../../main/contracts.js'
 import {
   useChatStore,
   useChatSession,
@@ -20,13 +20,9 @@ import { SessionList } from '../components/chat/SessionList.js'
 import { MessageList } from '../components/chat/MessageList.js'
 import { Composer } from '../components/chat/Composer.js'
 import { DEFAULT_MODELS, PROVIDER_MODELS } from '../../main/contracts.js'
-import {
-  DOMAIN_PACK_DETAILS,
-  useWorkspaceStore,
-} from '../stores/workspaceStore.js'
 import './ChatPage.css'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function ChatPage() {
   const queryClient = useQueryClient()
@@ -46,9 +42,13 @@ export function ChatPage() {
     setLastExecutionMeta,
   } = useChatSkillSources()
   const { authenticatedTypes } = useAuthenticatedProviders()
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
   const suggestionIcons = [Code, ShieldCheck, Sparkles]
+
+  const DEFAULT_SUGGESTIONS = [
+    'ST22 덤프 발생 시 우선 점검할 T-code와 원인을 알려줘',
+    '커스텀 인터페이스 소스에서 COMMIT/ROLLBACK 위치가 위험한지 검토해줘',
+    'MM에서 입고 후 송장 처리 흐름을 현업 관점으로 정리해줘',
+  ]
 
   const { data: sessions = [], isLoading: loadingSessions, error: sessionsError } = useSessions()
   const currentSession = useMemo<ChatSession | null>(
@@ -63,15 +63,14 @@ export function ChatPage() {
     staleTime: 60_000,
   })
   const { data: recommendations = [] } = useQuery({
-    queryKey: queryKeys.skills.recommend(domainPack),
-    queryFn: () => api.recommendSkills({ domainPack, dataType: 'chat' }),
+    queryKey: queryKeys.skills.recommend(),
+    queryFn: () => api.recommendSkills({ dataType: 'chat' }),
     staleTime: 30_000,
   })
   const { data: sources = [] } = useQuery({
-    queryKey: queryKeys.sources.list(domainPack, caseContext?.runId ?? '', caseContext?.filePath ?? '', caseContext?.objectName ?? ''),
+    queryKey: queryKeys.sources.list(caseContext?.runId ?? '', caseContext?.filePath ?? '', caseContext?.objectName ?? ''),
     queryFn: () =>
       api.listSources({
-        domainPack,
         dataType: 'chat',
         caseContext: caseContext ?? undefined,
       }),
@@ -136,14 +135,14 @@ export function ChatPage() {
     setInput('')
   }
 
-  function handleSelectSkill(skill: SapSkillDefinition) {
+  function handleSelectSkill(skill: SkillDefinition) {
     setSelectedSkillId(skill.id)
     if (skill.suggestedInputs[0] && !input.trim()) {
       setInput(skill.suggestedInputs[0])
     }
   }
 
-  function sourceLabel(source: SapSourceDefinition): string {
+  function sourceLabel(source: SourceDefinition): string {
     if (source.availability === 'empty') return `${source.title} (비어 있음)`
     return source.title
   }
@@ -201,12 +200,11 @@ export function ChatPage() {
       <div className="chat-main">
         <div className="chat-context-banner">
           <div className="chat-context-copy">
-            <span className="chat-context-eyebrow">Active Workspace</span>
-            <strong>{packDetail.label}</strong>
-            <p>{packDetail.description}</p>
+            <span className="chat-context-eyebrow">Assistant</span>
+            <strong>업무 지원</strong>
+            <p>장애 진단, 업무 설명, 코드 분석 등 운영 전반의 이슈를 지원합니다.</p>
           </div>
           <div className="chat-context-badges">
-            <Badge variant="neutral">{packDetail.label}</Badge>
             {selectedSkill && <Badge variant="info">{selectedSkill.title}</Badge>}
           </div>
         </div>
@@ -252,7 +250,7 @@ export function ChatPage() {
                   <p>{skill.description}</p>
                   <div className="chat-skill-chip-row">
                     <Badge variant="neutral">{skill.outputFormat}</Badge>
-                    <Badge variant="info">{skill.supportedDomainPacks[0]}</Badge>
+                    <Badge variant="info">{skill.supportedDataTypes[0]}</Badge>
                   </div>
                 </button>
               ))}
@@ -327,14 +325,13 @@ export function ChatPage() {
         {messages.length === 0 && !useChatStore.getState().isStreaming && (
           <div className="chat-empty page-enter">
             <MessageSquare size={48} className="empty-icon" aria-hidden="true" />
-            <h2>{packDetail.chatTitle}</h2>
-            <p>{packDetail.chatDescription}</p>
+            <h2>새로운 대화를 시작하세요</h2>
+            <p>SAP 업무를 효율적으로 지원해 드릴게요</p>
             <div className="chat-empty-meta">
-              <Badge variant="neutral">{packDetail.label}</Badge>
               {selectedSkill && <Badge variant="info">{selectedSkill.title}</Badge>}
             </div>
             <div className="chat-suggestions">
-              {(selectedSkill?.suggestedInputs.length ? selectedSkill.suggestedInputs : packDetail.suggestions).map((text, index) => {
+              {(selectedSkill?.suggestedInputs.length ? selectedSkill.suggestedInputs : DEFAULT_SUGGESTIONS).map((text, index) => {
                 const Icon = suggestionIcons[index % suggestionIcons.length]
                 return (
                   <button key={text} className="suggestion-chip" onClick={() => { setInput(text) }}>
@@ -368,7 +365,7 @@ export function ChatPage() {
           onModelChange={setModel}
           placeholder={selectedSkill
             ? `${selectedSkill.title}: ${selectedSkill.description}`
-            : packDetail.inputPlaceholder}
+            : 'SAP 업무 질문이나 CBO 분석 요청을 입력하세요'}
           onSend={handleSend}
           onRemoveSource={toggleSourceId}
         />

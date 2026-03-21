@@ -4,7 +4,6 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 
 import type {
   ConfiguredSource,
-  DomainPack,
   SourceDocument,
   SourceIndexSummary,
   VaultClassification,
@@ -48,7 +47,7 @@ export class McpConnector {
     });
 
     const client = new Client({
-      name: "sap-assistant-desktop",
+      name: "assistant-desktop",
       version: "3.0.0",
     });
 
@@ -95,7 +94,6 @@ export class McpConnector {
     serverName: string,
     input: {
       title?: string;
-      domainPack: DomainPack;
       classificationDefault: VaultClassification;
     }
   ): Promise<{ source: ConfiguredSource; summary: SourceIndexSummary }> {
@@ -106,7 +104,6 @@ export class McpConnector {
 
     const source = this.sourceRepo.createMcpSource({
       title: input.title?.trim() || serverName,
-      domainPack: input.domainPack,
       classificationDefault: input.classificationDefault,
       connectionMeta: {
         serverName,
@@ -169,9 +166,8 @@ export class McpConnector {
             excerpt: contentText.replace(/\s+/g, " ").slice(0, 280).trim(),
             contentText,
             contentHash: createHash("sha256").update(contentText).digest("hex"),
-            domainPack: source.domainPack as DomainPack | null,
             classification: source.classificationDefault as VaultClassification | null,
-            tags: ["mcp", serverName, source.domainPack ?? "unknown"],
+            tags: ["mcp", serverName],
             indexedAt,
           });
         } catch (error) {

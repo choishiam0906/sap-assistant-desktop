@@ -2,10 +2,8 @@
 
 import matter from "gray-matter";
 import type { AgentDefinition, AgentCategory, AgentStep } from "../types/agent.js";
-import type { DomainPack } from "../contracts.js";
 
 const VALID_CATEGORIES: AgentCategory[] = ["analysis", "documentation", "validation", "automation"];
-const VALID_DOMAIN_PACKS: DomainPack[] = ["ops", "functional", "cbo-maintenance", "pi-integration", "btp-rap-cap"];
 
 export interface AgentParseResult {
   success: boolean;
@@ -34,17 +32,6 @@ export function parseAgentFile(content: string, filePath: string): AgentParseRes
   }
   if (!data.description || typeof data.description !== "string") {
     errors.push("description 필드가 없거나 문자열이 아닙니다.");
-  }
-
-  // domainPacks 검증
-  if (!Array.isArray(data.domainPacks) || data.domainPacks.length === 0) {
-    errors.push("domainPacks 필드가 없거나 빈 배열입니다.");
-  } else {
-    for (const dp of data.domainPacks) {
-      if (!VALID_DOMAIN_PACKS.includes(dp as DomainPack)) {
-        errors.push(`유효하지 않은 domainPack: ${String(dp)}`);
-      }
-    }
   }
 
   // category 검증
@@ -91,7 +78,6 @@ export function parseAgentFile(content: string, filePath: string): AgentParseRes
     id: String(data.id),
     title: String(data.title),
     description: String(data.description),
-    domainPacks: data.domainPacks as DomainPack[],
     category: data.category as AgentCategory,
     estimatedDuration: typeof data.estimatedDuration === "number" ? data.estimatedDuration : 300,
     steps,

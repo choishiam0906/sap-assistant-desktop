@@ -9,6 +9,8 @@ import { registerRoutineHandlers } from "./routineHandlers.js";
 import { registerArchiveHandlers } from "./archiveHandlers.js";
 import { registerAgentHandlers } from "./agentHandlers.js";
 import { registerScheduleHandlers } from "./scheduleHandlers.js";
+import { registerEmailHandlers } from "./emailHandlers.js";
+import { registerCodeAnalysisHandlers } from "./codeAnalysisHandlers.js";
 
 export type { IpcContext } from "./types.js";
 
@@ -23,4 +25,6 @@ export function registerAllIpcHandlers(ctx: IpcContext): void {
   registerArchiveHandlers(ctx);
   registerAgentHandlers(ctx);
   registerScheduleHandlers(ctx);
+  registerEmailHandlers(ctx);
+  registerCodeAnalysisHandlers(ctx);
 }

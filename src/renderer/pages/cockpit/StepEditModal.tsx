@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import type { ClosingStep, SapLabel, StepStatus } from '../../../main/contracts'
-import { SAP_LABELS } from '../../../main/types/session'
+import type { ClosingStep, DomainLabel, StepStatus } from '../../../main/contracts'
+import { DOMAIN_LABELS } from '../../../main/types/session'
 import { useUpdateStep } from '../../hooks/useClosingPlans'
 import { useFocusTrap } from '../../hooks/useFocusTrap.js'
 
@@ -20,7 +20,7 @@ export function StepEditModal({ step, onClose }: StepEditModalProps) {
   const [title, setTitle] = useState(step.title)
   const [description, setDescription] = useState(step.description ?? '')
   const [assignee, setAssignee] = useState(step.assignee ?? '')
-  const [module, setModule] = useState<SapLabel | ''>(step.module ?? '')
+  const [module, setModule] = useState<DomainLabel | ''>(step.module ?? '')
   const [deadline, setDeadline] = useState(step.deadline)
   const [status, setStatus] = useState<StepStatus>(step.status)
   const updateStep = useUpdateStep()
@@ -84,9 +84,9 @@ export function StepEditModal({ step, onClose }: StepEditModalProps) {
               </label>
               <label className="closing-field" style={{ flex: 1 }}>
                 <span>모듈</span>
-                <select className="closing-select" value={module} onChange={(e) => setModule(e.target.value as SapLabel | '')}>
+                <select className="closing-select" value={module} onChange={(e) => setModule(e.target.value as DomainLabel | '')}>
                   <option value="">없음</option>
-                  {SAP_LABELS.map((l) => (
+                  {DOMAIN_LABELS.map((l) => (
                     <option key={l} value={l}>{l}</option>
                   ))}
                 </select>

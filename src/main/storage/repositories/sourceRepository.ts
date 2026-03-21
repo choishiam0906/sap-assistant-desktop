@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import type {
   ConfiguredSource,
   ConfiguredSourceKind,
-  DomainPack,
   SourceDocument,
   SourceDocumentSearchInput,
   SourceSyncStatus,
@@ -17,7 +16,6 @@ interface ConfiguredSourceRow {
   kind: ConfiguredSourceKind;
   title: string;
   rootPath: string | null;
-  domainPack: DomainPack | null;
   classificationDefault: VaultClassification | null;
   includeGlobs: string;
   enabled: number;
@@ -35,7 +33,6 @@ function toConfiguredSource(row: ConfiguredSourceRow): ConfiguredSource {
     kind: row.kind,
     title: row.title,
     rootPath: row.rootPath,
-    domainPack: row.domainPack,
     classificationDefault: row.classificationDefault,
     includeGlobs: parseStringArray(row.includeGlobs),
     enabled: Boolean(row.enabled),
@@ -60,7 +57,6 @@ export class ConfiguredSourceRepository {
           s.kind,
           s.title,
           s.root_path AS rootPath,
-          s.domain_pack AS domainPack,
           s.classification_default AS classificationDefault,
           s.include_globs AS includeGlobs,
           s.enabled,
@@ -88,7 +84,6 @@ export class ConfiguredSourceRepository {
           s.kind,
           s.title,
           s.root_path AS rootPath,
-          s.domain_pack AS domainPack,
           s.classification_default AS classificationDefault,
           s.include_globs AS includeGlobs,
           s.enabled,
@@ -110,7 +105,6 @@ export class ConfiguredSourceRepository {
   createLocalFolder(input: {
     title: string;
     rootPath: string;
-    domainPack: DomainPack;
     classificationDefault: VaultClassification;
     includeGlobs: string[];
   }): ConfiguredSource {
@@ -119,17 +113,16 @@ export class ConfiguredSourceRepository {
     this.db
       .prepare(
         `INSERT INTO configured_sources(
-          id, kind, title, root_path, domain_pack, classification_default,
+          id, kind, title, root_path, classification_default,
           include_globs, enabled, sync_status, last_indexed_at,
           connection_meta_json, created_at, updated_at
         )
-        VALUES (?, 'local-folder', ?, ?, ?, ?, ?, 1, 'idle', NULL, NULL, ?, ?)`
+        VALUES (?, 'local-folder', ?, ?, ?, ?, 1, 'idle', NULL, NULL, ?, ?)`
       )
       .run(
         id,
         input.title,
         input.rootPath,
-        input.domainPack,
         input.classificationDefault,
         JSON.stringify(input.includeGlobs),
         now,
@@ -140,7 +133,6 @@ export class ConfiguredSourceRepository {
 
   createMcpSource(input: {
     title: string;
-    domainPack: DomainPack;
     classificationDefault: VaultClassification;
     connectionMeta: Record<string, string>;
   }): ConfiguredSource {
@@ -149,16 +141,15 @@ export class ConfiguredSourceRepository {
     this.db
       .prepare(
         `INSERT INTO configured_sources(
-          id, kind, title, root_path, domain_pack, classification_default,
+          id, kind, title, root_path, classification_default,
           include_globs, enabled, sync_status, last_indexed_at,
           connection_meta_json, created_at, updated_at
         )
-        VALUES (?, 'mcp', ?, NULL, ?, ?, '[]', 1, 'idle', NULL, ?, ?, ?)`
+        VALUES (?, 'mcp', ?, NULL, ?, '[]', 1, 'idle', NULL, ?, ?, ?)`
       )
       .run(
         id,
         input.title,
-        input.domainPack,
         input.classificationDefault,
         JSON.stringify(input.connectionMeta),
         now,
@@ -187,7 +178,6 @@ interface SourceDocumentRow {
   excerpt: string | null;
   contentText: string;
   contentHash: string;
-  domainPack: DomainPack | null;
   classification: VaultClassification | null;
   tags: string;
   indexedAt: string;
@@ -203,7 +193,6 @@ function toSourceDocument(row: SourceDocumentRow): SourceDocument {
     excerpt: row.excerpt,
     contentText: row.contentText,
     contentHash: row.contentHash,
-    domainPack: row.domainPack,
     classification: row.classification,
     tags: parseStringArray(row.tags),
     indexedAt: row.indexedAt,
@@ -222,9 +211,9 @@ export class SourceDocumentRepository {
       const insert = this.db.prepare(
         `INSERT INTO source_documents(
           id, source_id, relative_path, absolute_path, title, excerpt,
-          content_text, content_hash, domain_pack, classification, tags_json, indexed_at
+          content_text, content_hash, classification, tags_json, indexed_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
       for (const document of documents) {
@@ -237,7 +226,6 @@ export class SourceDocumentRepository {
           document.excerpt,
           document.contentText,
           document.contentHash,
-          document.domainPack,
           document.classification,
           JSON.stringify(document.tags),
           document.indexedAt
@@ -259,10 +247,6 @@ export class SourceDocumentRepository {
       conditions.push("s.kind = ?");
       params.push(input.sourceKind);
     }
-    if (input.domainPack) {
-      conditions.push("d.domain_pack = ?");
-      params.push(input.domainPack);
-    }
     if (input.query?.trim()) {
       conditions.push("(d.title LIKE ? OR d.relative_path LIKE ? OR d.excerpt LIKE ? OR d.content_text LIKE ?)");
       const token = `%${input.query.trim()}%`;
@@ -281,7 +265,6 @@ export class SourceDocumentRepository {
           d.excerpt,
           d.content_text AS contentText,
           d.content_hash AS contentHash,
-          d.domain_pack AS domainPack,
           d.classification,
           d.tags_json AS tags,
           d.indexed_at AS indexedAt
@@ -318,15 +301,15 @@ export class SourceDocumentRepository {
       const insert = this.db.prepare(
         `INSERT INTO source_documents(
           id, source_id, relative_path, absolute_path, title, excerpt,
-          content_text, content_hash, domain_pack, classification, tags_json, indexed_at
+          content_text, content_hash, classification, tags_json, indexed_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
       const update = this.db.prepare(
         `UPDATE source_documents
          SET absolute_path = ?, title = ?, excerpt = ?,
-             content_text = ?, content_hash = ?, domain_pack = ?,
+             content_text = ?, content_hash = ?,
              classification = ?, tags_json = ?, indexed_at = ?
          WHERE id = ?`
       );
@@ -340,7 +323,6 @@ export class SourceDocumentRepository {
             document.excerpt,
             document.contentText,
             document.contentHash,
-            document.domainPack,
             document.classification,
             JSON.stringify(document.tags),
             document.indexedAt,
@@ -356,7 +338,6 @@ export class SourceDocumentRepository {
             document.excerpt,
             document.contentText,
             document.contentHash,
-            document.domainPack,
             document.classification,
             JSON.stringify(document.tags),
             document.indexedAt
@@ -379,7 +360,6 @@ export class SourceDocumentRepository {
           excerpt,
           content_text AS contentText,
           content_hash AS contentHash,
-          domain_pack AS domainPack,
           classification,
           tags_json AS tags,
           indexed_at AS indexedAt

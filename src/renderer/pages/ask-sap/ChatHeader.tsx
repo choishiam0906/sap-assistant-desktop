@@ -1,26 +1,20 @@
-import type { CaseContext, SapSkillDefinition } from '../../../main/contracts.js'
+import type { CaseContext, SkillDefinition } from '../../../main/contracts.js'
 import { Badge } from '../../components/ui/Badge.js'
-import type { DomainPack } from '../../stores/workspaceStore.js'
-import { DOMAIN_PACK_DETAILS } from '../../stores/workspaceStore.js'
 
 interface ChatHeaderProps {
-  domainPack: DomainPack
-  selectedSkill: SapSkillDefinition | null
+  selectedSkill: SkillDefinition | null
   caseContext: CaseContext | null
 }
 
-export function ChatHeader({ domainPack, selectedSkill, caseContext }: ChatHeaderProps) {
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
-
+export function ChatHeader({ selectedSkill, caseContext }: ChatHeaderProps) {
   return (
     <>
       <div className="chat-context-banner chat-context-banner--compact">
         <div className="chat-context-copy">
-          <span className="chat-context-eyebrow">Active Workspace</span>
-          <strong>{packDetail.label}</strong>
+          <span className="chat-context-eyebrow">Assistant</span>
+          <strong>업무 지원</strong>
         </div>
         <div className="chat-context-badges">
-          <Badge variant="neutral">{packDetail.label}</Badge>
           {selectedSkill && <Badge variant="info">{selectedSkill.title}</Badge>}
         </div>
       </div>

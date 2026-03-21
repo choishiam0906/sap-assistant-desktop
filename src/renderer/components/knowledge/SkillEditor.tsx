@@ -3,10 +3,9 @@
 import { useState } from 'react'
 import { Save, Eye } from 'lucide-react'
 import { Button } from '../ui/Button.js'
-import type { SapSkillDefinition, SkillOutputFormat } from '../../../main/contracts.js'
-import type { DomainPack } from '../../../main/contracts.js'
+import type { SkillDefinition, SkillOutputFormat } from '../../../main/contracts.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 const OUTPUT_FORMAT_OPTIONS: { value: SkillOutputFormat; label: string }[] = [
   { value: 'chat-answer', label: '채팅 답변' },
@@ -15,21 +14,13 @@ const OUTPUT_FORMAT_OPTIONS: { value: SkillOutputFormat; label: string }[] = [
   { value: 'explanation', label: '설명' },
 ]
 
-const DOMAIN_PACK_OPTIONS: { value: DomainPack; label: string }[] = [
-  { value: 'ops', label: 'Ops' },
-  { value: 'functional', label: 'Functional' },
-  { value: 'cbo-maintenance', label: 'CBO Maintenance' },
-  { value: 'pi-integration', label: 'PI Integration' },
-  { value: 'btp-rap-cap', label: 'BTP/RAP/CAP' },
-]
-
 const DATA_TYPE_OPTIONS = [
   { value: 'chat' as const, label: '채팅' },
   { value: 'cbo' as const, label: 'CBO' },
 ]
 
 interface SkillEditorProps {
-  skill?: SapSkillDefinition
+  skill?: SkillDefinition
   onSave: () => void
   onCancel: () => void
 }
@@ -38,9 +29,6 @@ export function SkillEditor({ skill, onSave, onCancel }: SkillEditorProps) {
   const [id, setId] = useState(skill?.id ?? '')
   const [title, setTitle] = useState(skill?.title ?? '')
   const [description, setDescription] = useState(skill?.description ?? '')
-  const [supportedDomainPacks, setSupportedDomainPacks] = useState<DomainPack[]>(
-    skill?.supportedDomainPacks ?? ['ops']
-  )
   const [supportedDataTypes, setSupportedDataTypes] = useState<Array<'chat' | 'cbo'>>(
     skill?.supportedDataTypes ?? ['chat']
   )
@@ -50,16 +38,10 @@ export function SkillEditor({ skill, onSave, onCancel }: SkillEditorProps) {
   const [promptTemplate, setPromptTemplate] = useState(skill?.defaultPromptTemplate ?? '')
   const [requiredSources, setRequiredSources] = useState(skill?.requiredSources.join(', ') ?? '')
   const [suggestedInputs, setSuggestedInputs] = useState(skill?.suggestedInputs.join('\n') ?? '')
-  const [suggestedTcodes, setSuggestedTcodes] = useState(skill?.suggestedTcodes.join(', ') ?? '')
+  const [suggestedTcodes, setSuggestedTcodes] = useState(skill?.domainCodes?.join(', ') ?? '')
   const [showPreview, setShowPreview] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-
-  function toggleDomainPack(dp: DomainPack) {
-    setSupportedDomainPacks((prev) =>
-      prev.includes(dp) ? prev.filter((d) => d !== dp) : [...prev, dp]
-    )
-  }
 
   function toggleDataType(dt: 'chat' | 'cbo') {
     setSupportedDataTypes((prev) =>
@@ -89,12 +71,11 @@ export function SkillEditor({ skill, onSave, onCancel }: SkillEditorProps) {
 id: ${id}
 title: ${title}
 description: ${description}
-supportedDomainPacks: [${supportedDomainPacks.join(', ')}]
 supportedDataTypes: [${supportedDataTypes.join(', ')}]
 outputFormat: ${outputFormat}
 requiredSources: [${sources.join(', ')}]
 ${suggestedInputsYaml}
-suggestedTcodes: [${tcodes.join(', ')}]
+domainCodes: [${tcodes.join(', ')}]
 defaultPromptTemplate: |
 ${promptTemplate.split('\n').map((line) => `  ${line}`).join('\n')}
 ---
@@ -189,22 +170,6 @@ ${promptTemplate.split('\n').map((line) => `  ${line}`).join('\n')}
                 ))}
               </select>
             </label>
-          </div>
-
-          <div className="agent-editor-label">
-            도메인 팩
-            <div className="agent-editor-checkboxes">
-              {DOMAIN_PACK_OPTIONS.map((dp) => (
-                <label key={dp.value} className="agent-editor-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={supportedDomainPacks.includes(dp.value)}
-                    onChange={() => toggleDomainPack(dp.value)}
-                  />
-                  {dp.label}
-                </label>
-              ))}
-            </div>
           </div>
 
           <div className="agent-editor-label">

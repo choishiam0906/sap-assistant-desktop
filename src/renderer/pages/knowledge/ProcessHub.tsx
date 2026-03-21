@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Bot, FolderOpen, Plus } from 'lucide-react'
 import type { RoutineKnowledgeLink } from '../../../main/contracts.js'
-import { DOMAIN_PACK_DETAILS, useWorkspaceStore } from '../../stores/workspaceStore.js'
 import { useAppShellStore } from '../../stores/appShellStore.js'
 import { Button } from '../../components/ui/Button.js'
 import { useProcessHub } from './process/useProcessHub.js'
@@ -40,8 +39,6 @@ function createEmptyDraft(): ProcessDraft {
 }
 
 export function ProcessHub() {
-  const domainPack = useWorkspaceStore((state) => state.domainPack)
-  const packDetail = DOMAIN_PACK_DETAILS[domainPack]
   const navigateToKnowledge = useAppShellStore((state) => state.setSection)
 
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null)
@@ -154,16 +151,11 @@ export function ProcessHub() {
           <span className="process-hero-eyebrow">Process Definition</span>
           <h2>업무 절차를 프로세스로 정의하고, 단계와 자동화를 연결하세요</h2>
           <p>
-            SAP에서는 절차가 곧 품질이에요. {packDetail.label} 관점의 업무 단계를 표준화하고,
+            SAP에서는 절차가 곧 품질이에요. 업무 단계를 표준화하고,
             반복 가능한 루틴과 자동화를 같은 화면에서 정리해 두세요.
           </p>
         </div>
         <div className="process-hero-actions">
-          <div className="process-domain-card">
-            <span className="process-domain-label">현재 Domain Pack</span>
-            <strong>{packDetail.label}</strong>
-            <p>{packDetail.description}</p>
-          </div>
           <div className="process-hero-button-row">
             <Button
               variant="primary"

@@ -3,9 +3,10 @@ import type { IpcContext } from "./types.js";
 import type { ScheduledTaskInput } from "../storage/repositories/scheduledTaskRepository.js";
 import { registerCrudHandlers } from "./helpers/registerCrudHandlers.js";
 import { IPC } from "./channels.js";
+import { wrapHandler } from "./helpers/wrapHandler.js";
 
 export function registerScheduleHandlers(ctx: IpcContext): void {
-  // ─── 순수 패스쓰루 ───
+  // ─── 순수 패스쓰루 (registerCrudHandlers 내부에서 wrapHandler 적용) ───
   registerCrudHandlers({
     [IPC.SCHEDULE_LIST]: () => ctx.scheduledTaskRepo.list(),
     [IPC.SCHEDULE_LOGS]: (taskId: string, limit?: number) => ctx.scheduleLogRepo.listByTask(taskId, limit),
@@ -13,15 +14,15 @@ export function registerScheduleHandlers(ctx: IpcContext): void {
   });
 
   // ─── 사이드 이펙트 핸들러 (scheduler 연동) ───
-  ipcMain.handle(IPC.SCHEDULE_CREATE, (_event, input: ScheduledTaskInput) => {
+  ipcMain.handle(IPC.SCHEDULE_CREATE, wrapHandler(IPC.SCHEDULE_CREATE, (_event, input: ScheduledTaskInput) => {
     const task = ctx.scheduledTaskRepo.create(input);
     if (task.enabled) {
       ctx.routineScheduler.schedule(task);
     }
     return task;
-  });
+  }));
 
-  ipcMain.handle(IPC.SCHEDULE_UPDATE, (_event, id: string, patch: { cronExpression?: string; enabled?: boolean }) => {
+  ipcMain.handle(IPC.SCHEDULE_UPDATE, wrapHandler(IPC.SCHEDULE_UPDATE, (_event, id: string, patch: { cronExpression?: string; enabled?: boolean }) => {
     const updated = ctx.scheduledTaskRepo.update(id, patch);
     if (updated) {
       if (updated.enabled) {
@@ -31,14 +32,14 @@ export function registerScheduleHandlers(ctx: IpcContext): void {
       }
     }
     return updated;
-  });
+  }));
 
-  ipcMain.handle(IPC.SCHEDULE_DELETE, (_event, id: string) => {
+  ipcMain.handle(IPC.SCHEDULE_DELETE, wrapHandler(IPC.SCHEDULE_DELETE, (_event, id: string) => {
     ctx.routineScheduler.unschedule(id);
     return ctx.scheduledTaskRepo.delete(id);
-  });
+  }));
 
-  ipcMain.handle(IPC.SCHEDULE_EXECUTE_NOW, async (_event, id: string) => {
+  ipcMain.handle(IPC.SCHEDULE_EXECUTE_NOW, wrapHandler(IPC.SCHEDULE_EXECUTE_NOW, async (_event, id: string) => {
     await ctx.routineScheduler.executeNow(id);
-  });
+  }));
 }

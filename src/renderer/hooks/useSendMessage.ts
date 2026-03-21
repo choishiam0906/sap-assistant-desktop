@@ -1,16 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { SendMessageInput, SendMessageOutput } from '../../main/contracts'
-import { useWorkspaceStore } from '../stores/workspaceStore'
 import { queryKeys } from './queryKeys.js'
 
-const api = window.sapOpsDesktop
+const api = window.assistantDesktop
 
 export function useSendMessage() {
   const queryClient = useQueryClient()
-  const domainPack = useWorkspaceStore((s) => s.domainPack)
 
-  return useMutation<SendMessageOutput, Error, Omit<SendMessageInput, 'domainPack'>>({
-    mutationFn: (input) => api.sendMessage({ ...input, domainPack }),
+  return useMutation<SendMessageOutput, Error, SendMessageInput>({
+    mutationFn: (input) => api.sendMessage(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all })
     },
