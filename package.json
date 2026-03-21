@@ -122,11 +122,11 @@
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
-      "artifactName": "SAP-Assistant-Desktop-Platform-${version}-Setup.exe",
-      "shortcutName": "SAP Assistant Desktop Platform"
+      "artifactName": "Assistant-Desktop-${version}-Setup.exe",
+      "shortcutName": "Assistant Desktop"
     },
     "portable": {
-      "artifactName": "SAP-Assistant-Desktop-Platform-${version}-Portable.exe"
+      "artifactName": "Assistant-Desktop-${version}-Portable.exe"
     },
     "asar": true,
     "asarUnpack": [
@@ -136,7 +136,7 @@
     "publish": {
       "provider": "github",
       "owner": "boxlogodev",
-      "repo": "sap-assistant-desktop"
+      "repo": "assistant-desktop"
     }
   }
 }

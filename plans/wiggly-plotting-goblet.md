@@ -1,349 +1,255 @@
-# Assistant Desktop v7.0 — Email → Task + Git → Knowledge 통합
+# v7.0 브랜딩 리뉴얼 — SAP 잔재 정리 + 앱 아이콘 교체 + 아이콘 일관성
 
 ## Context
 
-Assistant Desktop v6.1은 범용 플랫폼으로 전환 완료되었다. 이제 엔터프라이즈 업무 자동화의 핵심 두 축을 추가한다:
+v6.1에서 "SAP Assistant Desktop Platform → Assistant Desktop" 범용 플랫폼 전환이 완료되었으나, 빌드 아티팩트명, 파일/디렉토리명, 이모지 혼용 등 SAP 잔재가 남아있다. v7.0 기능 추가와 함께 브랜딩을 완전히 정리한다.
 
-1. **메일 → 업무 자동화**: Gmail MCP로 메일을 읽고, AI가 분석하여 Closing Plan(일정/태스크) 자동 생성
-2. **Git → 지식 + 코드 분석**: GitHub/GitLab MCP로 레거시 소스코드를 색인하고, RAG 채팅 컨텍스트 + 코드 품질 분석 제공
-
-**핵심 원칙**:
-- 기존 MCP 인프라(`mcpConnector.ts`) 최대 활용
-- 기존 Closing Plan 시스템에 자연스럽게 연결
-- 새 모듈은 기존 패턴(Repository → Service → IPC Handler → Preload) 준수
+**목표**:
+1. 코드베이스에서 "SAP" 참조 완전 제거 (Domain Pack 제외)
+2. 앱 아이콘을 기하학적 연결 노드 패턴으로 교체
+3. Sidebar 서브메뉴 이모지를 lucide 아이콘으로 통일
 
 ---
 
-## Feature 1: Email → Task Pipeline
+## Phase 1: SAP 잔재 완전 정리
 
-### 데이터 흐름
+### 1-1. package.json 빌드 메타데이터 (4줄)
 
-```
-Gmail MCP 서버
-  ↓ mcpConnector.connect()
-메일 목록 조회 (gmail_search_messages)
-  ↓
-메일 내용 읽기 (gmail_read_message)
-  ↓
-email_inbox 테이블에 저장 (미러링)
-  ↓
-LLM 분석 (ChatRuntime.sendMessage)
-  "이 메일에서 수행해야 할 업무와 마감일을 추출해줘"
-  ↓
-ActionItem[] 추출
-  ↓
-Closing Plan + Steps 자동 생성
-  ↓
-email_task_links로 원본 메일 ↔ Plan 연결
-```
+**파일**: `package.json`
 
-### 시나리오 예시
+| 위치 | 현재 | 변경 |
+|------|------|------|
+| NSIS artifactName | `SAP-Assistant-Desktop-Platform-${version}-Setup.exe` | `Assistant-Desktop-${version}-Setup.exe` |
+| NSIS shortcutName | `SAP Assistant Desktop Platform` | `Assistant Desktop` |
+| portable artifactName | `SAP-Assistant-Desktop-Platform-${version}-Portable.exe` | `Assistant-Desktop-${version}-Portable.exe` |
+| publish repo | `sap-assistant-desktop` | `assistant-desktop` |
 
-> 구매팀 김대리가 "3월 송장 처리 요청" 메일 전송
-> → AI 분석: "송장 입력 (마감: 3/25)", "거래명세서 확인 (마감: 3/23)"
-> → Closing Plan: "[메일] 송장 처리 요청 — 김대리" (target_date: 3/25)
-> → Steps: "송장 입력 (3/25)", "거래명세서 확인 (3/23)"
+### 1-2. SapAssistantPage → AssistantPage 리네임
 
-### DB 스키마 (Migration 008)
+**삭제**: `src/renderer/pages/SapAssistantPage.tsx`
+**삭제**: `src/renderer/pages/AskSapPage.tsx` (deprecated re-export)
 
-```sql
--- 메일 로컬 미러 (Gmail MCP → SQLite)
-CREATE TABLE email_inbox (
-  id TEXT PRIMARY KEY,
-  source_id TEXT NOT NULL,
-  provider_message_id TEXT UNIQUE NOT NULL,
-  from_email TEXT NOT NULL,
-  from_name TEXT,
-  subject TEXT NOT NULL,
-  body_text TEXT NOT NULL,
-  received_at TEXT NOT NULL,
-  labels_json TEXT DEFAULT '[]',
-  is_processed INTEGER DEFAULT 0,
-  created_at TEXT NOT NULL,
-  FOREIGN KEY (source_id) REFERENCES configured_sources(id) ON DELETE CASCADE
-);
+**신규**: `src/renderer/pages/AssistantPage.tsx`
+- 함수명 `SapAssistantPage` → `AssistantPage`
+- 내부 로직 변경 없음
 
--- 메일 ↔ Closing Plan 연결
-CREATE TABLE email_task_links (
-  id TEXT PRIMARY KEY,
-  email_id TEXT NOT NULL,
-  plan_id TEXT NOT NULL,
-  ai_summary TEXT,
-  created_at TEXT NOT NULL,
-  FOREIGN KEY (email_id) REFERENCES email_inbox(id) ON DELETE CASCADE,
-  FOREIGN KEY (plan_id) REFERENCES closing_plans(id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_email_inbox_processed ON email_inbox(is_processed, received_at DESC);
-CREATE INDEX idx_email_task_links_plan ON email_task_links(plan_id);
-```
-
-### 신규 파일
-
-| # | 파일 | 역할 |
-|---|------|------|
-| 1 | `src/main/storage/migrations/008_email_inbox.ts` | email_inbox + email_task_links 테이블 |
-| 2 | `src/main/storage/repositories/emailRepository.ts` | EmailInboxRepository + EmailTaskLinkRepository |
-| 3 | `src/main/email/emailManager.ts` | 메일 동기화 + AI 분석 + Plan 생성 핵심 로직 |
-| 4 | `src/main/email/emailAnalysisPrompt.ts` | LLM 분석 프롬프트 템플릿 |
-| 5 | `src/main/ipc/emailHandlers.ts` | Email IPC 핸들러 |
-| 6 | `src/renderer/pages/email/EmailInboxPage.tsx` | 메일 인박스 UI |
-| 7 | `src/renderer/pages/email/EmailInboxPage.css` | 스타일 |
-| 8 | `src/renderer/pages/email/EmailDetailModal.tsx` | 메일 상세 + Plan 생성 UI |
-
-### 수정 파일
-
+**수정 파일**:
 | 파일 | 변경 |
 |------|------|
-| `src/main/auth/oauthProviders.ts` | Google OAuth scopes에 `gmail.readonly` 추가 |
-| `src/main/ipc/channels.ts` | `EMAIL_*` IPC 채널 상수 추가 |
-| `src/main/ipc/index.ts` | `registerEmailHandlers(ctx)` 등록 |
-| `src/main/ipc/types.ts` | IpcContext에 `emailManager` 추가 |
-| `src/main/bootstrap/createRepositories.ts` | emailInboxRepo, emailTaskLinkRepo 추가 |
-| `src/main/bootstrap/createServices.ts` | EmailManager 인스턴스 생성 |
-| `src/main/storage/migrations/index.ts` | migration008 등록 |
-| `src/main/storage/repositories/index.ts` | 신규 Repository 재내보내기 |
-| `src/preload/index.ts` | email 관련 API 노출 |
-| `src/renderer/stores/appShellStore.ts` | AppSection에 `'email'` 추가 |
-| `src/renderer/App.tsx` | Email 페이지 라우팅 |
-| `src/renderer/components/Sidebar.tsx` | Email 네비게이션 항목 |
+| `src/renderer/App.tsx` (L6, L31) | import `AssistantPage` from `./pages/AssistantPage` |
 
-### 핵심 서비스: EmailManager
+### 1-3. askSapStore → assistantStore 리네임
 
-```typescript
-// src/main/email/emailManager.ts
-export class EmailManager {
-  constructor(
-    private mcpConnector: McpConnector,
-    private emailInboxRepo: EmailInboxRepository,
-    private emailTaskLinkRepo: EmailTaskLinkRepository,
-    private closingPlanRepo: ClosingPlanRepository,
-    private closingStepRepo: ClosingStepRepository,
-    private chatRuntime: ChatRuntime,
-    private secureStore: SecureStore,
-  ) {}
+**삭제**: `src/renderer/stores/askSapStore.ts`
 
-  // Gmail MCP를 통해 최신 메일 가져와 email_inbox에 저장
-  async syncInbox(sourceId: string): Promise<{ added: number; skipped: number }>
+**신규**: `src/renderer/stores/assistantStore.ts`
+- `useAskSapStore` → `useAssistantStore`
+- `AskSapState` → `AssistantState`
+- `SessionFilterTab` 타입 유지
 
-  // 메일 내용을 LLM으로 분석하여 Closing Plan + Steps 자동 생성
-  async analyzeAndCreatePlan(emailId: string): Promise<{ plan, steps, link }>
+**수정 파일**:
+| 파일 | 변경 |
+|------|------|
+| `src/renderer/pages/assistant/ChatMode.tsx` (L5-6) | import from `../../stores/assistantStore.js` |
+| `src/renderer/pages/ask-sap/SessionListPanel.tsx` (L6-7) | import from `../../stores/assistantStore.js` |
 
-  // 인박스 조회
-  listInbox(options: { limit?, unprocessedOnly? }): EmailInbox[]
-}
-```
+### 1-4. ask-sap/ → chat/ 디렉토리 이동
 
-### IPC 채널
+`src/renderer/pages/ask-sap/` → `src/renderer/pages/chat/`
 
-```typescript
-// channels.ts에 추가
-EMAIL_SYNC_INBOX: 'email:syncInbox',
-EMAIL_LIST_INBOX: 'email:listInbox',
-EMAIL_GET_DETAIL: 'email:getDetail',
-EMAIL_ANALYZE_AND_CREATE_PLAN: 'email:analyzeAndCreatePlan',
-EMAIL_LIST_LINKED_PLANS: 'email:listLinkedPlans',
-```
+이동 대상 파일 (9개):
+- `ChatDetail.tsx`, `ChatHeader.tsx`, `EmptyState.tsx`
+- `ExecutionMetaPanel.tsx`, `SessionListPanel.tsx`
+- `SkillSelector.tsx`, `SkillsPanel.tsx`, `SourceSelector.tsx`
+- `StreamingIndicator.tsx`
+
+**수정 파일** (import 경로 변경):
+| 파일 | 변경 |
+|------|------|
+| `src/renderer/pages/assistant/ChatMode.tsx` (L8-9) | `../ask-sap/` → `../chat/` |
+
+> **참고**: `ask-sap/` 내부 파일 간 상호 import는 상대 경로 `./`이므로 디렉토리 이동해도 변경 불필요.
+
+### 1-5. Sidebar 버전 업데이트
+
+**파일**: `src/renderer/components/Sidebar.tsx` (L109)
+- `v6.0` → `v7.0`
+
+### 1-6. Deprecated alias 정리 (선택적)
+
+현재 `contracts.ts`, `preload/index.ts`, `global.d.ts`에 deprecated alias가 있음.
+v7.0에서 한 버전 더 유지하되, 다음 메이저 버전에서 제거 예정으로 표시.
+→ **이번에는 유지** (호환성)
 
 ---
 
-## Feature 2: Git → Knowledge + Code Analysis
+## Phase 2: 앱 아이콘 교체
 
-### 데이터 흐름
+### 2-1. icon.svg 새 디자인
 
+**파일**: `build/icon.svg` (덮어쓰기)
+
+**디자인 컨셉**: 기하학적 연결 노드 패턴
+- 256×256 rounded rect 배경 (현재 파란색 그라데이션 계열 유지)
+- 3개의 노드(원형) + 연결선으로 워크플로우/네트워크 표현
+- 중앙 노드 살짝 크게 → AI 허브 느낌
+- 선은 반투명 white로 네트워크 연결감
+- 우하단에 작은 스파크 장식 (AI 느낌)
+
+**SVG 구조**:
 ```
-GitHub/GitLab MCP 서버
-  ↓ mcpConnector.connect()
-리포지토리 파일 목록 조회 (MCP listResources)
-  ↓
-파일 내용 읽기 (MCP readResource)
-  ↓
-source_documents 테이블에 색인 (기존 mcpConnector.syncSource 활용)
-  ↓
-[RAG] 채팅 시 관련 코드 자동 주입 (SkillSourceRegistry 기존 로직)
-  ↓
-[분석] LLM 기반 코드 품질/리스크 분석 → git_analysis_results 저장
-```
-
-### 핵심 인사이트: MCP 재활용
-
-**Git 연동은 별도 GitConnector가 필요 없다.** 기존 `mcpConnector`의 `syncSource()` 메서드가 이미:
-1. MCP 서버의 `listResources()` → 파일 목록 조회
-2. `readResource(uri)` → 파일 내용 읽기
-3. `replaceAllForSource()` → source_documents 저장
-4. SHA256 해시 기반 변경 감지
-
-를 수행한다. GitHub/GitLab MCP 서버를 연결하면 **코드 파일이 자동으로 source_documents에 색인**된다.
-
-추가로 필요한 것은 **코드 분석** 기능뿐이다.
-
-### DB 스키마 (Migration 009)
-
-```sql
--- 코드 분석 실행 이력
-CREATE TABLE code_analysis_runs (
-  id TEXT PRIMARY KEY,
-  source_id TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'running',
-  total_files INTEGER DEFAULT 0,
-  analyzed_files INTEGER DEFAULT 0,
-  risks_found INTEGER DEFAULT 0,
-  started_at TEXT NOT NULL,
-  completed_at TEXT,
-  FOREIGN KEY (source_id) REFERENCES configured_sources(id) ON DELETE CASCADE
-);
-
--- 파일별 분석 결과
-CREATE TABLE code_analysis_results (
-  id TEXT PRIMARY KEY,
-  run_id TEXT NOT NULL,
-  document_id TEXT NOT NULL,
-  file_path TEXT NOT NULL,
-  language TEXT,
-  risks_json TEXT DEFAULT '[]',
-  recommendations_json TEXT DEFAULT '[]',
-  complexity_score REAL,
-  analyzed_at TEXT NOT NULL,
-  FOREIGN KEY (run_id) REFERENCES code_analysis_runs(id) ON DELETE CASCADE,
-  FOREIGN KEY (document_id) REFERENCES source_documents(id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_code_analysis_runs_source ON code_analysis_runs(source_id, started_at DESC);
-CREATE INDEX idx_code_analysis_results_run ON code_analysis_results(run_id);
+배경: roundedRect + linearGradient (#13293D → #1B6FEF → #4DA8FF)
+노드1: circle cx=96 cy=88 r=22 (좌상)
+노드2: circle cx=160 cy=88 r=22 (우상)
+노드3: circle cx=128 cy=160 r=28 (중하, 메인 허브)
+연결선: path로 3개 노드 연결 (흰색 반투명)
+스파크: 작은 diamond/star 장식 (우하)
 ```
 
-### 신규 파일
+### 2-2. PNG/ICO 생성
 
-| # | 파일 | 역할 |
-|---|------|------|
-| 1 | `src/main/storage/migrations/009_code_analysis.ts` | code_analysis_runs + results 테이블 |
-| 2 | `src/main/storage/repositories/codeAnalysisRepository.ts` | CodeAnalysisRepository |
-| 3 | `src/main/analysis/codeAnalyzer.ts` | LLM 기반 범용 코드 분석기 (CBO 패턴 확장) |
-| 4 | `src/main/analysis/analysisPrompts.ts` | 언어별/도메인별 분석 프롬프트 |
-| 5 | `src/main/ipc/codeAnalysisHandlers.ts` | 코드 분석 IPC 핸들러 |
-| 6 | `src/renderer/pages/analysis/CodeAnalysisPage.tsx` | 코드 분석 결과 UI |
-| 7 | `src/renderer/pages/analysis/CodeAnalysisPage.css` | 스타일 |
+**icon.svg → icon.png**: PowerShell + System.Drawing 또는 sharp npm 사용
+**icon.svg → icon.ico**: png-to-ico npm 또는 ImageMagick
 
-### 수정 파일
+스크립트 없이 수동 변환:
+```bash
+npx sharp-cli -i build/icon.svg -o build/icon.png resize 256 256
+npx png-to-ico build/icon.png > build/icon.ico
+```
 
-| 파일 | 변경 |
-|------|------|
-| `src/main/ipc/channels.ts` | `CODE_ANALYSIS_*` 채널 추가 |
-| `src/main/ipc/index.ts` | `registerCodeAnalysisHandlers(ctx)` 등록 |
-| `src/main/ipc/types.ts` | IpcContext에 codeAnalysisRepo, codeAnalyzer 추가 |
-| `src/main/bootstrap/createRepositories.ts` | codeAnalysisRepo 추가 |
-| `src/main/bootstrap/createServices.ts` | CodeAnalyzer 인스턴스 생성 |
-| `src/main/storage/migrations/index.ts` | migration009 등록 |
-| `src/main/storage/repositories/index.ts` | 재내보내기 |
-| `src/preload/index.ts` | codeAnalysis 관련 API 노출 |
+또는 Electron이 SVG→PNG 자동 처리하는 경우 icon.png만 업데이트.
 
-### 핵심 서비스: CodeAnalyzer
+---
 
+## Phase 3: lucide 아이콘 일관성 정리
+
+### 3-1. NavItemGroup 확장 — children 아이콘 지원
+
+**파일**: `src/renderer/components/sidebar/NavItemGroup.tsx`
+
+`NavChild` 인터페이스에 `Icon` 옵션 추가:
 ```typescript
-// src/main/analysis/codeAnalyzer.ts — CBO 분석기 패턴 확장
-export class CodeAnalyzer {
-  constructor(
-    private providers: LlmProvider[],
-    private secureStore: SecureStore,
-    private providerResilience: ProviderResilience,
-    private codeAnalysisRepo: CodeAnalysisRepository,
-    private sourceDocumentRepo: SourceDocumentRepository,
-  ) {}
-
-  // 특정 MCP Source의 모든 코드 파일을 분석
-  async analyzeSource(sourceId: string): Promise<CodeAnalysisRun>
-
-  // 단일 파일 분석
-  async analyzeFile(documentId: string): Promise<CodeAnalysisResult>
-
-  // 언어 감지 (파일 확장자 기반)
-  private detectLanguage(filePath: string): string
+export interface NavChild {
+  id: string
+  subPage: string
+  label: string
+  Icon?: LucideIcon  // 추가
 }
 ```
 
-### IPC 채널
-
-```typescript
-CODE_ANALYSIS_RUN: 'codeAnalysis:run',
-CODE_ANALYSIS_RUN_FILE: 'codeAnalysis:runFile',
-CODE_ANALYSIS_RUNS_LIST: 'codeAnalysis:runs:list',
-CODE_ANALYSIS_RUN_DETAIL: 'codeAnalysis:runs:detail',
-CODE_ANALYSIS_PROGRESS: 'codeAnalysis:progress',
+렌더링 시 Icon이 있으면 `.nav-child-dot` 대신 아이콘 표시:
+```tsx
+{child.Icon
+  ? <child.Icon size={14} className="nav-child-icon" aria-hidden="true" />
+  : <span className="nav-child-dot" />
+}
 ```
 
-### RAG 통합
+### 3-2. Sidebar 서브메뉴 이모지 → lucide 아이콘 교체
 
-**기존 `SkillSourceRegistry.resolveSkillExecution()` 변경 불필요.**
+**파일**: `src/renderer/components/Sidebar.tsx`
 
-MCP Source로 등록된 Git 리포의 파일들은 이미 `source_documents`에 저장되므로, 채팅 시 기존 문서 검색 → 컨텍스트 주입 로직이 자동으로 코드 파일도 포함한다. 추가 작업 없음.
+**Assistant 서브메뉴**:
+| 현재 | 변경 | lucide 아이콘 |
+|------|------|-------------|
+| `💬 대화` | `대화` | `MessageCircle` |
+| `중요 세션` | `중요 세션` | `Star` |
+| `보관함` | `보관함` | `Archive` |
+
+**Knowledge 서브메뉴**:
+| 현재 | 변경 | lucide 아이콘 |
+|------|------|-------------|
+| `📐 프로세스` | `프로세스` | `Workflow` |
+| `⚡ 스킬` | `스킬` | `Zap` |
+| `🤖 에이전트` | `에이전트` | `Bot` |
+| `🔐 볼트` | `볼트` | `Lock` |
+| `🧪 코드 랩` | `코드 랩` | `FlaskConical` |
+
+**Cockpit 서브메뉴** (현재 아이콘 없음, 추가):
+| 항목 | lucide 아이콘 |
+|------|-------------|
+| Overview | `BarChart3` |
+| Daily Tasks | `ListTodo` |
+| 월별 마감 | `CalendarDays` |
+| 연간 마감 | `CalendarRange` |
+| 전체 Plan | `ClipboardList` |
+
+### 3-3. 메인 사이드바 아이콘 점검
+
+| 섹션 | 현재 | 변경 | 이유 |
+|------|------|------|------|
+| Cockpit | `LayoutDashboard` | 유지 | 적절 |
+| 어시스턴트 | `MessageSquare` | `Sparkles` | AI 느낌 강화 |
+| Knowledge | `BookOpen` | 유지 | 적절 |
+| Email | `Mail` | 유지 | 적절 |
+| Code Analysis | `Code2` | `ScanSearch` | 분석 느낌 강화 |
+| Settings | `Settings` | 유지 | 적절 |
+
+### 3-4. Sidebar.css 아이콘 스타일 추가
+
+```css
+.nav-child-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.nav-child-item.active .nav-child-icon {
+  color: var(--color-primary);
+}
+```
 
 ---
 
 ## 실행 순서
 
 ```
-Phase 1: 인프라 (2일)
-├── Migration 008 (email_inbox, email_task_links)
-├── Migration 009 (code_analysis_runs, code_analysis_results)
-├── Google OAuth gmail.readonly 스코프 추가
-└── Repository 클래스 생성
+Phase 1 (순차, 의존성 있음):
+  1-1. package.json 메타데이터 수정
+  1-2. SapAssistantPage → AssistantPage 리네임 + App.tsx 수정
+  1-3. askSapStore → assistantStore 리네임 + import 수정
+  1-4. ask-sap/ → chat/ 디렉토리 이동 + import 수정
+  1-5. Sidebar 버전 v7.0 업데이트
+  → 중간 검증: npm run typecheck
 
-Phase 2: Email Pipeline (5일, Phase 1 완료 후)
-├── EmailManager 서비스
-├── Email IPC 핸들러 + channels 등록
-├── Preload API 확장
-├── Bootstrap 연결 (createServices, createRepositories)
-└── Email UI (InboxPage, DetailModal)
+Phase 2 (Phase 1 이후):
+  2-1. icon.svg 새 디자인 작성
+  2-2. icon.png, icon.ico 생성
 
-Phase 3: Code Analysis (5일, Phase 1 완료 후, Phase 2와 병렬)
-├── CodeAnalyzer 서비스
-├── CodeAnalysis IPC 핸들러 + channels 등록
-├── Preload API 확장
-├── Bootstrap 연결
-└── CodeAnalysis UI (AnalysisPage)
+Phase 3 (Phase 1 이후, Phase 2와 병렬 가능):
+  3-1. NavItemGroup 확장 (Icon prop)
+  3-2. Sidebar 서브메뉴 이모지 제거 + lucide 아이콘 매핑
+  3-3. 메인 사이드바 아이콘 교체 (Sparkles, ScanSearch)
+  3-4. CSS 스타일 추가
 
-Phase 4: 통합 + 검증 (2일)
-├── Sidebar 네비게이션 추가 (Email, Code Analysis)
-├── AppShell 라우팅 업데이트
-├── 테스트 작성
-└── typecheck + lint + build 검증
+최종 검증:
+  npm run typecheck && npm run lint && npm run test:run
 ```
 
 ---
 
 ## 수정 파일 요약
 
-| # | 파일 | 상태 | Phase |
+| # | 파일 | 작업 | Phase |
 |---|------|------|-------|
-| 1 | `src/main/storage/migrations/008_email_inbox.ts` | 신규 | 1 |
-| 2 | `src/main/storage/migrations/009_code_analysis.ts` | 신규 | 1 |
-| 3 | `src/main/storage/migrations/index.ts` | 수정 | 1 |
-| 4 | `src/main/storage/repositories/emailRepository.ts` | 신규 | 1 |
-| 5 | `src/main/storage/repositories/codeAnalysisRepository.ts` | 신규 | 1 |
-| 6 | `src/main/storage/repositories/index.ts` | 수정 | 1 |
-| 7 | `src/main/auth/oauthProviders.ts` | 수정 | 1 |
-| 8 | `src/main/email/emailManager.ts` | 신규 | 2 |
-| 9 | `src/main/email/emailAnalysisPrompt.ts` | 신규 | 2 |
-| 10 | `src/main/ipc/emailHandlers.ts` | 신규 | 2 |
-| 11 | `src/main/analysis/codeAnalyzer.ts` | 신규 | 3 |
-| 12 | `src/main/analysis/analysisPrompts.ts` | 신규 | 3 |
-| 13 | `src/main/ipc/codeAnalysisHandlers.ts` | 신규 | 3 |
-| 14 | `src/main/ipc/channels.ts` | 수정 | 2+3 |
-| 15 | `src/main/ipc/index.ts` | 수정 | 2+3 |
-| 16 | `src/main/ipc/types.ts` | 수정 | 2+3 |
-| 17 | `src/main/bootstrap/createRepositories.ts` | 수정 | 2+3 |
-| 18 | `src/main/bootstrap/createServices.ts` | 수정 | 2+3 |
-| 19 | `src/preload/index.ts` | 수정 | 2+3 |
-| 20 | `src/renderer/pages/email/EmailInboxPage.tsx` | 신규 | 2 |
-| 21 | `src/renderer/pages/email/EmailInboxPage.css` | 신규 | 2 |
-| 22 | `src/renderer/pages/email/EmailDetailModal.tsx` | 신규 | 2 |
-| 23 | `src/renderer/pages/analysis/CodeAnalysisPage.tsx` | 신규 | 3 |
-| 24 | `src/renderer/pages/analysis/CodeAnalysisPage.css` | 신규 | 3 |
-| 25 | `src/renderer/stores/appShellStore.ts` | 수정 | 4 |
-| 26 | `src/renderer/App.tsx` | 수정 | 4 |
-| 27 | `src/renderer/components/Sidebar.tsx` | 수정 | 4 |
+| 1 | `package.json` | 아티팩트명/shortcut/repo 수정 | 1 |
+| 2 | `src/renderer/pages/SapAssistantPage.tsx` | 삭제 → AssistantPage.tsx로 교체 | 1 |
+| 3 | `src/renderer/pages/AskSapPage.tsx` | 삭제 | 1 |
+| 4 | `src/renderer/pages/AssistantPage.tsx` | 신규 | 1 |
+| 5 | `src/renderer/App.tsx` | import 경로 변경 | 1 |
+| 6 | `src/renderer/stores/askSapStore.ts` | 삭제 → assistantStore.ts로 교체 | 1 |
+| 7 | `src/renderer/stores/assistantStore.ts` | 신규 | 1 |
+| 8 | `src/renderer/pages/assistant/ChatMode.tsx` | import 경로 변경 (store + chat/) | 1 |
+| 9 | `src/renderer/pages/ask-sap/*.tsx` (9개) | chat/로 이동 | 1 |
+| 10 | `src/renderer/components/Sidebar.tsx` | 버전 + 아이콘 매핑 | 1+3 |
+| 11 | `src/renderer/components/sidebar/NavItemGroup.tsx` | NavChild Icon 지원 | 3 |
+| 12 | `src/renderer/components/Sidebar.css` | 아이콘 스타일 추가 | 3 |
+| 13 | `build/icon.svg` | 새 디자인 | 2 |
+| 14 | `build/icon.png` | 재생성 | 2 |
+| 15 | `build/icon.ico` | 재생성 | 2 |
 
-**총 27개 파일** (신규 15개, 수정 12개)
+**총 ~20개 파일** (디렉토리 이동 9개 포함)
 
 ---
 
@@ -351,26 +257,13 @@ Phase 4: 통합 + 검증 (2일)
 
 ```bash
 npm run typecheck   # 모든 tsconfig 통과
-npm run test:run    # 기존 테스트 깨짐 없음
 npm run lint        # ESLint 통과
+npm run test:run    # 기존 테스트 깨짐 없음
 npm run build       # 번들 정상 생성
 ```
 
 수동 검증:
-1. Gmail MCP 연결 → 메일 동기화 → 인박스에 표시
-2. 메일 선택 → AI 분석 → Closing Plan 자동 생성 확인
-3. GitHub MCP 연결 → 리포 파일 색인 → 채팅에서 코드 컨텍스트 확인
-4. 코드 분석 실행 → 리스크/권장사항 표시
-
----
-
-## 설계 결정 근거
-
-| 결정 | 이유 |
-|------|------|
-| Gmail MCP 활용 (직접 API 아님) | 기존 mcpConnector 재사용, MCP 표준 준수, Outlook 확장 용이 |
-| email_inbox 로컬 미러링 | 오프라인 접근, 빠른 검색, 분석 결과 연결 |
-| Closing Plan 자동 생성 | 기존 3계층(Plan→Step→Routine) 시스템에 자연스럽게 연결 |
-| Git도 MCP 활용 | 별도 GitConnector 불필요, mcpConnector.syncSource() 재사용 |
-| CodeAnalyzer 별도 분리 (CBO 아님) | CBO는 ABAP 전용, 새 분석기는 다국어 지원으로 확장 |
-| source_documents 테이블 확장 안함 | 기존 스키마로 충분, tags_json에 메타데이터 저장 가능 |
+1. Electron 앱 실행 → 새 아이콘 확인 (타이틀바, 태스크바)
+2. Sidebar 서브메뉴 → 이모지 대신 lucide 아이콘 표시 확인
+3. Portable exe 빌드 → 파일명에 SAP 없음 확인
+4. `Ctrl+Shift+I` → Console에 deprecated 경고 없음

@@ -1,7 +1,10 @@
 import {
-  MessageSquare, LayoutDashboard, Settings,
+  LayoutDashboard, Settings,
   PanelLeftClose, PanelLeft, BookOpen, Plus,
-  Mail, Code2,
+  Mail, Sparkles, ScanSearch,
+  MessageCircle, Star, Archive,
+  Workflow, Zap, Bot, Lock, FlaskConical,
+  BarChart3, ListTodo, CalendarDays, CalendarRange, ClipboardList,
 } from 'lucide-react'
 import type { AppSection } from '../stores/appShellStore'
 import { useAppShellStore } from '../stores/appShellStore'
@@ -19,23 +22,23 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
     Icon: LayoutDashboard,
     position: 'main',
     children: [
-      { id: 'cockpit-overview', subPage: 'overview', label: 'Overview' },
-      { id: 'cockpit-daily', subPage: 'daily', label: 'Daily Tasks' },
-      { id: 'cockpit-monthly', subPage: 'monthly', label: '월별 마감' },
-      { id: 'cockpit-yearly', subPage: 'yearly', label: '연간 마감' },
-      { id: 'cockpit-all-plans', subPage: 'all-plans', label: '전체 Plan' },
+      { id: 'cockpit-overview', subPage: 'overview', label: 'Overview', Icon: BarChart3 },
+      { id: 'cockpit-daily', subPage: 'daily', label: 'Daily Tasks', Icon: ListTodo },
+      { id: 'cockpit-monthly', subPage: 'monthly', label: '월별 마감', Icon: CalendarDays },
+      { id: 'cockpit-yearly', subPage: 'yearly', label: '연간 마감', Icon: CalendarRange },
+      { id: 'cockpit-all-plans', subPage: 'all-plans', label: '전체 Plan', Icon: ClipboardList },
     ],
   },
   {
     id: 'assistant',
     section: 'assistant',
     label: '어시스턴트',
-    Icon: MessageSquare,
+    Icon: Sparkles,
     position: 'main',
     children: [
-      { id: 'sa-chat', subPage: 'chat', label: '💬 대화' },
-      { id: 'sa-flagged', subPage: 'chat:flagged', label: '중요 세션' },
-      { id: 'sa-saved', subPage: 'chat:saved', label: '보관함' },
+      { id: 'sa-chat', subPage: 'chat', label: '대화', Icon: MessageCircle },
+      { id: 'sa-flagged', subPage: 'chat:flagged', label: '중요 세션', Icon: Star },
+      { id: 'sa-saved', subPage: 'chat:saved', label: '보관함', Icon: Archive },
     ],
   },
   {
@@ -46,11 +49,11 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
     position: 'main',
     defaultSubPage: 'code-lab',
     children: [
-      { id: 'knowledge-process', subPage: 'process', label: '📐 프로세스' },
-      { id: 'knowledge-skills', subPage: 'skills', label: '⚡ 스킬' },
-      { id: 'knowledge-agents', subPage: 'agents', label: '🤖 에이전트' },
-      { id: 'knowledge-vault', subPage: 'vault', label: '🔐 볼트' },
-      { id: 'knowledge-code-lab', subPage: 'code-lab', label: '🧪 코드 랩' },
+      { id: 'knowledge-process', subPage: 'process', label: '프로세스', Icon: Workflow },
+      { id: 'knowledge-skills', subPage: 'skills', label: '스킬', Icon: Zap },
+      { id: 'knowledge-agents', subPage: 'agents', label: '에이전트', Icon: Bot },
+      { id: 'knowledge-vault', subPage: 'vault', label: '볼트', Icon: Lock },
+      { id: 'knowledge-code-lab', subPage: 'code-lab', label: '코드 랩', Icon: FlaskConical },
     ],
   },
   {
@@ -64,7 +67,7 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
     id: 'code-analysis',
     section: 'code-analysis',
     label: 'Code Analysis',
-    Icon: Code2,
+    Icon: ScanSearch,
     position: 'main',
   },
 ]
@@ -106,7 +109,7 @@ export function Sidebar() {
         {!sidebarCollapsed && (
           <div className="sidebar-brand">
             <h1 className="sidebar-title">Assistant Desktop</h1>
-            <span className="sidebar-version">by boxlogodev · v6.0</span>
+            <span className="sidebar-version">by boxlogodev · v7.0</span>
           </div>
         )}
         <button

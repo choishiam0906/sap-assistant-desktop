@@ -227,6 +227,17 @@
   background: var(--color-primary);
 }
 
+.nav-child-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.nav-child-item.active .nav-child-icon {
+  color: var(--color-primary);
+}
+
 .nav-child-label {
   white-space: nowrap;
   overflow: hidden;

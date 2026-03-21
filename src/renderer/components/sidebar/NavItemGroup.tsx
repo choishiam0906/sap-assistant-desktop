@@ -7,6 +7,7 @@ export interface NavChild {
   id: string
   subPage: string
   label: string
+  Icon?: LucideIcon
 }
 
 export interface NavGroupItem {
@@ -79,7 +80,10 @@ export function NavItemGroup({
                 aria-current={childActive ? 'page' : undefined}
                 type="button"
               >
-                <span className="nav-child-dot" />
+                {child.Icon
+                  ? <child.Icon size={14} className="nav-child-icon" aria-hidden="true" />
+                  : <span className="nav-child-dot" />
+                }
                 <span className="nav-child-label">{child.label}</span>
               </button>
             )

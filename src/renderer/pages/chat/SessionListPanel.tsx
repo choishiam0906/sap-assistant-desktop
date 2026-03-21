@@ -3,8 +3,8 @@ import { Plus, Star, Archive, MessageSquare, Flag, ArchiveIcon } from 'lucide-re
 import type { ChatSession, ChatSessionMeta } from '../../../main/contracts.js'
 import { Button } from '../../components/ui/Button.js'
 import { Skeleton } from '../../components/ui/Skeleton.js'
-import { useAskSapStore } from '../../stores/askSapStore.js'
-import type { SessionFilterTab } from '../../stores/askSapStore.js'
+import { useAssistantStore } from '../../stores/assistantStore.js'
+import type { SessionFilterTab } from '../../stores/assistantStore.js'
 
 type SessionItem = ChatSession & Partial<Pick<ChatSessionMeta, 'isFlagged' | 'isArchived' | 'todoState'>>
 
@@ -31,7 +31,7 @@ export function SessionListPanel({
   onNewChat,
   onFilterTabChange,
 }: SessionListPanelProps) {
-  const { filterTab, setFilterTab, searchQuery, setSearchQuery } = useAskSapStore()
+  const { filterTab, setFilterTab, searchQuery, setSearchQuery } = useAssistantStore()
 
   function handleFilterTabClick(tab: SessionFilterTab) {
     setFilterTab(tab)

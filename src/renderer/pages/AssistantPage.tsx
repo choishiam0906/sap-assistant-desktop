@@ -14,7 +14,7 @@ function parseSubPage(subPage: string | null): { mode: Mode; chatFilter?: string
   return { mode: 'chat' }
 }
 
-export function SapAssistantPage() {
+export function AssistantPage() {
   const subPage = useAppShellStore((state) => state.subPage)
   const { mode, chatFilter } = parseSubPage(subPage)
 

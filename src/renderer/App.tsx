@@ -3,7 +3,7 @@ import { queryClient } from './lib/queryClient.js'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Sidebar } from './components/Sidebar'
 import { CockpitPage } from './pages/CockpitPage'
-import { SapAssistantPage } from './pages/SapAssistantPage'
+import { AssistantPage } from './pages/AssistantPage'
 import { KnowledgePage } from './pages/KnowledgePage'
 import { EmailInboxPage } from './pages/email/EmailInboxPage'
 import { CodeAnalysisPage } from './pages/analysis/CodeAnalysisPage'
@@ -28,7 +28,7 @@ export function App() {
           <main className="app-main">
             <div key={currentSection} className="app-page-shell page-enter">
               {currentSection === 'cockpit' && <CockpitPage />}
-              {currentSection === 'assistant' && <SapAssistantPage />}
+              {currentSection === 'assistant' && <AssistantPage />}
               {currentSection === 'knowledge' && <KnowledgePage />}
               {currentSection === 'email' && <EmailInboxPage />}
               {currentSection === 'code-analysis' && <CodeAnalysisPage />}

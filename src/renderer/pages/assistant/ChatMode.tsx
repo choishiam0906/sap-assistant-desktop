@@ -2,11 +2,11 @@ import { useEffect, useMemo } from 'react'
 import type { ChatSession } from '../../../main/contracts.js'
 import { useChatStore } from '../../stores/chatStore.js'
 import { useAppShellStore } from '../../stores/appShellStore.js'
-import { useAskSapStore } from '../../stores/askSapStore.js'
-import type { SessionFilterTab } from '../../stores/askSapStore.js'
+import { useAssistantStore } from '../../stores/assistantStore.js'
+import type { SessionFilterTab } from '../../stores/assistantStore.js'
 import { useSessions } from '../../hooks/useSessions.js'
-import { SessionListPanel } from '../ask-sap/SessionListPanel.js'
-import { ChatDetail } from '../ask-sap/ChatDetail.js'
+import { SessionListPanel } from '../chat/SessionListPanel.js'
+import { ChatDetail } from '../chat/ChatDetail.js'
 import '../ChatPage.css'
 
 interface ChatModeProps {
@@ -19,8 +19,8 @@ export function ChatMode({ chatFilter }: ChatModeProps) {
   const setInput = useChatStore((state) => state.setInput)
   const setCaseContext = useChatStore((state) => state.setCaseContext)
 
-  const filterTab = useAskSapStore((state) => state.filterTab)
-  const setFilterTab = useAskSapStore((state) => state.setFilterTab)
+  const filterTab = useAssistantStore((state) => state.filterTab)
+  const setFilterTab = useAssistantStore((state) => state.setFilterTab)
 
   const { data: sessions = [], isLoading: loadingSessions } = useSessions()
 
@@ -29,7 +29,7 @@ export function ChatMode({ chatFilter }: ChatModeProps) {
     [currentSessionId, sessions]
   )
 
-  // chatFilter prop → askSapStore 동기화
+  // chatFilter prop → assistantStore 동기화
   useEffect(() => {
     if (chatFilter) {
       const mapped = chatFilter as SessionFilterTab
