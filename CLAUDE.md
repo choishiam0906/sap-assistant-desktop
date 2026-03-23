@@ -1,4 +1,4 @@
-# CLAUDE.md - Assistant Desktop v6.1.0
+# CLAUDE.md - SAP Knowledge Hub v7.1.0
 
 ## 프로젝트 개요
 
@@ -10,7 +10,7 @@
 - **UI 라이브러리**: lucide-react (아이콘)
 - **스타일**: CSS 변수 시스템 (Tailwind/CSS-in-JS 미사용)
 
-**버전**: v6.1.0
+**버전**: v7.1.0
 
 ---
 
@@ -221,7 +221,13 @@ desktop/
 - **IPC 범용화**: window.assistantDesktop (하위 호환 alias 유지), AppSection 'sap-assistant'→'assistant'
 - **Domain Pack 시스템**: DomainPack 인터페이스, DomainPackRegistry, SAP/General 팩 분리
 - **UI 범용화**: CSS 클래스 .ask-sap-*→.chat-*, 디렉토리 sap-assistant/→assistant/, 앱 브랜딩 텍스트 범용화
-- **호환성 유지**: contracts.ts deprecated alias, window.sapOpsDesktop alias, SapAssistantSubPage alias
+- **호환성 유지**: contracts.ts deprecated alias, SapAssistantSubPage alias
+
+### v7.1 변경 사항 (SAP Knowledge Hub 리브랜딩)
+- **리브랜딩**: Assistant Desktop → SAP Knowledge Hub (productName, UI, docs)
+- **alias 제거**: window.sapOpsDesktop 하위 호환 alias 완전 제거
+- **TS 에러 정리**: renderer tsconfig 20개 에러 전량 수정 (P0.5)
+- **버전**: 7.0.0 → 7.1.0
 
 ### v6.0 변경 사항 (기능 변경 0% — 코드 품질 개선)
 - **UI 대형 컴포넌트 분할**: ProcessHub 1,149→277줄, AgentsCatalog 430→185줄, SourcesPage 527→46줄, SettingsPage.css 모듈화
@@ -245,6 +251,7 @@ desktop/
 
 | 버전 | 날짜 | 변경 사항 |
 |------|------|----------|
+| 7.1.0 | 2026-03-23 | SAP Knowledge Hub 리브랜딩, sapOpsDesktop alias 제거, TS 에러 정리 |
 | 6.1.0 | 2026-03-21 | 범용 플랫폼 전환: 리브랜딩, 타입/IPC 범용화, Domain Pack 시스템, UI 범용화 |
 | 6.0.0 | 2026-03-15 | v6.0 코드 품질 개선: UI 분할, a11y, 캐싱, 안정성, 테스트, Zustand 통일, CJS 번들링 |
 | 5.0.0 | 2026-03-11 | v5.0 전체 구현: 스트리밍, 스케줄, 정책 엔진, 에러 복원력, DB 마이그레이션 |

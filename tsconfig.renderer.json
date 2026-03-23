@@ -12,11 +12,12 @@
     "skipLibCheck": true,
     "noEmit": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": []
+    "types": ["vitest/globals"]
   },
   "include": [
     "src/renderer/**/*.ts",
     "src/renderer/**/*.tsx",
-    "src/main/contracts.ts"
+    "src/main/contracts.ts",
+    "src/main/types/**/*.ts"
   ]
 }

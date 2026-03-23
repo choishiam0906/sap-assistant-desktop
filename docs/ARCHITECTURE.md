@@ -1,8 +1,8 @@
-# SAP Assistant Desktop Platform — Architecture
+# SAP Knowledge Hub — Architecture
 
 ## Overview
 
-SAP Assistant Desktop Platform은 **Electron 31 + React 18 + TypeScript** 기반의 로컬 우선(Local-First) 데스크톱 앱입니다. 민감한 SAP 운영 데이터를 로컬에 보관하면서 다중 LLM(OpenAI, Anthropic, Google)을 활용한 지능형 운영 지원을 제공합니다.
+SAP Knowledge Hub는 **Electron 31 + React 18 + TypeScript** 기반의 로컬 우선(Local-First) 데스크톱 앱입니다. 민감한 SAP 운영 데이터를 로컬에 보관하면서 다중 LLM(OpenAI, Anthropic, Google)을 활용한 지능형 운영 지원을 제공합니다.
 
 ---
 
@@ -19,7 +19,7 @@ graph TB
     end
 
     subgraph Preload["Preload (IPC 브릿지)"]
-        IPC["window.sapOpsDesktop<br/>contextBridge API"]
+        IPC["window.assistantDesktop<br/>contextBridge API"]
     end
 
     subgraph Main["메인 프로세스 (Node.js)"]
@@ -100,7 +100,7 @@ graph TB
 
 ### Preload Process
 - `contextBridge`를 통한 IPC 브릿지 (`src/preload/index.ts`)
-- `window.sapOpsDesktop` API 노출 (100+ 메서드)
+- `window.assistantDesktop` API 노출 (100+ 메서드)
 
 ### Renderer Process
 - React 18 SPA (`src/renderer/`)

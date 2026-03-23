@@ -88,7 +88,7 @@ describe('SettingsPage', () => {
     const addBtn = screen.getByRole('button', { name: '연결 추가' })
     await user.click(addBtn)
 
-    expect(screen.getByText('Welcome to Assistant Desktop')).toBeInTheDocument()
+    expect(screen.getByText('Welcome to SAP Knowledge Hub')).toBeInTheDocument()
     expect(screen.getByText('어떻게 연결하시겠어요?')).toBeInTheDocument()
     // Craft-style 연결 방법 카드
     expect(screen.getByText('Claude Pro / Max')).toBeInTheDocument()

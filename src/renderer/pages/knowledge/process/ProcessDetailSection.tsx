@@ -5,6 +5,7 @@ import type {
   RoutineTemplate,
   RoutineTemplateStep,
 } from '../../../../main/contracts.js'
+import type { AppSection } from '../../../stores/appShellStore.js'
 import { Button } from '../../../components/ui/Button.js'
 import { Badge } from '../../../components/ui/Badge.js'
 import { categoryLabel, durationLabel, formatTrigger, frequencyLabel, summarizeModules } from './useProcessHub.js'
@@ -16,7 +17,7 @@ interface ProcessDetailSectionProps {
   recommendedAgents: AgentDefinition[]
   onToggle: () => void
   onDelete: () => void
-  onNavigate: (section: string, subsection?: string) => void
+  onNavigate: (section: AppSection, subsection?: string | null) => void
   toggleLoading?: boolean
   deleteLoading?: boolean
 }

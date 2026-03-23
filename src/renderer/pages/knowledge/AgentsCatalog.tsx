@@ -179,7 +179,7 @@ export function AgentsCatalog() {
 
           <AgentDetailPanel
             agent={selectedAgent}
-            activeExecution={activeExecution}
+            activeExecution={activeExecution ?? undefined}
             isExecuting={executeMutation.isPending}
             isCancelling={cancelMutation.isPending}
             executions={executions}

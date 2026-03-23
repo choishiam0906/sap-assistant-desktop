@@ -517,7 +517,5 @@ const desktopApi = {
 };
 
 contextBridge.exposeInMainWorld("assistantDesktop", desktopApi);
-// 하위 호환 alias
-contextBridge.exposeInMainWorld("sapOpsDesktop", desktopApi);
 
 export type DesktopApi = typeof desktopApi;

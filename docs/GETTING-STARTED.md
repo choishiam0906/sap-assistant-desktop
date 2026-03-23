@@ -1,4 +1,4 @@
-# Getting Started — SAP Assistant Desktop Platform
+# Getting Started — SAP Knowledge Hub
 
 ## 필수 요구사항
 

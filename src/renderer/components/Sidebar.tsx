@@ -115,7 +115,7 @@ export function Sidebar() {
       <div className="sidebar-header">
         {!sidebarCollapsed && (
           <div className="sidebar-brand">
-            <h1 className="sidebar-title">Assistant Desktop</h1>
+            <h1 className="sidebar-title">SAP Knowledge Hub</h1>
             <span className="sidebar-version">by boxlogodev · v{__APP_VERSION__}</span>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { Bot, Pencil, Trash2 } from 'lucide-react'
-import type { AgentDefinition } from '../../../main/contracts.js'
+import type { AgentDefinition } from '../../../../main/contracts.js'
 import { Badge } from '../../../components/ui/Badge.js'
 import { categoryLabel, durationLabel } from './utils.js'
 

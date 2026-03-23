@@ -1,6 +1,6 @@
-# SAP Assistant Desktop Platform — 사용 가이드 (v5.0)
+# SAP Knowledge Hub — 사용 가이드 (v7.1)
 
-SAP Assistant Desktop Platform은 로컬 우선(Local-First) 아키텍처로 민감한 SAP 운영 데이터를 보호하면서, 다중 LLM과 커스텀 에이전트를 통해 SAP 운영 워크플로우를 자동화하는 플랫폼입니다.
+SAP Knowledge Hub는 로컬 우선(Local-First) 아키텍처로 민감한 SAP 운영 데이터를 보호하면서, 다중 LLM과 커스텀 에이전트를 통해 SAP 운영 워크플로우를 자동화하는 플랫폼입니다.
 
 이 가이드는 실제 사용 시나리오와 함께 주요 기능을 설명합니다.
 
@@ -897,7 +897,7 @@ Hybrid Approved:     승인된 요약본만 외부 전송
 
 ## 버전 정보
 
-**SAP Assistant Desktop Platform v5.0.0**
+**SAP Knowledge Hub v7.1.0**
 
 - 릴리스 날짜: 2026-03-11
 - Node.js: 22.x LTS

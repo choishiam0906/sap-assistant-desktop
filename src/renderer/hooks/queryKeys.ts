@@ -78,7 +78,7 @@ export const queryKeys = {
   },
 
   process: {
-    knowledge: (templateId: string | undefined, candidates: string) =>
+    knowledge: (templateId: string | undefined, candidates: string[]) =>
       ['process', 'knowledge', templateId, candidates] as const,
   },
 

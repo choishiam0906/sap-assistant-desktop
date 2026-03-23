@@ -1,8 +1,8 @@
 {
-  "name": "assistant-desktop",
-  "version": "7.0.0",
+  "name": "sap-knowledge-hub",
+  "version": "7.1.0",
   "private": true,
-  "description": "Assistant Desktop Platform — domain-agnostic AI assistant runtime",
+  "description": "SAP Knowledge Hub — SAP 운영 지능형 지원 플랫폼",
   "author": "boxlogodev",
   "copyright": "Copyright (c) 2026 boxlogodev",
   "main": "dist/main/index.js",
@@ -83,7 +83,7 @@
       "main": "dist/main/index.cjs"
     },
     "appId": "com.boxlogodev.assistant-desktop",
-    "productName": "Assistant Desktop",
+    "productName": "SAP Knowledge Hub",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -123,7 +123,7 @@
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "artifactName": "Assistant-Desktop-${version}-Setup.exe",
-      "shortcutName": "Assistant Desktop"
+      "shortcutName": "SAP Knowledge Hub"
     },
     "portable": {
       "artifactName": "Assistant-Desktop-${version}-Portable.exe"

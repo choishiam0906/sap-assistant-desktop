@@ -2,7 +2,7 @@
 
 ## 개요
 
-모든 Renderer ↔ Main 통신은 Preload의 `contextBridge`를 통해 `window.sapOpsDesktop` API로 노출됩니다. 내부적으로 `ipcRenderer.invoke` → `ipcMain.handle` 패턴을 사용합니다.
+모든 Renderer ↔ Main 통신은 Preload의 `contextBridge`를 통해 `window.assistantDesktop` API로 노출됩니다. 내부적으로 `ipcRenderer.invoke` → `ipcMain.handle` 패턴을 사용합니다.
 
 ---
 

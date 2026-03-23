@@ -1,5 +1,5 @@
 import { Play, MessageSquare, XCircle, CheckCircle2, Loader2, ArrowRight } from 'lucide-react'
-import type { AgentDefinition, AgentExecution, AgentExecutionSummary } from '../../../main/contracts.js'
+import type { AgentDefinition, AgentExecution, AgentExecutionSummary } from '../../../../main/contracts.js'
 import { Button } from '../../../components/ui/Button.js'
 import { AgentExecutionList } from './AgentExecutionList.js'
 

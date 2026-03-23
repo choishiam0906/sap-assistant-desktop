@@ -1,5 +1,5 @@
 import { CheckCircle2, Loader2, XCircle, Clock } from 'lucide-react'
-import type { AgentDefinition, AgentExecutionSummary } from '../../../main/contracts.js'
+import type { AgentDefinition, AgentExecutionSummary } from '../../../../main/contracts.js'
 
 export function formatTimestamp(iso: string): string {
   try {
@@ -24,6 +24,8 @@ export function categoryLabel(category: AgentDefinition['category']): string {
       return '검증'
     case 'automation':
       return '자동화'
+    default:
+      return category
   }
 }
 

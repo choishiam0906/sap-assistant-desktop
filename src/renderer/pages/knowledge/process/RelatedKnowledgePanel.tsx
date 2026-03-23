@@ -5,6 +5,7 @@ import type {
   SourceDocument,
   VaultEntry,
 } from '../../../../main/contracts.js'
+import type { AppSection } from '../../../stores/appShellStore.js'
 import { Button } from '../../../components/ui/Button.js'
 import { Badge } from '../../../components/ui/Badge.js'
 import { buildLinkKey, formatDate } from './useProcessHub.js'
@@ -25,7 +26,7 @@ interface RelatedKnowledgePanelProps {
   isLoading: boolean
   onPin: (link: Omit<RoutineKnowledgeLink, 'id' | 'createdAt'>) => Promise<void>
   onUnpin: (linkId: string, templateId: string) => Promise<void>
-  onNavigate: (section: string, subsection?: string) => void
+  onNavigate: (section: AppSection, subsection?: string | null) => void
   pinLoading?: boolean
   unpinLoading?: boolean
 }

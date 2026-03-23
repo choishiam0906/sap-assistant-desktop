@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Bot, FolderOpen, Plus } from 'lucide-react'
-import type { RoutineKnowledgeLink } from '../../../main/contracts.js'
+import type { RoutineFrequency, RoutineKnowledgeLink } from '../../../main/contracts.js'
+import type { AppSection } from '../../stores/appShellStore.js'
 import { useAppShellStore } from '../../stores/appShellStore.js'
 import { Button } from '../../components/ui/Button.js'
 import { useProcessHub } from './process/useProcessHub.js'
@@ -10,7 +11,7 @@ import { ProcessDetailSection } from './process/ProcessDetailSection.js'
 import { RelatedKnowledgePanel } from './process/RelatedKnowledgePanel.js'
 import './ProcessHub.css'
 
-type ProcessFrequencyFilter = 'all' | 'active' | string
+type ProcessFrequencyFilter = 'all' | 'active' | RoutineFrequency
 
 interface ProcessStepDraft {
   title: string
@@ -20,7 +21,7 @@ interface ProcessStepDraft {
 
 interface ProcessDraft {
   name: string
-  frequency: string
+  frequency: RoutineFrequency
   description: string
   triggerDay: string
   triggerMonth: string
@@ -30,7 +31,7 @@ interface ProcessDraft {
 function createEmptyDraft(): ProcessDraft {
   return {
     name: '',
-    frequency: 'monthly',
+    frequency: 'monthly' as RoutineFrequency,
     description: '',
     triggerDay: '',
     triggerMonth: '',

@@ -1,6 +1,6 @@
-# SAP Assistant Desktop Platform
+# SAP Knowledge Hub
 
-[![Version](https://img.shields.io/badge/version-5.0.0-blue.svg)](https://github.com/choishiam0906/sap-assistant-desktop/releases/tag/v5.0.0)
+[![Version](https://img.shields.io/badge/version-7.1.0-blue.svg)](https://github.com/choishiam0906/sap-assistant-desktop/releases/tag/v7.1.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4.svg)](#)
 [![Node](https://img.shields.io/badge/node-22.x-brightgreen.svg)](#)
@@ -256,7 +256,7 @@ src/
 │   ├── types/                      # 타입 정의 (모듈별 분리)
 │   └── contracts.ts                # 타입 재내보내기 (호환성)
 ├── preload/                        # Preload 스크립트
-│   └── index.ts                    # window.sapOpsDesktop IPC 브릿지
+│   └── index.ts                    # window.assistantDesktop IPC 브릿지
 └── renderer/                       # 렌더러 프로세스 (React 18)
     ├── components/                 # React 컴포넌트
     │   └── settings/primitives/    # 설정 기본 UI (v5.0 DRY)
@@ -1004,4 +1004,4 @@ npx webpack-bundle-analyzer
 
 **Made with care for SAP Professionals**
 
-© 2024-2026 SAP Assistant Desktop Contributors. All rights reserved.
+© 2024-2026 SAP Knowledge Hub Contributors. All rights reserved.

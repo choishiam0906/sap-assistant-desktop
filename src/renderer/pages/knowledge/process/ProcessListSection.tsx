@@ -1,11 +1,11 @@
 import { ArrowRight, Plus } from 'lucide-react'
-import type { RoutineTemplate, RoutineTemplateStep } from '../../../../main/contracts.js'
+import type { RoutineFrequency, RoutineTemplate, RoutineTemplateStep } from '../../../../main/contracts.js'
 import { Button } from '../../../components/ui/Button.js'
 import { Badge } from '../../../components/ui/Badge.js'
 import { ProcessFilterBar } from './ProcessFilterBar.js'
 import { formatTrigger, frequencyLabel, summarizeModules } from './useProcessHub.js'
 
-type ProcessFrequencyFilter = 'all' | 'active' | string
+type ProcessFrequencyFilter = 'all' | 'active' | RoutineFrequency
 
 interface ProcessDetail {
   template: RoutineTemplate

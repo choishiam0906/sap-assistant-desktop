@@ -1,5 +1,5 @@
 import { History } from 'lucide-react'
-import type { AgentExecutionSummary } from '../../../main/contracts.js'
+import type { AgentExecutionSummary } from '../../../../main/contracts.js'
 import { Badge } from '../../../components/ui/Badge.js'
 import { formatTimestamp, executionStatusIcon } from './utils.js'
 
