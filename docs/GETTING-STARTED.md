@@ -41,7 +41,20 @@ ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...
 ```
 
-> API 키는 앱 내 Settings에서도 설정할 수 있습니다.
+> API 키는 앱 내 **Settings > AI** 에서도 설정할 수 있습니다.
+
+### OAuth 설정 (선택)
+
+OAuth 로그인을 사용하려면 `.env`에 Client ID를 추가하세요:
+
+```env
+OAUTH_OPENAI_CLIENT_ID=...
+OAUTH_ANTHROPIC_CLIENT_ID=...
+OAUTH_GOOGLE_CLIENT_ID=...
+OAUTH_MICROSOFT_CLIENT_ID=...
+```
+
+> OAuth 미설정 시 API 키 직접 입력 방식으로 사용 가능합니다.
 
 ---
 
@@ -94,6 +107,25 @@ npm run test:run      # Vitest 테스트
 
 ---
 
+## 초기 설정 (앱 실행 후)
+
+### 1. AI 프로바이더 설정
+**Settings > AI** 에서 사용할 LLM 프로바이더의 API 키를 입력하거나 OAuth 로그인합니다.
+
+### 2. CodeLab 연결 (선택)
+**Settings > CodeLab** 에서 GitHub 리포지토리를 연결하면 코드를 AI 컨텍스트로 활용할 수 있습니다:
+1. Repository URL 입력 (예: `https://github.com/owner/repo`)
+2. Personal Access Token 입력 (비공개 리포 시 필수)
+3. "연결" 클릭 → 코드 인덱싱 자동 실행
+
+### 3. 이메일 연동 (선택)
+Gmail 또는 Outlook을 연결하면 SAP 관련 이메일을 AI가 분석합니다:
+- Gmail: MCP 브릿지를 통한 연동
+- Outlook: Microsoft Graph API 연동
+- 수동 임포트: .eml 파일 또는 텍스트 직접 붙여넣기
+
+---
+
 ## 프로젝트 구조
 
 핵심 디렉토리 구조는 [ARCHITECTURE.md](./ARCHITECTURE.md)를 참조하세요.
@@ -102,7 +134,9 @@ npm run test:run      # Vitest 테스트
 
 ## 다음 단계
 
+- [사용법 가이드](./USER-GUIDE/USAGE.md)
 - [커스텀 에이전트 만들기](./USER-GUIDE/CUSTOM-AGENTS.md)
 - [커스텀 스킬 만들기](./USER-GUIDE/CUSTOM-SKILLS.md)
 - [도메인 팩 가이드](./USER-GUIDE/DOMAIN-PACKS.md)
 - [보안 모드 설명](./USER-GUIDE/SECURITY-MODES.md)
+- [IPC 채널 레퍼런스](./API/IPC-PROTOCOL.md)

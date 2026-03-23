@@ -5,9 +5,9 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4.svg)](#)
 [![Node](https://img.shields.io/badge/node-22.x-brightgreen.svg)](#)
 
-**SAP 운영 자동화 봇 플랫폼** – 로컬 우선(Local-First) 아키텍처로 민감한 데이터를 보호하면서, 커스텀 에이전트와 스킬을 통해 SAP 운영 워크플로우를 자동화합니다.
+**제조기업 운영 지원 AI 플랫폼** – 로컬 우선(Local-First) 아키텍처로 민감한 데이터를 보호하면서, MES/QMS/PMS/SAP ERP 시스템의 에러 진단과 운영 워크플로우를 AI로 지원합니다.
 
-> 궁극적 비전: 사용자가 직접 정의한 워크플로우를 기반으로, SAP 운영의 수동 작업을 점진적으로 자동화하는 **몰트봇(MoltBot)** 플랫폼
+> 궁극적 비전: 제조기업 현업 운영자가 시스템 에러를 **AI 기반으로 자가 진단**하고, 코드/이메일/문서를 통합 분석하여 운영 업무를 지원하는 **Knowledge Hub** 플랫폼
 
 ---
 
@@ -64,49 +64,63 @@
 - SAP 트랜잭션별 컨텍스트 인식
 - 도메인별 프롬프트 최적화
 
-### LLM 스트리밍 (v5.0 NEW)
+### CodeLab — GitHub 리포지토리 연동 (v7.1 NEW)
+- **GitHub REST API 연동**: git CLI 없이 코드 파일 인덱싱 (PAT 인증)
+- **SHA 기반 변경 감지**: 증분 동기화로 변경된 파일만 업데이트
+- **AI 코드 분석**: 인덱싱된 소스를 LLM 컨텍스트로 활용, 에러 자가 진단 지원
+- **18개 언어 지원**: TypeScript, Python, Java, Go, ABAP 등
+- **파일 크기 제한**: 512KB/파일, 최대 500파일/리포지토리
+
+### 이메일 통합 분석 (v7.0 NEW)
+- **다중 프로바이더**: Gmail (MCP 브릿지), Outlook (Graph API)
+- **수동 이메일 임포트**: .eml 파일 또는 텍스트 붙여넣기
+- **AI 이메일 분석**: SAP 메타데이터 추출 (T-Code, 에러 코드, 시스템 ID)
+- **이메일 → 마감 플랜**: 분석 결과로 자동 액션 플랜 생성
+
+### OAuth 인증 시스템 (v7.0 NEW)
+- **4대 프로바이더**: OpenAI, Anthropic, Google, Microsoft
+- **PKCE 보안**: 코드 챌린지/검증 기반 OAuth 2.0
+- **GitHub Device Code**: Copilot 연동용 디바이스 코드 플로우
+- **시스템 키체인 + AES-256 Fallback**: keytar → 파일 암호화 이중 보호
+
+### 코드 분석 엔진 (v7.0 NEW)
+- **소스 단위/파일 단위**: 전체 리포지토리 또는 개별 파일 분석
+- **진행률 추적**: 실시간 분석 진행 상태 IPC 이벤트
+- **분석 이력 관리**: 분석 결과 SQLite 저장 + 조회
+
+### 보안 강화 (v7.1 NEW)
+- **Logger Redaction**: API 키, 토큰, Authorization 헤더 자동 마스킹 (pino)
+- **BrowserWindow 명시 보안**: contextIsolation, sandbox, nodeIntegration 명시 선언
+- **SecureStore AES-256 Fallback**: keytar 실패 시 AES-256-GCM 파일 암호화
+
+### LLM 스트리밍 (v5.0)
 - **실시간 토큰 스트리밍**: Server-Sent Events(SSE) 기반 응답 스트리밍
 - **프로바이더별 지원**: OpenAI, Anthropic, Google 모두 네이티브 스트리밍
-- **IPC 채널**: Renderer에서 실시간 응답 수신 및 렌더링
 
-### 스케줄 자동 실행 (v5.0 NEW)
+### 스케줄 자동 실행 (v5.0)
 - **node-cron 기반**: 루틴 자동 실행 스케줄링 (초, 분, 시간, 요일 지원)
-- **Cockpit SchedulePanel**: 스케줄 관리 UI
+- **Cockpit SchedulePanel**: 스케줄 관리 UI + 즉시 실행 + 로그 조회
 - **Routine Engine**: 에이전트와 스킬 자동 실행
 
-### 정책 엔진 (v5.0 NEW)
-- **DB 기반 규칙 관리**: SQLite에 정책 저장
-- **자동/수동 승인 흐름**: 민감도 평가에 따른 승인 프로세스
-- **Settings PolicySettingsPage**: 정책 설정 UI
-
-### 에러 복원력 (v5.0 NEW)
+### 에러 복원력 (v5.0)
 - **Retry**: 지수 백오프 방식 재시도
 - **Circuit Breaker**: 연속 실패 시 요청 차단 및 빠른 실패
 - **Fallback**: 프로바이더 체인을 통한 대체 경로
 
-### DB 마이그레이션 시스템 (v5.0 NEW)
-- **MigrationRunner**: 스키마 버전 관리 (001~005)
+### DB 마이그레이션 시스템 (v5.0)
+- **MigrationRunner**: 스키마 버전 관리 (001~005+)
 - **마이그레이션 추적**: migrations 테이블에 버전 기록
 - **하위호환성**: 점진적 스키마 진화
-
-### Chat History 설정화 (v5.0 NEW)
-- **유연한 히스토리 윈도우**: 2~100 범위에서 사용자 설정 가능
-- **메모리 최적화**: 설정된 개수만 메모리에 유지
-
-### Zustand 선택자 최적화 (v5.0 NEW)
-- **useShallow 훅**: 부분 구독으로 불필요한 렌더링 방지
-- **성능 향상**: 크대 상태 객체에서 선택적 업데이트
 
 ### 커스텀 에이전트 & 스킬 (v4.0)
 - **agent.md**: YAML frontmatter 형식으로 워크플로우 직접 정의
 - **skill.md**: 맞춤형 프롬프트 템플릿 정의
 - 프리셋 에이전트/스킬과 자동 병합
 - 폼 기반 비주얼 에디터 + 미리보기
-- 저장 경로: `%APPDATA%/SAP Assistant/agents/` 및 `skills/`
 - 상세: [커스텀 에이전트 가이드](./docs/USER-GUIDE/CUSTOM-AGENTS.md) | [커스텀 스킬 가이드](./docs/USER-GUIDE/CUSTOM-SKILLS.md)
 
-### 코드 랩 (Code Lab) (v4.0)
-- 소스 관리 + CBO 분석 + 아카이브를 하나의 통합 뷰로 제공
+### 코드 랩 (Code Lab) (v4.0+)
+- 소스 관리 + CBO 분석 + 아카이브 + GitHub 연동을 하나의 통합 뷰로 제공
 - 탭 전환으로 빠르게 작업 컨텍스트 전환
 
 ---
@@ -128,10 +142,17 @@
 | [CUSTOM-AGENTS.md](./docs/USER-GUIDE/CUSTOM-AGENTS.md) | agent.md 작성 가이드 + 예제 |
 | [CUSTOM-SKILLS.md](./docs/USER-GUIDE/CUSTOM-SKILLS.md) | skill.md 작성 가이드 + 예제 |
 
+### 기획/요구사항 문서
+| 문서 | 설명 |
+|------|------|
+| [PRD.md](./docs/PRD.md) | Product Requirements Document (v7.1.0) |
+| [TRD.md](./docs/TRD.md) | Technical Requirements Document (v7.1.0) |
+| [BRD.md](./docs/BRD.md) | Business Requirements Document (v7.1.0) |
+
 ### 개발자 문서
 | 문서 | 설명 |
 |------|------|
-| [IPC-PROTOCOL.md](./docs/API/IPC-PROTOCOL.md) | 전체 IPC 채널 레퍼런스 |
+| [IPC-PROTOCOL.md](./docs/API/IPC-PROTOCOL.md) | 전체 IPC 채널 레퍼런스 (167+ 채널) |
 | [CONTRIBUTING.md](./docs/CONTRIBUTING.md) | 코드 기여, 컨벤션, PR 규칙 |
 
 ---
@@ -142,58 +163,70 @@
 
 ```mermaid
 graph TB
-    subgraph Renderer["렌더러 프로세스 (React 18)"]
+    subgraph Renderer["렌더러 프로세스 (React 18 + Zustand)"]
         Chat["Chat UI"]
         Cockpit["Cockpit 대시보드"]
-        CBO["CBO Analysis"]
-        Vault["Knowledge Vault"]
+        CodeLab["Code Lab<br/>(Sources + CBO + GitHub)"]
+        Knowledge["Knowledge<br/>(Skills + Agents + Vault)"]
         Sessions["Sessions & Audit"]
-        Skills["Skills Registry"]
-        Sources["Source Manager"]
-        Settings["Settings"]
+        Settings["Settings<br/>(AI + CodeLab + App)"]
     end
 
-    subgraph Preload["Preload Process (IPC 브릿지)"]
-        IPC["IPC Channel<br/>- chat:*<br/>- cbo:*<br/>- policy:*<br/>- session:*"]
+    subgraph Preload["Preload (IPC 브릿지)"]
+        IPC["window.assistantDesktop<br/>108 methods · 167+ channels"]
     end
 
     subgraph Main["메인 프로세스 (Node.js)"]
         subgraph Runtime["Chat Runtime"]
-            ChatEngine["Chat Engine"]
+            ChatEngine["Chat Engine<br/>(SSE 스트리밍)"]
             ProviderRouter["Provider Router<br/>OpenAI/Anthropic/Google"]
             MCP["MCP Connector"]
         end
 
-        subgraph Analysis["분석 엔진"]
-            CBOAnalyzer["CBO Analyzer<br/>규칙 기반"]
-            LLMEnhance["LLM Enhancer<br/>지능형 분석"]
+        subgraph Sources["소스 & 분석"]
+            SourceMgr["Source Manager"]
+            GitHubProvider["GitHub Provider<br/>(REST API)"]
+            CodeAnalyzer["Code Analyzer<br/>(18개 언어)"]
+            CBOAnalyzer["CBO Analyzer"]
+            LocalFolder["Local Folder Library"]
         end
 
-        subgraph Policy["정책 및 보안"]
-            PolicyEngine["Policy Engine"]
-            SecurityMode["Security Mode<br/>Local/Reference/Hybrid"]
-            Audit["Audit Logger<br/>SQLite"]
+        subgraph Email["이메일 통합"]
+            EmailManager["Email Manager"]
+            GmailMCP["Gmail MCP"]
+            OutlookGraph["Outlook Graph"]
+        end
+
+        subgraph Auth["인증 & 보안"]
+            OAuthManager["OAuth Manager<br/>(PKCE, 4 providers)"]
+            SecureStore["SecureStore<br/>(keytar + AES-256)"]
+            Audit["Audit Logger"]
+        end
+
+        subgraph Scheduling["자동화"]
+            RoutineScheduler["Routine Scheduler<br/>(node-cron)"]
+            AgentExecutor["Agent Executor"]
         end
 
         subgraph Data["데이터 레이어"]
-            SQLite["SQLite DB<br/>sessions, audit, config"]
-            SourceMgr["Source Manager<br/>files, vault"]
+            SQLite["better-sqlite3<br/>(20+ repositories)"]
         end
-
-        DomainPacks["Domain Pack Registry"]
     end
 
     Renderer <-->|IPC| Preload
     Preload <-->|Node API| Main
     ChatEngine -->|Route| ProviderRouter
     ChatEngine -->|MCP| MCP
-    CBO -->|Route| CBOAnalyzer
-    CBOAnalyzer -->|Enhanced| LLMEnhance
-    PolicyEngine -->|Enforce| SecurityMode
+    SourceMgr --> GitHubProvider
+    SourceMgr --> LocalFolder
+    GitHubProvider -->|Index| SQLite
+    CodeAnalyzer -->|Analyze| ProviderRouter
+    EmailManager --> GmailMCP
+    EmailManager --> OutlookGraph
+    OAuthManager --> SecureStore
+    RoutineScheduler -->|Execute| AgentExecutor
+    AgentExecutor -->|Call| ChatEngine
     Audit -->|Log| SQLite
-    ChatEngine -->|Store| SQLite
-    SourceMgr -->|Manage| Data
-    DomainPacks -->|Prompt| ChatEngine
 
     style Renderer fill:#61dafb,color:#000
     style Main fill:#68a063,color:#fff
@@ -217,64 +250,82 @@ graph TB
 ```
 src/
 ├── main/                           # 메인 프로세스 (Node.js)
-│   ├── index.ts                    # 앱 진입점
-│   ├── bootstrap/                  # v5.0 팩토리 (DI 컨테이너)
+│   ├── index.ts                    # 앱 진입점 (BrowserWindow 보안 명시)
+│   ├── logger.ts                   # Pino 로거 (API 키 redaction)
+│   ├── bootstrap/                  # DI 컨테이너 (팩토리 패턴)
 │   │   ├── createRepositories.ts   # 데이터 저장소 초기화
 │   │   ├── createServices.ts       # 비즈니스 로직 서비스 초기화
 │   │   └── seedData.ts             # 초기 데이터 삽입
-│   ├── auth/                       # OAuth, PKCE, keytar (시스템 키체인)
+│   ├── auth/                       # 인증 시스템
+│   │   ├── oauthManager.ts         # OAuth 2.0 + PKCE 플로우
+│   │   ├── oauthProviders.ts       # 4대 프로바이더 설정
+│   │   ├── secureStore.ts          # keytar + AES-256-GCM fallback
+│   │   ├── fileFallback.ts         # AES 파일 암호화 저장소
+│   │   ├── callbackServer.ts       # OAuth 로컬 콜백 서버
+│   │   ├── githubDeviceCode.ts     # GitHub Device Code 플로우
+│   │   └── pkce.ts                 # PKCE 코드 챌린지 생성
+│   ├── analysis/                   # 코드 분석 엔진
+│   │   └── codeAnalyzer.ts         # 소스/파일 단위 LLM 분석
 │   ├── cbo/                        # CBO(Custom Business Object) 분석기
-│   ├── ipc/                        # IPC 핸들러 (Renderer와 통신)
-│   │   ├── chatHandlers.ts         # 채팅 (스트리밍 포함)
-│   │   ├── policyHandlers.ts       # 정책 엔진 (v5.0 NEW)
-│   │   ├── scheduleHandlers.ts     # 스케줄 관리 (v5.0 NEW)
+│   ├── email/                      # 이메일 통합
+│   │   ├── emailManager.ts         # 이메일 동기화 + AI 분석
+│   │   ├── emailAnalysisPrompt.ts  # SAP 메타데이터 추출 프롬프트
+│   │   └── providers/              # Gmail MCP, Outlook Graph
+│   ├── ipc/                        # IPC 핸들러 (167+ 채널)
+│   │   ├── channels.ts             # 채널 상수 정의
+│   │   ├── authHandlers.ts         # OAuth, API 키, Device Code
+│   │   ├── chatHandlers.ts         # SSE 스트리밍, 이력 관리
+│   │   ├── sourceHandlers.ts       # 소스 인덱싱, 검색
+│   │   ├── emailHandlers.ts        # 이메일 동기화, 분석
+│   │   ├── codeAnalysisHandlers.ts # 코드 분석 실행/조회
+│   │   ├── scheduleHandlers.ts     # 스케줄 CRUD, 실행 로그
+│   │   ├── agentHandlers.ts        # 에이전트 실행, 인터랙티브
+│   │   ├── cboHandlers.ts          # CBO 분석 (텍스트/파일/폴더)
+│   │   ├── routineHandlers.ts      # 루틴 템플릿/실행/지식 연결
+│   │   ├── closingHandlers.ts      # 마감 플랜/스텝 CRUD
 │   │   ├── auditHandlers.ts        # 감사 로그
-│   │   ├── authHandlers.ts         # 인증 관리
-│   │   ├── cboHandlers.ts          # CBO 분석 요청
-│   │   ├── sourceHandlers.ts       # 소스 관리
-│   │   ├── routineHandlers.ts      # 루틴 관리
-│   │   ├── archiveHandlers.ts      # 아카이브
-│   │   ├── agentHandlers.ts        # 에이전트 관리
-│   │   ├── closingHandlers.ts      # 앱 종료 작업
-│   │   └── helpers/                # v5.0 CRUD 팩토리, 에러 래퍼
-│   ├── policy/                     # 정책 엔진 (규칙, 심사, 승인 흐름)
+│   │   ├── archiveHandlers.ts      # 아카이브 파일 I/O
+│   │   └── helpers/                # CRUD 팩토리, 에러 래퍼
 │   ├── providers/                  # LLM 프로바이더 라우터
-│   │   ├── openai.ts               # OpenAI (GPT-4.1, GPT-4o)
+│   │   ├── openai.ts               # OpenAI (GPT-4.1, GPT-4o, o4-mini)
 │   │   ├── anthropic.ts            # Anthropic (Claude Opus/Sonnet)
 │   │   ├── google.ts               # Google (Gemini 2.5)
-│   │   └── providerResilience.ts   # Retry + Circuit Breaker + Fallback (v5.0)
+│   │   └── providerResilience.ts   # Retry + Circuit Breaker + Fallback
 │   ├── services/                   # 비즈니스 로직 서비스
 │   │   ├── routineExecutor.ts      # 루틴 실행기
-│   │   └── scheduleManager.ts      # node-cron 기반 스케줄러 (v5.0)
-│   ├── skills/                     # 스킬 시스템 (프롬프트 템플릿)
-│   ├── sources/                    # 소스 관리자 (로컬 파일, MCP)
+│   │   └── routineScheduler.ts     # node-cron 기반 스케줄러
+│   ├── skills/                     # 스킬 시스템 (프리셋 + 커스텀)
+│   ├── sources/                    # 소스 관리자
+│   │   ├── sourceManager.ts        # 소스 오케스트레이션
+│   │   ├── githubProvider.ts       # GitHub REST API 연동
+│   │   ├── localFolderLibrary.ts   # 로컬 폴더 인덱싱
+│   │   └── mcpConnector.ts         # MCP 서버 연결
 │   ├── storage/                    # SQLite 저장소 + Repository 패턴
 │   │   ├── db.ts                   # 데이터베이스 초기화
-│   │   ├── migrationRunner.ts      # DB 마이그레이션 자동화 (v5.0)
-│   │   ├── migrations/             # 마이그레이션 스크립트 (001~005)
-│   │   └── repositories/           # 16개 Repository (CRUD 추상화)
+│   │   ├── migrationRunner.ts      # DB 마이그레이션 자동화
+│   │   ├── migrations/             # 마이그레이션 스크립트
+│   │   └── repositories/           # 20+ Repository (CRUD 추상화)
 │   ├── types/                      # 타입 정의 (모듈별 분리)
 │   └── contracts.ts                # 타입 재내보내기 (호환성)
 ├── preload/                        # Preload 스크립트
-│   └── index.ts                    # window.assistantDesktop IPC 브릿지
+│   └── index.ts                    # window.assistantDesktop (108 methods)
 └── renderer/                       # 렌더러 프로세스 (React 18)
     ├── components/                 # React 컴포넌트
-    │   └── settings/primitives/    # 설정 기본 UI (v5.0 DRY)
+    │   ├── settings/               # 설정 컴포넌트
+    │   │   └── primitives/         # 설정 기본 UI (DRY)
+    │   ├── onboarding/             # 첫 실행 온보딩
+    │   └── email/                  # 이메일 UI 컴포넌트
     ├── hooks/                      # 커스텀 React 훅 (React Query 래퍼)
     ├── pages/                      # 페이지 컴포넌트 (라우팅)
-    │   ├── sources/                # 소스 페이지 (Local, MCP, API 탭)
-    │   ├── settings/               # 설정 페이지들 (Security, Display 등)
-    │   ├── cockpit/                # 대시보드 패널 (Schedule, Policy 등)
-    │   ├── chat/                   # 채팅 관련 컴포넌트
-    │   ├── cbo/                    # CBO 분석 컴포넌트
+    │   ├── sources/                # 소스 페이지 (Local, MCP, GitHub)
+    │   ├── settings/               # 설정 (AI, CodeLab, App, Appearance)
+    │   ├── cockpit/                # 대시보드 (Schedule, Closing)
+    │   ├── chat/                   # 채팅 컴포넌트
+    │   ├── cbo/                    # CBO 분석
     │   └── __tests__/              # 페이지 테스트
-    ├── stores/                     # Zustand 상태 관리
-    │   ├── settingsStore.ts        # 설정 상태
-    │   ├── chatStore.ts            # 채팅 상태
-    │   ├── workspaceStore.ts       # 작업공간 상태
-    │   └── __tests__/              # 스토어 테스트
-    ├── styles/                     # 스타일 시스템
-    │   └── variables.css           # CSS 변수 정의 (색상, 간격, 타이포그래피)
+    ├── stores/                     # Zustand 상태 관리 (persist)
+    ├── styles/                     # CSS 변수 기반 디자인 시스템
+    │   └── variables.css           # 색상, 간격, 타이포그래피 변수
     └── App.tsx                     # 앱 진입점
 ```
 
@@ -384,8 +435,8 @@ ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...
 
 # 애플리케이션
-APP_NAME=SAP Assistant
-APP_VERSION=5.0.0
+APP_NAME=SAP Knowledge Hub
+APP_VERSION=7.1.0
 
 # 개발/프로덕션
 NODE_ENV=development|production
@@ -400,13 +451,15 @@ LOG_LEVEL=debug|info|warn|error
 ### 선택 환경 변수
 
 ```env
+# OAuth Client ID (프로바이더별 OAuth 로그인 활성화)
+OAUTH_OPENAI_CLIENT_ID=...
+OAUTH_ANTHROPIC_CLIENT_ID=...
+OAUTH_GOOGLE_CLIENT_ID=...
+OAUTH_MICROSOFT_CLIENT_ID=...
+
 # MCP 서버 연결
 MCP_SERVER_URL=http://localhost:3000
 MCP_API_KEY=...
-
-# OAuth 설정 (향후)
-OAUTH_CLIENT_ID=...
-OAUTH_CLIENT_SECRET=...
 
 # 프록시 (기업 환경)
 HTTP_PROXY=http://proxy:port
@@ -956,34 +1009,48 @@ npx webpack-bundle-analyzer
 
 ### Phase 1: 수동 워크플로우 (v4.0 — ✅ 완료)
 
-**주요 성과**:
 - ✅ 다중 LLM 통합 (OpenAI, Anthropic, Google)
 - ✅ CBO 분석 + 소스코드 아카이브
-- ✅ 에이전트/스킬 시스템 (프리셋 2 에이전트, 6 스킬)
-- ✅ 커스텀 에이전트/스킬 (agent.md / skill.md)
+- ✅ 에이전트/스킬 시스템 (프리셋 + 커스텀)
 - ✅ 코드 랩 (Sources + CBO + Archive 통합)
 - ✅ Knowledge Vault + MCP 서버 연결
 - ✅ Cockpit (마감 관리 + 루틴)
 
-### Phase 2: 자동 트리거 & 정책 관리 (v5.0 — ✅ 현재 진행 중)
+### Phase 2: 자동화 & 품질 (v5.0 — ✅ 완료)
 
-**v5.0 구현 사항**:
-- ✅ 스케줄 기반 에이전트 실행 (node-cron, cron 표현식)
-- ✅ DB 마이그레이션 시스템 (버전 관리, 점진적 진화)
-- ✅ LLM 스트리밍 (SSE 기반 실시간 토큰 응답)
-- ✅ 정책 엔진 (조건 기반 자동/수동 승인 흐름)
+- ✅ 스케줄 기반 에이전트 실행 (node-cron)
+- ✅ DB 마이그레이션 시스템
+- ✅ LLM SSE 스트리밍
 - ✅ 에러 복원력 (Retry + Circuit Breaker + Fallback)
-- ✅ 코드 품질 개선 (Zustand 선택자, IPC 팩토리, bootstrap 분해)
-- ✅ Chat History 설정화 (사용자 정의 윈도우: 2~100)
+- ✅ 코드 품질 개선 (Zustand 최적화, IPC 팩토리, bootstrap 분해)
 
-### Phase 3: 무인 운영 (v6.0 — 장기 계획)
+### Phase 3: 플랫폼 성숙 (v6.0~v6.1 — ✅ 완료)
 
-**예상 기능**:
+- ✅ UI 대형 컴포넌트 분할 (ProcessHub 1149→277줄 등)
+- ✅ 접근성(a11y) 강화 (ARIA, useFocusTrap, useKeyboardNav)
+- ✅ React Query 최적화 (queryKeys 팩토리, 도메인별 캐싱)
+- ✅ Zustand persist 통일 (수동 localStorage → 미들웨어)
+- ✅ 범용 플랫폼 전환 (Domain Pack 시스템, 타입/IPC 범용화)
+- ✅ esbuild CJS 번들링 (Electron portable/NSIS 호환)
+
+### Phase 4: 지식 허브 (v7.0~v7.1 — ✅ 현재)
+
+- ✅ SAP Knowledge Hub 리브랜딩
+- ✅ OAuth 4대 프로바이더 (OpenAI, Anthropic, Google, Microsoft)
+- ✅ GitHub 코드 연동 (CodeLab REST API 통합)
+- ✅ 이메일 통합 분석 (Gmail MCP, Outlook Graph, AI 분석)
+- ✅ 코드 분석 엔진 (소스/파일 단위 LLM 분석)
+- ✅ 보안 강화 (Logger Redaction, AES-256 Fallback, BrowserWindow 명시)
+- ✅ OAuth `state` 파라미터 버그 수정 (OpenAI 호환)
+
+### Phase 5: 엔터프라이즈 (향후 계획)
+
 - [ ] SAP 시스템 직접 연결 (RFC/OData)
 - [ ] 자동 Transport 리뷰 & 승인 흐름
-- [ ] 멀티 시스템 모니터링 대시보드
+- [ ] GitLab 리포지토리 연동
 - [ ] 오프라인 LLM (Ollama 연동)
 - [ ] 엔터프라이즈 배포 (LDAP, SSO, 코드 서명)
+- [ ] auto-updater 코드 서명 인증서
 
 ---
 
