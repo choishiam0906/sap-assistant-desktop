@@ -48,7 +48,7 @@ export class McpConnector {
 
     const client = new Client({
       name: "assistant-desktop",
-      version: "3.0.0",
+      version: __APP_VERSION__,
     });
 
     await client.connect(transport);

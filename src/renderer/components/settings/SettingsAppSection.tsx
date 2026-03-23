@@ -3,8 +3,6 @@ import { SettingsCard } from '../ui/SettingsCard.js'
 import { ToggleSwitch } from '../ui/ToggleSwitch.js'
 import { useSettingsStore } from '../../stores/settingsStore.js'
 
-const APP_VERSION = '3.0.0'
-
 export function SettingsAppSection() {
   const { notificationsEnabled, setNotificationsEnabled } = useSettingsStore()
 
@@ -39,7 +37,7 @@ export function SettingsAppSection() {
                 <div className="settings-row">
                   <span className="row-label">Version</span>
                   <div className="row-right">
-                    <span className="row-value">v{APP_VERSION}</span>
+                    <span className="row-value">v{__APP_VERSION__}</span>
                   </div>
                 </div>
                 <div className="settings-row">

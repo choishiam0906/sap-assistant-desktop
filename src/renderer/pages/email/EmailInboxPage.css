@@ -102,3 +102,15 @@
 .email-inbox-empty h3 {
   margin-bottom: var(--spacing-2);
 }
+
+.email-provider-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}

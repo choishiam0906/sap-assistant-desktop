@@ -150,6 +150,7 @@ export function SettingsAiSection() {
     copilot: { ...defaultProviderState },
     openrouter: { ...defaultProviderState },
     ollama: { ...defaultProviderState },
+    microsoft: { ...defaultProviderState },
   })
   const [openMenu, setOpenMenu] = useState<ProviderType | null>(null)
 

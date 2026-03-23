@@ -233,6 +233,8 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
     emailGetDetail: vi.fn().mockResolvedValue(null),
     emailAnalyzeAndCreatePlan: vi.fn().mockResolvedValue({ plan: {}, steps: [], link: {} }),
     emailListLinkedPlans: vi.fn().mockResolvedValue([]),
+    emailListProviders: vi.fn().mockResolvedValue([]),
+    emailSyncProvider: vi.fn().mockResolvedValue({ added: 0, skipped: 0 }),
 
     // Code Analysis
     codeAnalysisRun: vi.fn().mockResolvedValue({}),

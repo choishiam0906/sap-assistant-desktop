@@ -49,7 +49,7 @@ describe('SettingsPage', () => {
   it('App 패널이 기본으로 표시된다', () => {
     renderWithProviders(<SettingsPage />)
     expect(screen.getByRole('heading', { name: 'App' })).toBeInTheDocument()
-    expect(screen.getByText('v3.0.0')).toBeInTheDocument()
+    expect(screen.getByText(`v${__APP_VERSION__}`)).toBeInTheDocument()
   })
 
   it('AI 카테고리 클릭 시 AI 패널을 표시한다', async () => {

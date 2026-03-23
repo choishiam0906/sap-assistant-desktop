@@ -26,6 +26,8 @@ interface AppConfig {
   oauthGoogleClientId: string;
   // GitHub Copilot — Device Code OAuth (RFC 8628)
   githubCopilotClientId: string;
+  // Microsoft OAuth (Outlook Graph API)
+  oauthMicrosoftClientId: string;
 }
 
 function parseIntSafe(value: string | undefined, fallback: number): number {
@@ -67,6 +69,8 @@ export function loadConfig(): AppConfig {
     oauthGoogleClientId: process.env.OAUTH_GOOGLE_CLIENT_ID ?? "",
     githubCopilotClientId:
       process.env.GITHUB_COPILOT_CLIENT_ID ?? "Iv1.b507a08c87ecfe98",
+    oauthMicrosoftClientId:
+      process.env.OAUTH_MICROSOFT_CLIENT_ID ?? "",
   };
 }
 

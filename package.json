@@ -1,6 +1,6 @@
 {
   "name": "assistant-desktop",
-  "version": "6.1.0",
+  "version": "7.0.0",
   "private": true,
   "description": "Assistant Desktop Platform — domain-agnostic AI assistant runtime",
   "author": "boxlogodev",

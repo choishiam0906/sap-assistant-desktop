@@ -63,6 +63,17 @@ function OllamaIcon({ size, className }: { size: number; className?: string }) {
   )
 }
 
+function MicrosoftIcon({ size, className }: { size: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
+      <rect x="4" y="4" width="11" height="11" fill="#F25022" />
+      <rect x="17" y="4" width="11" height="11" fill="#7FBA00" />
+      <rect x="4" y="17" width="11" height="11" fill="#00A4EF" />
+      <rect x="17" y="17" width="11" height="11" fill="#FFB900" />
+    </svg>
+  )
+}
+
 const ICON_COMPONENTS: Record<ProviderType, React.FC<{ size: number; className?: string }>> = {
   openai: OpenAIIcon,
   anthropic: ClaudeIcon,
@@ -70,6 +81,7 @@ const ICON_COMPONENTS: Record<ProviderType, React.FC<{ size: number; className?:
   copilot: CopilotIcon,
   openrouter: OpenRouterIcon,
   ollama: OllamaIcon,
+  microsoft: MicrosoftIcon,
 }
 
 export function ProviderIcon({

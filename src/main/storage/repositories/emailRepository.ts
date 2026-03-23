@@ -16,6 +16,7 @@ export interface EmailInbox {
   receivedAt: string;
   labels: string[];
   isProcessed: boolean;
+  provider: string;
   createdAt: string;
 }
 
@@ -28,6 +29,7 @@ export interface EmailInboxInput {
   bodyText: string;
   receivedAt: string;
   labels?: string[];
+  provider?: string;
 }
 
 interface EmailInboxRow {
@@ -41,6 +43,7 @@ interface EmailInboxRow {
   receivedAt: string;
   labelsJson: string;
   isProcessed: number;
+  provider: string;
   createdAt: string;
 }
 
@@ -56,6 +59,7 @@ function toEmailInbox(row: EmailInboxRow): EmailInbox {
     receivedAt: row.receivedAt,
     labels: parseStringArray(row.labelsJson),
     isProcessed: row.isProcessed === 1,
+    provider: row.provider,
     createdAt: row.createdAt,
   };
 }
@@ -63,22 +67,35 @@ function toEmailInbox(row: EmailInboxRow): EmailInbox {
 export class EmailInboxRepository {
   constructor(private readonly db: LocalDatabase) {}
 
-  list(options?: { limit?: number; unprocessedOnly?: boolean }): EmailInbox[] {
+  list(options?: { limit?: number; unprocessedOnly?: boolean; provider?: string }): EmailInbox[] {
     const limit = options?.limit ?? 50;
-    const where = options?.unprocessedOnly ? "WHERE is_processed = 0" : "";
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+
+    if (options?.unprocessedOnly) {
+      conditions.push("is_processed = 0");
+    }
+    if (options?.provider) {
+      conditions.push("provider = ?");
+      params.push(options.provider);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    params.push(limit);
+
     const rows = this.db
       .prepare(
         `SELECT id, source_id AS sourceId, provider_message_id AS providerMessageId,
                 from_email AS fromEmail, from_name AS fromName,
                 subject, body_text AS bodyText, received_at AS receivedAt,
                 labels_json AS labelsJson, is_processed AS isProcessed,
-                created_at AS createdAt
+                provider, created_at AS createdAt
          FROM email_inbox
          ${where}
          ORDER BY received_at DESC
          LIMIT ?`
       )
-      .all(limit) as EmailInboxRow[];
+      .all(...params) as EmailInboxRow[];
     return rows.map(toEmailInbox);
   }
 
@@ -89,7 +106,7 @@ export class EmailInboxRepository {
                 from_email AS fromEmail, from_name AS fromName,
                 subject, body_text AS bodyText, received_at AS receivedAt,
                 labels_json AS labelsJson, is_processed AS isProcessed,
-                created_at AS createdAt
+                provider, created_at AS createdAt
          FROM email_inbox
          WHERE id = ?`
       )
@@ -104,7 +121,7 @@ export class EmailInboxRepository {
                 from_email AS fromEmail, from_name AS fromName,
                 subject, body_text AS bodyText, received_at AS receivedAt,
                 labels_json AS labelsJson, is_processed AS isProcessed,
-                created_at AS createdAt
+                provider, created_at AS createdAt
          FROM email_inbox
          WHERE provider_message_id = ?`
       )
@@ -116,12 +133,13 @@ export class EmailInboxRepository {
     const id = randomUUID();
     const now = nowIso();
     const labelsJson = JSON.stringify(input.labels ?? []);
+    const provider = input.provider ?? "gmail";
 
     this.db
       .prepare(
         `INSERT INTO email_inbox(id, source_id, provider_message_id, from_email, from_name,
-                                  subject, body_text, received_at, labels_json, is_processed, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`
+                                  subject, body_text, received_at, labels_json, is_processed, provider, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
       )
       .run(
         id,
@@ -133,6 +151,7 @@ export class EmailInboxRepository {
         input.bodyText,
         input.receivedAt,
         labelsJson,
+        provider,
         now,
       );
 
@@ -147,6 +166,7 @@ export class EmailInboxRepository {
       receivedAt: input.receivedAt,
       labels: input.labels ?? [],
       isProcessed: false,
+      provider,
       createdAt: now,
     };
   }

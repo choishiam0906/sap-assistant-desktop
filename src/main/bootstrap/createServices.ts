@@ -17,6 +17,8 @@ import { SkillSourceRegistry } from "../skills/registry.js";
 import { LocalFolderSourceLibrary } from "../sources/localFolderLibrary.js";
 import { McpConnector } from "../sources/mcpConnector.js";
 import { EmailManager } from "../email/emailManager.js";
+import { GmailMcpProvider } from "../email/providers/gmailMcpProvider.js";
+import { OutlookGraphProvider } from "../email/providers/outlookGraphProvider.js";
 import { CodeAnalyzer } from "../analysis/codeAnalyzer.js";
 import type { LocalDatabase } from "../storage/sqlite.js";
 import type { Repositories } from "./createRepositories.js";
@@ -98,8 +100,12 @@ export function createServices(
     repos.vaultRepo,
   );
 
+  const gmailProvider = new GmailMcpProvider(mcpConnector);
+  const outlookProvider = new OutlookGraphProvider(repos.secureStore, config);
+  const emailProviders = [gmailProvider, outlookProvider];
+
   const emailManager = new EmailManager(
-    mcpConnector,
+    emailProviders,
     repos.emailInboxRepo,
     repos.emailTaskLinkRepo,
     repos.closingPlanRepo,

@@ -7,8 +7,6 @@ import {
 } from '../../components/settings/primitives/index.js'
 import { useSettingsStore } from '../../stores/settingsStore.js'
 
-const APP_VERSION = '3.0.0'
-
 export function AppSettingsPage() {
   const { notificationsEnabled, setNotificationsEnabled } = useSettingsStore()
 
@@ -35,7 +33,7 @@ export function AppSettingsPage() {
             <SettingsSection title="About">
               <SettingsCard>
                 <SettingsRow label="Version">
-                  <span className="row-value">v{APP_VERSION}</span>
+                  <span className="row-value">v{__APP_VERSION__}</span>
                 </SettingsRow>
                 <SettingsRow label="Runtime">
                   <span className="row-value">Electron</span>

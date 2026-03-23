@@ -5,6 +5,7 @@ import {
   MessageCircle, Star, Archive,
   Workflow, Zap, Bot, Lock, FlaskConical,
   BarChart3, ListTodo, CalendarDays, CalendarRange, ClipboardList,
+  Inbox, CheckCircle,
 } from 'lucide-react'
 import type { AppSection } from '../stores/appShellStore'
 import { useAppShellStore } from '../stores/appShellStore'
@@ -27,6 +28,19 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
       { id: 'cockpit-monthly', subPage: 'monthly', label: '월별 마감', Icon: CalendarDays },
       { id: 'cockpit-yearly', subPage: 'yearly', label: '연간 마감', Icon: CalendarRange },
       { id: 'cockpit-all-plans', subPage: 'all-plans', label: '전체 Plan', Icon: ClipboardList },
+    ],
+  },
+  {
+    id: 'email',
+    section: 'email',
+    label: 'Email',
+    Icon: Mail,
+    position: 'main',
+    defaultSubPage: 'inbox',
+    children: [
+      { id: 'email-inbox', subPage: 'inbox', label: '받은편지함', Icon: Inbox },
+      { id: 'email-analyzed', subPage: 'analyzed', label: '분석 완료', Icon: CheckCircle },
+      { id: 'email-settings', subPage: 'settings', label: '설정', Icon: Settings },
     ],
   },
   {
@@ -55,13 +69,6 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
       { id: 'knowledge-vault', subPage: 'vault', label: '볼트', Icon: Lock },
       { id: 'knowledge-code-lab', subPage: 'code-lab', label: '코드 랩', Icon: FlaskConical },
     ],
-  },
-  {
-    id: 'email',
-    section: 'email',
-    label: 'Email',
-    Icon: Mail,
-    position: 'main',
   },
   {
     id: 'code-analysis',
@@ -109,7 +116,7 @@ export function Sidebar() {
         {!sidebarCollapsed && (
           <div className="sidebar-brand">
             <h1 className="sidebar-title">Assistant Desktop</h1>
-            <span className="sidebar-version">by boxlogodev · v7.0</span>
+            <span className="sidebar-version">by boxlogodev · v{__APP_VERSION__}</span>
           </div>
         )}
         <button

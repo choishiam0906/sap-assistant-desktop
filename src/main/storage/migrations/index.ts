@@ -8,6 +8,7 @@ import { migration006 } from "./006_remove_domain_pack.js";
 import { migration007 } from "./007_remove_policy.js";
 import { migration008 } from "./008_email_inbox.js";
 import { migration009 } from "./009_code_analysis.js";
+import { migration010 } from "./010_email_provider.js";
 
 /** 모든 마이그레이션을 버전 순서로 내보낸다. */
 export const allMigrations: Migration[] = [
@@ -20,4 +21,5 @@ export const allMigrations: Migration[] = [
   migration007,
   migration008,
   migration009,
+  migration010,
 ];

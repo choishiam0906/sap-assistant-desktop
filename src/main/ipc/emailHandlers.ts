@@ -8,19 +8,28 @@ import { wrapHandler } from "./helpers/wrapHandler.js";
 export function registerEmailHandlers(ctx: IpcContext): void {
   // ─── 순수 조회 핸들러 ───
   registerCrudHandlers({
-    [IPC.EMAIL_LIST_INBOX]: (options?: { limit?: number; unprocessedOnly?: boolean }) =>
+    [IPC.EMAIL_LIST_INBOX]: (options?: { limit?: number; unprocessedOnly?: boolean; provider?: string }) =>
       ctx.emailManager.listInbox(options),
     [IPC.EMAIL_GET_DETAIL]: (emailId: string) =>
       ctx.emailManager.getDetail(emailId),
     [IPC.EMAIL_LIST_LINKED_PLANS]: (emailId: string) =>
       ctx.emailManager.listLinkedPlans(emailId),
+    [IPC.EMAIL_LIST_PROVIDERS]: () =>
+      ctx.emailManager.listProviders(),
   });
 
-  // ─── 비동기 핸들러 (MCP 호출 포함) ───
+  // ─── 비동기 핸들러 ───
   ipcMain.handle(
     IPC.EMAIL_SYNC_INBOX,
-    wrapHandler(IPC.EMAIL_SYNC_INBOX, (_e, sourceId: string) =>
+    wrapHandler(IPC.EMAIL_SYNC_INBOX, (_e, sourceId?: string) =>
       ctx.emailManager.syncInbox(sourceId),
+    ),
+  );
+
+  ipcMain.handle(
+    IPC.EMAIL_SYNC_PROVIDER,
+    wrapHandler(IPC.EMAIL_SYNC_PROVIDER, (_e, providerType: string) =>
+      ctx.emailManager.syncProvider(providerType),
     ),
   );
 

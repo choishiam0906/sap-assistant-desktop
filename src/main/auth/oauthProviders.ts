@@ -86,6 +86,26 @@ export function getOAuthConfig(
         useCallbackServer: true,
       };
     }
+    case "microsoft": {
+      const clientId = config.oauthMicrosoftClientId;
+      if (!clientId) return null;
+      return {
+        authorizationUrl:
+          "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        tokenUrl:
+          "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        clientId,
+        scopes: [
+          "openid",
+          "profile",
+          "email",
+          "offline_access",
+          "Mail.Read",
+        ],
+        tokenContentType: "form",
+        useCallbackServer: true,
+      };
+    }
     default:
       return null;
   }

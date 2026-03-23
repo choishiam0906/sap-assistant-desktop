@@ -9,6 +9,9 @@
  * __filename 기반으로 동일 값을 banner에서 주입한다.
  */
 import { build } from "esbuild";
+import { readFileSync } from "fs";
+
+const pkg = JSON.parse(readFileSync("package.json", "utf-8"));
 
 await build({
   entryPoints: ["dist/main/index.js"],
@@ -31,6 +34,7 @@ await build({
   },
   define: {
     "import.meta.url": "__import_meta_url",
+    "__APP_VERSION__": JSON.stringify(pkg.version),
   },
 });
 

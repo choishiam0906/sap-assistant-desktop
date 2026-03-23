@@ -143,6 +143,8 @@ export const IPC = {
   EMAIL_GET_DETAIL: 'email:getDetail',
   EMAIL_ANALYZE_AND_CREATE_PLAN: 'email:analyzeAndCreatePlan',
   EMAIL_LIST_LINKED_PLANS: 'email:listLinkedPlans',
+  EMAIL_LIST_PROVIDERS: 'email:listProviders',
+  EMAIL_SYNC_PROVIDER: 'email:syncProvider',
 
   // ── Code Analysis (코드 분석) ──
   CODE_ANALYSIS_RUN: 'codeAnalysis:run',

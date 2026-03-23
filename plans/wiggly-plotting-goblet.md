@@ -1,231 +1,260 @@
-# v7.0 브랜딩 리뉴얼 — SAP 잔재 정리 + 앱 아이콘 교체 + 아이콘 일관성
+# Email 메뉴 재배치 + Outlook Graph API 연동 + 서브메뉴 추가
 
 ## Context
 
-v6.1에서 "SAP Assistant Desktop Platform → Assistant Desktop" 범용 플랫폼 전환이 완료되었으나, 빌드 아티팩트명, 파일/디렉토리명, 이모지 혼용 등 SAP 잔재가 남아있다. v7.0 기능 추가와 함께 브랜딩을 완전히 정리한다.
+현재 이메일 시스템은 Gmail MCP 전용이며, Sidebar에서 4번째 위치(Cockpit → Assistant → Knowledge → **Email**)에 서브메뉴 없이 배치되어 있다. 사용자가 요청한 변경:
 
-**목표**:
-1. 코드베이스에서 "SAP" 참조 완전 제거 (Domain Pack 제외)
-2. 앱 아이콘을 기하학적 연결 노드 패턴으로 교체
-3. Sidebar 서브메뉴 이모지를 lucide 아이콘으로 통일
-
----
-
-## Phase 1: SAP 잔재 완전 정리
-
-### 1-1. package.json 빌드 메타데이터 (4줄)
-
-**파일**: `package.json`
-
-| 위치 | 현재 | 변경 |
-|------|------|------|
-| NSIS artifactName | `SAP-Assistant-Desktop-Platform-${version}-Setup.exe` | `Assistant-Desktop-${version}-Setup.exe` |
-| NSIS shortcutName | `SAP Assistant Desktop Platform` | `Assistant Desktop` |
-| portable artifactName | `SAP-Assistant-Desktop-Platform-${version}-Portable.exe` | `Assistant-Desktop-${version}-Portable.exe` |
-| publish repo | `sap-assistant-desktop` | `assistant-desktop` |
-
-### 1-2. SapAssistantPage → AssistantPage 리네임
-
-**삭제**: `src/renderer/pages/SapAssistantPage.tsx`
-**삭제**: `src/renderer/pages/AskSapPage.tsx` (deprecated re-export)
-
-**신규**: `src/renderer/pages/AssistantPage.tsx`
-- 함수명 `SapAssistantPage` → `AssistantPage`
-- 내부 로직 변경 없음
-
-**수정 파일**:
-| 파일 | 변경 |
-|------|------|
-| `src/renderer/App.tsx` (L6, L31) | import `AssistantPage` from `./pages/AssistantPage` |
-
-### 1-3. askSapStore → assistantStore 리네임
-
-**삭제**: `src/renderer/stores/askSapStore.ts`
-
-**신규**: `src/renderer/stores/assistantStore.ts`
-- `useAskSapStore` → `useAssistantStore`
-- `AskSapState` → `AssistantState`
-- `SessionFilterTab` 타입 유지
-
-**수정 파일**:
-| 파일 | 변경 |
-|------|------|
-| `src/renderer/pages/assistant/ChatMode.tsx` (L5-6) | import from `../../stores/assistantStore.js` |
-| `src/renderer/pages/ask-sap/SessionListPanel.tsx` (L6-7) | import from `../../stores/assistantStore.js` |
-
-### 1-4. ask-sap/ → chat/ 디렉토리 이동
-
-`src/renderer/pages/ask-sap/` → `src/renderer/pages/chat/`
-
-이동 대상 파일 (9개):
-- `ChatDetail.tsx`, `ChatHeader.tsx`, `EmptyState.tsx`
-- `ExecutionMetaPanel.tsx`, `SessionListPanel.tsx`
-- `SkillSelector.tsx`, `SkillsPanel.tsx`, `SourceSelector.tsx`
-- `StreamingIndicator.tsx`
-
-**수정 파일** (import 경로 변경):
-| 파일 | 변경 |
-|------|------|
-| `src/renderer/pages/assistant/ChatMode.tsx` (L8-9) | `../ask-sap/` → `../chat/` |
-
-> **참고**: `ask-sap/` 내부 파일 간 상호 import는 상대 경로 `./`이므로 디렉토리 이동해도 변경 불필요.
-
-### 1-5. Sidebar 버전 업데이트
-
-**파일**: `src/renderer/components/Sidebar.tsx` (L109)
-- `v6.0` → `v7.0`
-
-### 1-6. Deprecated alias 정리 (선택적)
-
-현재 `contracts.ts`, `preload/index.ts`, `global.d.ts`에 deprecated alias가 있음.
-v7.0에서 한 버전 더 유지하되, 다음 메이저 버전에서 제거 예정으로 표시.
-→ **이번에는 유지** (호환성)
+1. **이메일 메뉴를 Cockpit 바로 아래(2번째)로 이동**
+2. **서브메뉴 추가**: 받은편지함, 분석 완료, 설정
+3. **Outlook Graph API 직접 연동** — EmailProvider 추상화 + Microsoft OAuth2
 
 ---
 
-## Phase 2: 앱 아이콘 교체
+## Phase 1: EmailProvider 추상화 + Gmail 분리
 
-### 2-1. icon.svg 새 디자인
+### 1-1. EmailProvider 인터페이스 신규
 
-**파일**: `build/icon.svg` (덮어쓰기)
+**파일**: `src/main/email/providers/emailProvider.ts` (신규)
 
-**디자인 컨셉**: 기하학적 연결 노드 패턴
-- 256×256 rounded rect 배경 (현재 파란색 그라데이션 계열 유지)
-- 3개의 노드(원형) + 연결선으로 워크플로우/네트워크 표현
-- 중앙 노드 살짝 크게 → AI 허브 느낌
-- 선은 반투명 white로 네트워크 연결감
-- 우하단에 작은 스파크 장식 (AI 느낌)
-
-**SVG 구조**:
-```
-배경: roundedRect + linearGradient (#13293D → #1B6FEF → #4DA8FF)
-노드1: circle cx=96 cy=88 r=22 (좌상)
-노드2: circle cx=160 cy=88 r=22 (우상)
-노드3: circle cx=128 cy=160 r=28 (중하, 메인 허브)
-연결선: path로 3개 노드 연결 (흰색 반투명)
-스파크: 작은 diamond/star 장식 (우하)
-```
-
-### 2-2. PNG/ICO 생성
-
-**icon.svg → icon.png**: PowerShell + System.Drawing 또는 sharp npm 사용
-**icon.svg → icon.ico**: png-to-ico npm 또는 ImageMagick
-
-스크립트 없이 수동 변환:
-```bash
-npx sharp-cli -i build/icon.svg -o build/icon.png resize 256 256
-npx png-to-ico build/icon.png > build/icon.ico
-```
-
-또는 Electron이 SVG→PNG 자동 처리하는 경우 icon.png만 업데이트.
-
----
-
-## Phase 3: lucide 아이콘 일관성 정리
-
-### 3-1. NavItemGroup 확장 — children 아이콘 지원
-
-**파일**: `src/renderer/components/sidebar/NavItemGroup.tsx`
-
-`NavChild` 인터페이스에 `Icon` 옵션 추가:
 ```typescript
-export interface NavChild {
-  id: string
-  subPage: string
-  label: string
-  Icon?: LucideIcon  // 추가
+export type EmailProviderType = 'gmail' | 'outlook'
+
+export interface EmailMessage {
+  providerMessageId: string
+  fromEmail: string
+  fromName?: string
+  subject: string
+  bodyText: string
+  receivedAt: string
+  labels: string[]
+}
+
+export interface EmailProvider {
+  readonly type: EmailProviderType
+  sync(maxResults?: number): Promise<EmailMessage[]>
+  isConnected(): boolean
 }
 ```
 
-렌더링 시 Icon이 있으면 `.nav-child-dot` 대신 아이콘 표시:
-```tsx
-{child.Icon
-  ? <child.Icon size={14} className="nav-child-icon" aria-hidden="true" />
-  : <span className="nav-child-dot" />
-}
+### 1-2. GmailMcpProvider 신규
+
+**파일**: `src/main/email/providers/gmailMcpProvider.ts` (신규)
+
+- 기존 `EmailManager`의 Gmail MCP 로직(L30-88, L170-232)을 이 클래스로 이동
+- `McpConnector` 의존성 주입
+- `sync()` → `callMcpTool("gmail_search_messages")` + `callMcpTool("gmail_read_message")`
+- `isConnected()` → MCP 서버 목록에서 "gmail" 포함 확인
+- `parseGmailSearchResult()`, `parseGmailReadResult()` 헬퍼 포함
+
+### 1-3. providers/index.ts 배럴 export
+
+**파일**: `src/main/email/providers/index.ts` (신규)
+
+### 1-4. EmailManager 리팩토링
+
+**파일**: `src/main/email/emailManager.ts` (수정)
+
+변경 사항:
+- `mcpConnector` 제거, `providers: EmailProvider[]` 추가
+- `syncInbox(sourceId?)` → 모든 연결된 provider에서 sync → DB 저장
+- `callMcpTool`, `parseGmailSearchResult`, `parseGmailReadResult` 삭제 (GmailMcpProvider로 이동)
+- `GmailMessageDetail` 인터페이스 삭제 (EmailMessage로 통합)
+- 분석/링크 로직은 그대로 유지 (provider-agnostic)
+- `listInbox()` 에 provider 필터 옵션 추가: `{ provider?: EmailProviderType }`
+
+### 1-5. DB 마이그레이션 — provider 컬럼 추가
+
+**파일**: `src/main/storage/migrations/009_email_provider.ts` (신규)
+
+```sql
+ALTER TABLE email_inbox ADD COLUMN provider TEXT NOT NULL DEFAULT 'gmail';
+CREATE INDEX idx_email_inbox_provider ON email_inbox(provider, received_at DESC);
 ```
 
-### 3-2. Sidebar 서브메뉴 이모지 → lucide 아이콘 교체
+### 1-6. emailRepository 타입/쿼리 업데이트
 
-**파일**: `src/renderer/components/Sidebar.tsx`
+**파일**: `src/main/storage/repositories/emailRepository.ts` (수정)
 
-**Assistant 서브메뉴**:
-| 현재 | 변경 | lucide 아이콘 |
-|------|------|-------------|
-| `💬 대화` | `대화` | `MessageCircle` |
-| `중요 세션` | `중요 세션` | `Star` |
-| `보관함` | `보관함` | `Archive` |
-
-**Knowledge 서브메뉴**:
-| 현재 | 변경 | lucide 아이콘 |
-|------|------|-------------|
-| `📐 프로세스` | `프로세스` | `Workflow` |
-| `⚡ 스킬` | `스킬` | `Zap` |
-| `🤖 에이전트` | `에이전트` | `Bot` |
-| `🔐 볼트` | `볼트` | `Lock` |
-| `🧪 코드 랩` | `코드 랩` | `FlaskConical` |
-
-**Cockpit 서브메뉴** (현재 아이콘 없음, 추가):
-| 항목 | lucide 아이콘 |
-|------|-------------|
-| Overview | `BarChart3` |
-| Daily Tasks | `ListTodo` |
-| 월별 마감 | `CalendarDays` |
-| 연간 마감 | `CalendarRange` |
-| 전체 Plan | `ClipboardList` |
-
-### 3-3. 메인 사이드바 아이콘 점검
-
-| 섹션 | 현재 | 변경 | 이유 |
-|------|------|------|------|
-| Cockpit | `LayoutDashboard` | 유지 | 적절 |
-| 어시스턴트 | `MessageSquare` | `Sparkles` | AI 느낌 강화 |
-| Knowledge | `BookOpen` | 유지 | 적절 |
-| Email | `Mail` | 유지 | 적절 |
-| Code Analysis | `Code2` | `ScanSearch` | 분석 느낌 강화 |
-| Settings | `Settings` | 유지 | 적절 |
-
-### 3-4. Sidebar.css 아이콘 스타일 추가
-
-```css
-.nav-child-icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-}
-
-.nav-child-item.active .nav-child-icon {
-  color: var(--color-primary);
-}
-```
+- `EmailInbox` 인터페이스에 `provider: EmailProviderType` 추가
+- `EmailInboxInput`에 `provider: EmailProviderType` 추가
+- `EmailInboxRow`에 `provider: string` 추가
+- `toEmailInbox()`에서 `provider` 매핑
+- `create()` INSERT에 `provider` 컬럼 추가
+- `list()` WHERE에 `provider` 필터 옵션 추가
+- SELECT 쿼리에 `provider` 컬럼 추가
 
 ---
 
-## 실행 순서
+## Phase 2: Outlook OAuth + Graph API
 
+### 2-1. AppConfig에 Microsoft OAuth Client ID 추가
+
+**파일**: `src/main/config.ts` (수정)
+
+```typescript
+// AppConfig 인터페이스에:
+oauthMicrosoftClientId: string
+
+// loadConfig()에:
+oauthMicrosoftClientId: process.env.OAUTH_MICROSOFT_CLIENT_ID ?? ""
 ```
-Phase 1 (순차, 의존성 있음):
-  1-1. package.json 메타데이터 수정
-  1-2. SapAssistantPage → AssistantPage 리네임 + App.tsx 수정
-  1-3. askSapStore → assistantStore 리네임 + import 수정
-  1-4. ask-sap/ → chat/ 디렉토리 이동 + import 수정
-  1-5. Sidebar 버전 v7.0 업데이트
-  → 중간 검증: npm run typecheck
 
-Phase 2 (Phase 1 이후):
-  2-1. icon.svg 새 디자인 작성
-  2-2. icon.png, icon.ico 생성
+### 2-2. ProviderType에 microsoft 추가
 
-Phase 3 (Phase 1 이후, Phase 2와 병렬 가능):
-  3-1. NavItemGroup 확장 (Icon prop)
-  3-2. Sidebar 서브메뉴 이모지 제거 + lucide 아이콘 매핑
-  3-3. 메인 사이드바 아이콘 교체 (Sparkles, ScanSearch)
-  3-4. CSS 스타일 추가
+**파일**: `src/main/types/provider.ts` (수정)
 
-최종 검증:
-  npm run typecheck && npm run lint && npm run test:run
+- `ProviderType` union에 `"microsoft"` 추가
+- `PROVIDER_LABELS`에 `microsoft: "Microsoft"` 추가
+- `PROVIDER_MODELS`에 `microsoft: []` (LLM provider 아님)
+- `DEFAULT_MODELS`에 `microsoft: ""` 추가
+
+### 2-3. OAuthProviders에 Microsoft 설정 추가
+
+**파일**: `src/main/auth/oauthProviders.ts` (수정)
+
+```typescript
+case "microsoft": {
+  const clientId = config.oauthMicrosoftClientId
+  if (!clientId) return null
+  return {
+    authorizationUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    clientId,
+    scopes: ["openid", "profile", "email", "offline_access", "Mail.Read"],
+    tokenContentType: "form",
+    useCallbackServer: true,
+  }
+}
 ```
+
+### 2-4. OutlookGraphProvider 신규
+
+**파일**: `src/main/email/providers/outlookGraphProvider.ts` (신규)
+
+- `SecureStore`에서 `microsoft` 토큰 로드
+- `sync()` → `GET https://graph.microsoft.com/v1.0/me/messages?$top=20&$orderby=receivedDateTime desc&$select=id,subject,from,body,receivedDateTime`
+- Authorization: `Bearer {accessToken}`
+- 토큰 만료 시 → `SecureStore`에서 `refreshToken` 가져와 갱신
+- `isConnected()` → SecureStore에 microsoft 토큰 존재 확인
+- Graph API 응답 → `EmailMessage[]` 변환
+
+### 2-5. IPC 채널 추가
+
+**파일**: `src/main/ipc/channels.ts` (수정)
+
+```typescript
+EMAIL_LIST_PROVIDERS: 'email:listProviders',
+EMAIL_SYNC_PROVIDER: 'email:syncProvider',
+```
+
+### 2-6. emailHandlers 업데이트
+
+**파일**: `src/main/ipc/emailHandlers.ts` (수정)
+
+- `email:listProviders` → 연결된 provider 목록 + 상태 반환
+- `email:syncProvider` → 특정 provider만 sync
+- 기존 `email:syncInbox` → 모든 연결된 provider sync (호환 유지)
+
+### 2-7. Preload API 확장
+
+**파일**: `src/preload/index.ts` (수정)
+
+```typescript
+emailListProviders(): Promise<Array<{ type: string; connected: boolean; accountHint?: string }>>
+emailSyncProvider(provider: string): Promise<{ added: number; skipped: number }>
+```
+
+### 2-8. global.d.ts Preload 타입 추가
+
+**파일**: `src/renderer/global.d.ts` (수정)
+
+- DesktopApi에 `emailListProviders`, `emailSyncProvider` 추가
+
+### 2-9. IpcContext + 부트스트랩 수정
+
+**파일**: `src/main/ipc/types.ts` + `src/main/index.ts` (수정)
+
+- EmailManager 생성자 변경 → provider 배열 전달
+- `GmailMcpProvider(mcpConnector)`, `OutlookGraphProvider(secureStore, config)` 생성
+
+---
+
+## Phase 3: Sidebar 재배치 + 서브메뉴 + 라우팅
+
+### 3-1. Sidebar 메뉴 순서 + 서브메뉴
+
+**파일**: `src/renderer/components/Sidebar.tsx` (수정)
+
+MAIN_NAV_ITEMS 순서: `Cockpit → Email → Assistant → Knowledge → Code Analysis`
+
+Email 항목에 children 추가:
+```typescript
+{
+  id: 'email',
+  section: 'email',
+  label: 'Email',
+  Icon: Mail,
+  position: 'main',
+  defaultSubPage: 'inbox',
+  children: [
+    { id: 'email-inbox', subPage: 'inbox', label: '받은편지함', Icon: Inbox },
+    { id: 'email-analyzed', subPage: 'analyzed', label: '분석 완료', Icon: CheckCircle },
+    { id: 'email-settings', subPage: 'settings', label: '설정', Icon: Settings },
+  ],
+}
+```
+
+lucide import에 `Inbox`, `CheckCircle` 추가
+
+### 3-2. appShellStore에 EmailSubPage 타입
+
+**파일**: `src/renderer/stores/appShellStore.ts` (수정)
+
+```typescript
+export type EmailSubPage = 'inbox' | 'analyzed' | 'settings'
+```
+
+### 3-3. EmailPage 라우터 신규
+
+**파일**: `src/renderer/pages/email/EmailPage.tsx` (신규)
+
+subPage에 따라 분기: `inbox` → EmailInboxPage, `analyzed` → EmailAnalyzedPage, `settings` → EmailSettingsPage
+
+### 3-4. App.tsx import 변경
+
+**파일**: `src/renderer/App.tsx` (수정)
+
+`EmailInboxPage` → `EmailPage` import + 렌더
+
+---
+
+## Phase 4: Email UI 신규 페이지
+
+### 4-1. EmailAnalyzedPage 신규
+
+**파일**: `src/renderer/pages/email/EmailAnalyzedPage.tsx` (신규)
+
+- `isProcessed === true` 메일만 표시
+- 연결된 Plan 링크 표시
+- EmailInboxPage와 유사한 카드 레이아웃
+
+### 4-2. EmailSettingsPage 신규
+
+**파일**: `src/renderer/pages/email/EmailSettingsPage.tsx` (신규)
+
+- `emailListProviders()` → provider 목록
+- Gmail: MCP 연결 상태 표시
+- Outlook: OAuth 연결/해제 버튼
+- 계정 힌트(이메일) 표시
+
+### 4-3. EmailInboxPage 업데이트
+
+**파일**: `src/renderer/pages/email/EmailInboxPage.tsx` (수정)
+
+- 제목 → "받은편지함"
+- provider 배지 표시 (Gmail/Outlook)
+- 빈 상태 → "설정에서 Gmail 또는 Outlook을 연결하세요"
+- 동기화 → 모든 provider sync
 
 ---
 
@@ -233,23 +262,69 @@ Phase 3 (Phase 1 이후, Phase 2와 병렬 가능):
 
 | # | 파일 | 작업 | Phase |
 |---|------|------|-------|
-| 1 | `package.json` | 아티팩트명/shortcut/repo 수정 | 1 |
-| 2 | `src/renderer/pages/SapAssistantPage.tsx` | 삭제 → AssistantPage.tsx로 교체 | 1 |
-| 3 | `src/renderer/pages/AskSapPage.tsx` | 삭제 | 1 |
-| 4 | `src/renderer/pages/AssistantPage.tsx` | 신규 | 1 |
-| 5 | `src/renderer/App.tsx` | import 경로 변경 | 1 |
-| 6 | `src/renderer/stores/askSapStore.ts` | 삭제 → assistantStore.ts로 교체 | 1 |
-| 7 | `src/renderer/stores/assistantStore.ts` | 신규 | 1 |
-| 8 | `src/renderer/pages/assistant/ChatMode.tsx` | import 경로 변경 (store + chat/) | 1 |
-| 9 | `src/renderer/pages/ask-sap/*.tsx` (9개) | chat/로 이동 | 1 |
-| 10 | `src/renderer/components/Sidebar.tsx` | 버전 + 아이콘 매핑 | 1+3 |
-| 11 | `src/renderer/components/sidebar/NavItemGroup.tsx` | NavChild Icon 지원 | 3 |
-| 12 | `src/renderer/components/Sidebar.css` | 아이콘 스타일 추가 | 3 |
-| 13 | `build/icon.svg` | 새 디자인 | 2 |
-| 14 | `build/icon.png` | 재생성 | 2 |
-| 15 | `build/icon.ico` | 재생성 | 2 |
+| 1 | `src/main/email/providers/emailProvider.ts` | 신규 — 인터페이스 | 1 |
+| 2 | `src/main/email/providers/gmailMcpProvider.ts` | 신규 — Gmail 구현 | 1 |
+| 3 | `src/main/email/providers/index.ts` | 신규 — 배럴 | 1 |
+| 4 | `src/main/email/emailManager.ts` | 리팩토링 | 1 |
+| 5 | `src/main/storage/migrations/009_email_provider.ts` | 신규 — 마이그레이션 | 1 |
+| 6 | `src/main/storage/repositories/emailRepository.ts` | provider 컬럼 추가 | 1 |
+| 7 | `src/main/config.ts` | MS clientId 추가 | 2 |
+| 8 | `src/main/types/provider.ts` | microsoft 추가 | 2 |
+| 9 | `src/main/auth/oauthProviders.ts` | microsoft OAuth 설정 | 2 |
+| 10 | `src/main/email/providers/outlookGraphProvider.ts` | 신규 — Outlook 구현 | 2 |
+| 11 | `src/main/ipc/channels.ts` | email 채널 추가 | 2 |
+| 12 | `src/main/ipc/emailHandlers.ts` | provider 핸들러 추가 | 2 |
+| 13 | `src/preload/index.ts` | API 확장 | 2 |
+| 14 | `src/renderer/global.d.ts` | Preload 타입 추가 | 2 |
+| 15 | `src/main/ipc/types.ts` | IpcContext 업데이트 | 2 |
+| 16 | `src/main/index.ts` (또는 bootstrap) | provider 인스턴스 생성 | 2 |
+| 17 | `src/renderer/components/Sidebar.tsx` | 메뉴 이동 + 서브메뉴 | 3 |
+| 18 | `src/renderer/stores/appShellStore.ts` | EmailSubPage 타입 | 3 |
+| 19 | `src/renderer/pages/email/EmailPage.tsx` | 신규 — 라우터 | 3 |
+| 20 | `src/renderer/App.tsx` | EmailPage import 변경 | 3 |
+| 21 | `src/renderer/pages/email/EmailAnalyzedPage.tsx` | 신규 | 4 |
+| 22 | `src/renderer/pages/email/EmailSettingsPage.tsx` | 신규 | 4 |
+| 23 | `src/renderer/pages/email/EmailInboxPage.tsx` | provider 배지 등 | 4 |
 
-**총 ~20개 파일** (디렉토리 이동 9개 포함)
+**총 ~23개 파일** (신규 9개, 수정 14개)
+
+---
+
+## 실행 순서
+
+```
+Phase 1 (순차):
+  1-5. DB 마이그레이션 (009)
+  1-6. emailRepository provider 컬럼
+  1-1. EmailProvider 인터페이스
+  1-2. GmailMcpProvider
+  1-3. providers barrel
+  1-4. EmailManager 리팩토링
+  → 중간 검증: npm run typecheck
+
+Phase 2 (Phase 1 이후):
+  2-1. config.ts Microsoft clientId
+  2-2. ProviderType microsoft
+  2-3. oauthProviders microsoft
+  2-4. OutlookGraphProvider
+  2-5~6. IPC 채널 + 핸들러
+  2-7~9. Preload + global.d.ts + context + bootstrap
+  → 중간 검증: npm run typecheck
+
+Phase 3 (Phase 1 이후, Phase 2와 병렬 가능):
+  3-1. Sidebar 재배치 + 서브메뉴
+  3-2. appShellStore EmailSubPage
+  3-3. EmailPage 라우터
+  3-4. App.tsx import 변경
+
+Phase 4 (Phase 2+3 이후):
+  4-1. EmailAnalyzedPage
+  4-2. EmailSettingsPage
+  4-3. EmailInboxPage 업데이트
+
+최종 검증:
+  npm run typecheck && npm run lint && npm run test:run
+```
 
 ---
 
@@ -259,11 +334,11 @@ Phase 3 (Phase 1 이후, Phase 2와 병렬 가능):
 npm run typecheck   # 모든 tsconfig 통과
 npm run lint        # ESLint 통과
 npm run test:run    # 기존 테스트 깨짐 없음
-npm run build       # 번들 정상 생성
 ```
 
 수동 검증:
-1. Electron 앱 실행 → 새 아이콘 확인 (타이틀바, 태스크바)
-2. Sidebar 서브메뉴 → 이모지 대신 lucide 아이콘 표시 확인
-3. Portable exe 빌드 → 파일명에 SAP 없음 확인
-4. `Ctrl+Shift+I` → Console에 deprecated 경고 없음
+1. Sidebar → Email이 Cockpit 아래, 서브메뉴 3개 표시
+2. 받은편지함 → Gmail 메일 동기화 동작 (기존과 동일)
+3. Outlook 설정 → OAuth 연결 → 동기화 → 인박스에 Outlook 메일 표시
+4. 분석 완료 → 처리된 메일만 필터
+5. 이메일 카드에 Gmail/Outlook 배지 표시

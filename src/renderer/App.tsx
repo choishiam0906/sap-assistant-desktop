@@ -5,7 +5,7 @@ import { Sidebar } from './components/Sidebar'
 import { CockpitPage } from './pages/CockpitPage'
 import { AssistantPage } from './pages/AssistantPage'
 import { KnowledgePage } from './pages/KnowledgePage'
-import { EmailInboxPage } from './pages/email/EmailInboxPage'
+import { EmailPage } from './pages/email/EmailPage'
 import { CodeAnalysisPage } from './pages/analysis/CodeAnalysisPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { useAppShellStore } from './stores/appShellStore'
@@ -30,7 +30,7 @@ export function App() {
               {currentSection === 'cockpit' && <CockpitPage />}
               {currentSection === 'assistant' && <AssistantPage />}
               {currentSection === 'knowledge' && <KnowledgePage />}
-              {currentSection === 'email' && <EmailInboxPage />}
+              {currentSection === 'email' && <EmailPage />}
               {currentSection === 'code-analysis' && <CodeAnalysisPage />}
               {currentSection === 'settings' && <SettingsPage />}
             </div>

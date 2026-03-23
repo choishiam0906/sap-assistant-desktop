@@ -20,6 +20,7 @@ export type AssistantSubPage =
 /** @deprecated Use AssistantSubPage */
 export type SapAssistantSubPage = AssistantSubPage
 export type KnowledgeSubPage = 'process' | 'skills' | 'agents' | 'vault' | CodeLabSubPage
+export type EmailSubPage = 'inbox' | 'analyzed' | 'settings'
 
 /** @deprecated Phase 1 호환 레이어 — AskSapSubPage는 SessionFilterTab으로 이전됨 */
 export type AskSapSubPage = 'all' | 'flagged' | 'saved'

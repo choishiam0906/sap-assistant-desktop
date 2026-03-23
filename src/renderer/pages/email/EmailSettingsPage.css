@@ -1,0 +1,97 @@
+.email-settings-page {
+  padding: var(--spacing-6);
+  max-width: 960px;
+}
+
+.email-settings-hero {
+  margin-bottom: var(--spacing-6);
+}
+
+.email-settings-hero .page-title {
+  margin-bottom: var(--spacing-1);
+}
+
+.email-settings-copy {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.email-provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.email-provider-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.email-provider-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+}
+
+.email-provider-icon.gmail {
+  background: #fce8e6;
+  color: #d93025;
+}
+
+.email-provider-icon.outlook {
+  background: #e8f0fe;
+  color: #0078d4;
+}
+
+.email-provider-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.email-provider-info h3 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin-bottom: var(--spacing-1);
+}
+
+.email-provider-info p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.email-provider-status {
+  flex-shrink: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-full);
+}
+
+.status-badge.connected {
+  color: var(--color-success);
+  background: var(--color-success-subtle, rgba(34, 197, 94, 0.1));
+}
+
+.status-badge.disconnected {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-secondary, rgba(0, 0, 0, 0.05));
+}
+
+.email-provider-action {
+  flex-shrink: 0;
+}

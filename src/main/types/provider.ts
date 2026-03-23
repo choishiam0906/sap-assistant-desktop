@@ -1,4 +1,4 @@
-export type ProviderType = "openai" | "anthropic" | "google" | "copilot" | "openrouter" | "ollama";
+export type ProviderType = "openai" | "anthropic" | "google" | "copilot" | "openrouter" | "ollama" | "microsoft";
 
 export const PROVIDER_LABELS: Record<ProviderType, string> = {
   openai: "OpenAI",
@@ -7,6 +7,7 @@ export const PROVIDER_LABELS: Record<ProviderType, string> = {
   copilot: "GitHub Copilot",
   openrouter: "OpenRouter",
   ollama: "Ollama",
+  microsoft: "Microsoft",
 };
 
 export const PROVIDER_MODELS: Record<ProviderType, { value: string; label: string }[]> = {
@@ -48,6 +49,7 @@ export const PROVIDER_MODELS: Record<ProviderType, { value: string; label: strin
     { value: 'phi3', label: 'Phi-3' },
     { value: 'qwen2.5', label: 'Qwen 2.5' },
   ],
+  microsoft: [],
 };
 
 export const DEFAULT_MODELS: Record<ProviderType, string> = {
@@ -57,6 +59,7 @@ export const DEFAULT_MODELS: Record<ProviderType, string> = {
   copilot: 'gpt-4o',
   openrouter: 'anthropic/claude-sonnet-4-6',
   ollama: 'llama3.3',
+  microsoft: '',
 };
 
 export type AuthStatus =

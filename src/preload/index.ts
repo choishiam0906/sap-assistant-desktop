@@ -443,6 +443,12 @@ const desktopApi = {
   emailListLinkedPlans(emailId: string) {
     return ipcRenderer.invoke(IPC.EMAIL_LIST_LINKED_PLANS, emailId);
   },
+  emailListProviders(): Promise<Array<{ type: string; connected: boolean }>> {
+    return ipcRenderer.invoke(IPC.EMAIL_LIST_PROVIDERS);
+  },
+  emailSyncProvider(providerType: string): Promise<{ added: number; skipped: number }> {
+    return ipcRenderer.invoke(IPC.EMAIL_SYNC_PROVIDER, providerType);
+  },
 
   // ─── Code Analysis (코드 분석) API ───
 
