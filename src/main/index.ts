@@ -49,6 +49,9 @@ function createWindow(): void {
     icon: existsSync(windowIconPath) ? windowIconPath : undefined,
     webPreferences: {
       preload: join(mainDir, "../preload/index.cjs"),
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false,
     },
   });
 

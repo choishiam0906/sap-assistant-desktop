@@ -28,6 +28,9 @@ interface AppConfig {
   githubCopilotClientId: string;
   // Microsoft OAuth (Outlook Graph API)
   oauthMicrosoftClientId: string;
+
+  // 데모 모드
+  demoMode: boolean;
 }
 
 function parseIntSafe(value: string | undefined, fallback: number): number {
@@ -71,6 +74,8 @@ export function loadConfig(): AppConfig {
       process.env.GITHUB_COPILOT_CLIENT_ID ?? "Iv1.b507a08c87ecfe98",
     oauthMicrosoftClientId:
       process.env.OAUTH_MICROSOFT_CLIENT_ID ?? "",
+
+    demoMode: process.env.DEMO_MODE === "true",
   };
 }
 

@@ -1,6 +1,6 @@
 // ─── 🧪 코드 랩 (Code Lab): Sources + CBO 분석 + Archive 통합 ───
 
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { FlaskConical, BookOpen, Search, Archive } from 'lucide-react'
 import { useAppShellStore } from '../../stores/appShellStore.js'
 import { SourcesPage } from '../knowledge/SourcesPage.js'
@@ -29,18 +29,9 @@ function parseCodeLabTab(subPage: string | null): CodeLabTab {
 export function CodeLabMode() {
   const subPage = useAppShellStore((state) => state.subPage)
   const setSubPage = useAppShellStore((state) => state.setSubPage)
-  const [activeTab, setActiveTab] = useState<CodeLabTab>(() => parseCodeLabTab(subPage))
-
-  // subPage 변경 시 탭 동기화
-  useEffect(() => {
-    const parsed = parseCodeLabTab(subPage)
-    if (parsed !== activeTab) {
-      setActiveTab(parsed)
-    }
-  }, [subPage]) // eslint-disable-line react-hooks/exhaustive-deps
+  const activeTab = useMemo(() => parseCodeLabTab(subPage), [subPage])
 
   function handleTabChange(tab: CodeLabTab) {
-    setActiveTab(tab)
     setSubPage(`code-lab:${tab}`)
   }
 

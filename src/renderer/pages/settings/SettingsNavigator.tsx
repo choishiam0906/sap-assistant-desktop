@@ -1,12 +1,13 @@
 import type { SettingsCategory } from '../../components/settings/types.js'
 import {
   Monitor, Sparkles, Palette, Keyboard,
-  Tag, Command, User,
+  Tag, Command, User, GitBranch,
 } from 'lucide-react'
 
 const CATEGORIES: { id: SettingsCategory; label: string; desc: string; Icon: typeof Monitor }[] = [
   { id: 'app', label: 'App', desc: '알림 및 업데이트', Icon: Monitor },
   { id: 'ai', label: 'AI', desc: '모델, 사고 수준, 연결', Icon: Sparkles },
+  { id: 'codelab', label: 'CodeLab', desc: 'GitHub 코드 연동', Icon: GitBranch },
   { id: 'appearance', label: 'Appearance', desc: '테마, 폰트', Icon: Palette },
   { id: 'input', label: 'Input', desc: '전송 키, 맞춤법 검사', Icon: Keyboard },
   { id: 'labels', label: 'Labels', desc: '세션 레이블 관리', Icon: Tag },

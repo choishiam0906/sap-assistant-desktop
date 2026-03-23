@@ -1,6 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { mkdtempSync } from 'node:fs'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 
-// keytar를 항상 실패하도록 mock → fallback Map 사용
+const tempDir = mkdtempSync(join(tmpdir(), 'secure-store-test-'))
+
+// electron app mock
+vi.mock('electron', () => ({
+  app: {
+    getPath: () => tempDir,
+    getName: () => 'sap-knowledge-hub-test',
+  },
+}))
+
+// keytar를 항상 실패하도록 mock → fileFallback 사용
 vi.mock('keytar', () => {
   throw new Error('keytar not available in test')
 })

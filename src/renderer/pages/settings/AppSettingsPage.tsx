@@ -8,7 +8,7 @@ import {
 import { useSettingsStore } from '../../stores/settingsStore.js'
 
 export function AppSettingsPage() {
-  const { notificationsEnabled, setNotificationsEnabled } = useSettingsStore()
+  const { notificationsEnabled, setNotificationsEnabled, demoMode, setDemoMode } = useSettingsStore()
 
   return (
     <div className="sp-page page-enter">
@@ -26,6 +26,17 @@ export function AppSettingsPage() {
                   onChange={setNotificationsEnabled}
                   label="데스크톱 알림"
                   description="AI 작업 완료 시 데스크톱 알림을 표시해요"
+                />
+              </SettingsCard>
+            </SettingsSection>
+
+            <SettingsSection title="데이터">
+              <SettingsCard>
+                <SettingsToggle
+                  checked={demoMode}
+                  onChange={setDemoMode}
+                  label="데모 데이터 포함"
+                  description="앱 시작 시 샘플 이메일과 플랜 데이터를 자동으로 생성해요 (다음 재시작부터 적용)"
                 />
               </SettingsCard>
             </SettingsSection>

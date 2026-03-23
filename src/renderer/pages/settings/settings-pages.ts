@@ -7,6 +7,7 @@ import { InputSettingsPage } from './InputSettingsPage.js'
 import { LabelsSettingsPage } from './LabelsSettingsPage.js'
 import { ShortcutsSettingsPage } from './ShortcutsSettingsPage.js'
 import { PreferencesSettingsPage } from './PreferencesSettingsPage.js'
+import { CodeLabSettingsPage } from './CodeLabSettingsPage.js'
 
 /**
  * Settings 페이지 레지스트리 — craft-agents-oss 패턴
@@ -15,6 +16,7 @@ import { PreferencesSettingsPage } from './PreferencesSettingsPage.js'
 export const SETTINGS_PAGES: Record<SettingsCategory, ComponentType> = {
   app: AppSettingsPage,
   ai: AiSettingsPage,
+  codelab: CodeLabSettingsPage,
   appearance: AppearanceSettingsPage,
   input: InputSettingsPage,
   labels: LabelsSettingsPage,

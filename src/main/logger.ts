@@ -15,11 +15,20 @@ function getLogPath(): string {
 
 const isDev = !app.isPackaged;
 
+const redactPaths = [
+  "*.accessToken",
+  "*.refreshToken",
+  "*.apiKey",
+  "*.headers.authorization",
+  '*.headers["x-api-key"]',
+];
+
 const logger = isDev
   ? pino({
       level: "debug",
+      redact: redactPaths,
       transport: { target: "pino-pretty", options: { colorize: true, translateTime: "HH:MM:ss" } },
     })
-  : pino({ level: "info" }, pino.destination(getLogPath()));
+  : pino({ level: "info", redact: redactPaths }, pino.destination(getLogPath()));
 
 export { logger };

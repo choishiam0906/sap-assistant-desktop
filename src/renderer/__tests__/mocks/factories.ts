@@ -235,6 +235,7 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
     emailListLinkedPlans: vi.fn().mockResolvedValue([]),
     emailListProviders: vi.fn().mockResolvedValue([]),
     emailSyncProvider: vi.fn().mockResolvedValue({ added: 0, skipped: 0 }),
+    emailManualImport: vi.fn().mockResolvedValue({ id: 'manual-1', sourceId: 'manual', providerMessageId: 'manual-1', fromEmail: 'manual@local', subject: '수동 입력', bodyText: '본문', receivedAt: '', labels: ['manual'], isProcessed: false, provider: 'manual', createdAt: '' }),
 
     // Code Analysis
     codeAnalysisRun: vi.fn().mockResolvedValue({}),
@@ -242,6 +243,13 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
     codeAnalysisRunsList: vi.fn().mockResolvedValue([]),
     codeAnalysisRunDetail: vi.fn().mockResolvedValue({ run: null, results: [] }),
     onCodeAnalysisProgress: vi.fn().mockReturnValue(() => {}),
+
+    // GitHub (CodeLab)
+    githubConnect: vi.fn().mockResolvedValue({ source: null, summary: { indexed: 0, updated: 0, unchanged: 0, removed: 0, skipped: 0, failed: 0 } }),
+    githubSync: vi.fn().mockResolvedValue({ source: null, summary: { indexed: 0, updated: 0, unchanged: 0, removed: 0, skipped: 0, failed: 0 } }),
+    githubSavePat: vi.fn().mockResolvedValue(undefined),
+    githubDeletePat: vi.fn().mockResolvedValue(undefined),
+    githubListSources: vi.fn().mockResolvedValue([]),
 
     // Schedule
     listScheduledTasks: vi.fn().mockResolvedValue([]),

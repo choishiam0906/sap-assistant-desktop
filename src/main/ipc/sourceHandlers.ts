@@ -6,6 +6,7 @@ import type {
   VaultClassification,
 } from "../contracts.js";
 import type { McpServerConfig } from "../sources/mcpConnector.js";
+import type { GitHubConnectInput } from "../sources/githubProvider.js";
 import { listCustomSkillDefinitions } from "../skills/registry.js";
 import { saveCustomSkill, deleteCustomSkill, getSkillFolderPath } from "../skills/skillLoaderService.js";
 import type { IpcContext } from "./types.js";
@@ -117,6 +118,32 @@ export function registerSourceHandlers(ctx: IpcContext): void {
       source: ctx.configuredSourceRepo.getById(sourceId),
       summary,
     };
+  }));
+
+  // ─── GitHub (CodeLab 연동) ───
+
+  ipcMain.handle(IPC.GITHUB_CONNECT, wrapHandler(IPC.GITHUB_CONNECT, async (_event, input: GitHubConnectInput) => {
+    return ctx.githubProvider.connectRepo(input);
+  }));
+
+  ipcMain.handle(IPC.GITHUB_SYNC, wrapHandler(IPC.GITHUB_SYNC, async (_event, sourceId: string) => {
+    const summary = await ctx.githubProvider.syncRepo(sourceId);
+    return {
+      source: ctx.configuredSourceRepo.getById(sourceId),
+      summary,
+    };
+  }));
+
+  ipcMain.handle(IPC.GITHUB_SAVE_PAT, wrapHandler(IPC.GITHUB_SAVE_PAT, async (_event, pat: string) => {
+    await ctx.githubProvider.savePat(pat);
+  }));
+
+  ipcMain.handle(IPC.GITHUB_DELETE_PAT, wrapHandler(IPC.GITHUB_DELETE_PAT, async () => {
+    await ctx.githubProvider.deletePat();
+  }));
+
+  ipcMain.handle(IPC.GITHUB_LIST_SOURCES, wrapHandler(IPC.GITHUB_LIST_SOURCES, async () => {
+    return ctx.configuredSourceRepo.list("api");
   }));
 
   // ─── 커스텀 스킬 CRUD ───

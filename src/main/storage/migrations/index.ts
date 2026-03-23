@@ -9,6 +9,7 @@ import { migration007 } from "./007_remove_policy.js";
 import { migration008 } from "./008_email_inbox.js";
 import { migration009 } from "./009_code_analysis.js";
 import { migration010 } from "./010_email_provider.js";
+import { migration011 } from "./011_add_missing_indexes.js";
 
 /** 모든 마이그레이션을 버전 순서로 내보낸다. */
 export const allMigrations: Migration[] = [
@@ -22,4 +23,5 @@ export const allMigrations: Migration[] = [
   migration008,
   migration009,
   migration010,
+  migration011,
 ];

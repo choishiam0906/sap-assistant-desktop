@@ -7,8 +7,6 @@ import type {
   AgentDefinition,
   AgentExecution,
   AgentStep,
-  PipelineContext,
-  StepContextData,
 } from '../../types/agent.js';
 import { AgentExecutor, buildExecutionLevels } from '../executor.js';
 import { IPC } from '../../ipc/channels.js';
@@ -729,9 +727,7 @@ describe('AgentExecutor', () => {
         dependsOn: ['A'],
       });
 
-      let callCount = 0;
       mockChatRuntime.sendMessage.mockImplementation(async () => {
-        callCount++;
         throw new Error('Step failed');
       });
 

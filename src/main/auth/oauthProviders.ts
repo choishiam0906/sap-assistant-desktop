@@ -21,6 +21,8 @@ export interface OAuthProviderConfig {
   extraAuthParams?: Record<string, string>;
   /** OAuth 후 id_token → API Key 변환이 필요한 provider (OpenAI Codex) */
   requiresTokenExchange?: boolean;
+  /** 토큰 교환 body에 state를 포함해야 하는 provider (Anthropic 비표준) */
+  sendStateInTokenExchange?: boolean;
 }
 
 export function getOAuthConfig(
@@ -67,6 +69,7 @@ export function getOAuthConfig(
         tokenContentType: "json",
         useCallbackServer: false,
         redirectUri: "https://console.anthropic.com/oauth/code/callback",
+        sendStateInTokenExchange: true,
       };
     }
     case "google": {

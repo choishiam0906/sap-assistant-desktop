@@ -145,6 +145,14 @@ export const IPC = {
   EMAIL_LIST_LINKED_PLANS: 'email:listLinkedPlans',
   EMAIL_LIST_PROVIDERS: 'email:listProviders',
   EMAIL_SYNC_PROVIDER: 'email:syncProvider',
+  EMAIL_MANUAL_IMPORT: 'email:manualImport',
+
+  // ── GitHub (CodeLab 연동) ──
+  GITHUB_CONNECT: 'github:connect',
+  GITHUB_SYNC: 'github:sync',
+  GITHUB_SAVE_PAT: 'github:savePat',
+  GITHUB_DELETE_PAT: 'github:deletePat',
+  GITHUB_LIST_SOURCES: 'github:listSources',
 
   // ── Code Analysis (코드 분석) ──
   CODE_ANALYSIS_RUN: 'codeAnalysis:run',

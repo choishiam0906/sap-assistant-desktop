@@ -26,6 +26,7 @@ import type { RoutineScheduler } from "../services/routineScheduler.js";
 import type { AgentExecutor } from "../agents/executor.js";
 import type { EmailManager } from "../email/emailManager.js";
 import type { CodeAnalyzer } from "../analysis/codeAnalyzer.js";
+import type { GitHubSourceProvider } from "../sources/githubProvider.js";
 import type {
   EmailInboxRepository,
   EmailTaskLinkRepository,
@@ -60,5 +61,6 @@ export interface IpcContext {
   emailTaskLinkRepo: EmailTaskLinkRepository;
   codeAnalyzer: CodeAnalyzer;
   codeAnalysisRepo: CodeAnalysisRepository;
+  githubProvider: GitHubSourceProvider;
   getMainWindow: () => BrowserWindow | null;
 }

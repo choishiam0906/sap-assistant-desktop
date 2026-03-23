@@ -158,6 +158,35 @@ export class ConfiguredSourceRepository {
     return this.getById(id)!;
   }
 
+  createApiSource(input: {
+    title: string;
+    classificationDefault: VaultClassification;
+    includeGlobs?: string[];
+    connectionMeta: Record<string, string>;
+  }): ConfiguredSource {
+    const now = nowIso();
+    const id = randomUUID();
+    this.db
+      .prepare(
+        `INSERT INTO configured_sources(
+          id, kind, title, root_path, classification_default,
+          include_globs, enabled, sync_status, last_indexed_at,
+          connection_meta_json, created_at, updated_at
+        )
+        VALUES (?, 'api', ?, NULL, ?, ?, 1, 'idle', NULL, ?, ?, ?)`
+      )
+      .run(
+        id,
+        input.title,
+        input.classificationDefault,
+        JSON.stringify(input.includeGlobs ?? []),
+        JSON.stringify(input.connectionMeta),
+        now,
+        now
+      );
+    return this.getById(id)!;
+  }
+
   updateSyncStatus(sourceId: string, syncStatus: SourceSyncStatus, lastIndexedAt?: string | null): void {
     this.db
       .prepare(

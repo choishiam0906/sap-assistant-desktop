@@ -449,6 +449,27 @@ const desktopApi = {
   emailSyncProvider(providerType: string): Promise<{ added: number; skipped: number }> {
     return ipcRenderer.invoke(IPC.EMAIL_SYNC_PROVIDER, providerType);
   },
+  emailManualImport(input: { subject: string; bodyText: string; fromEmail?: string; fromName?: string }) {
+    return ipcRenderer.invoke(IPC.EMAIL_MANUAL_IMPORT, input);
+  },
+
+  // ─── GitHub (CodeLab 연동) API ───
+
+  githubConnect(input: { repoUrl: string; pat?: string; branch?: string }) {
+    return ipcRenderer.invoke(IPC.GITHUB_CONNECT, input);
+  },
+  githubSync(sourceId: string) {
+    return ipcRenderer.invoke(IPC.GITHUB_SYNC, sourceId);
+  },
+  githubSavePat(pat: string) {
+    return ipcRenderer.invoke(IPC.GITHUB_SAVE_PAT, pat);
+  },
+  githubDeletePat() {
+    return ipcRenderer.invoke(IPC.GITHUB_DELETE_PAT);
+  },
+  githubListSources() {
+    return ipcRenderer.invoke(IPC.GITHUB_LIST_SOURCES);
+  },
 
   // ─── Code Analysis (코드 분석) API ───
 

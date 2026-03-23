@@ -22,6 +22,7 @@ interface SettingsState {
   language: Language
   thinkingLevel: ThinkingLevel
   chatHistoryLimit: number
+  demoMode: boolean
 
   setTheme: (theme: Theme) => void
   setDefaultProvider: (provider: ProviderType) => void
@@ -35,6 +36,7 @@ interface SettingsState {
   setLanguage: (l: Language) => void
   setThinkingLevel: (l: ThinkingLevel) => void
   setChatHistoryLimit: (v: number) => void
+  setDemoMode: (v: boolean) => void
 }
 
 function applyTheme(theme: Theme) {
@@ -138,6 +140,7 @@ export const useSettingsStore = create<SettingsState>()(
       language: 'ko' as Language,
       thinkingLevel: 'medium' as ThinkingLevel,
       chatHistoryLimit: 10,
+      demoMode: false,
 
       setTheme: (theme) => {
         applyTheme(theme)
@@ -180,6 +183,9 @@ export const useSettingsStore = create<SettingsState>()(
         try { window.assistantDesktop?.setChatHistoryLimit(clamped) } catch { /* 무시 */ }
         set({ chatHistoryLimit: clamped })
       },
+      setDemoMode: (demoMode) => {
+        set({ demoMode })
+      },
     }),
     {
       name: 'sap-ops-settings',
@@ -197,6 +203,7 @@ export const useSettingsStore = create<SettingsState>()(
         language: state.language,
         thinkingLevel: state.thinkingLevel,
         chatHistoryLimit: state.chatHistoryLimit,
+        demoMode: state.demoMode,
       }),
       migrate: (persisted) => {
         // 기존 분산 키에서 통합 마이그레이션

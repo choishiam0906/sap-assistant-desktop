@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Mail, RefreshCw, CheckCircle2 } from 'lucide-react'
 import { queryKeys } from '../../hooks/queryKeys.js'
 import { Button } from '../../components/ui/Button.js'
+import { ManualEmailInput } from '../../components/email/ManualEmailInput.js'
 import { EmailDetailModal } from './EmailDetailModal.js'
 import './EmailInboxPage.css'
 
@@ -82,7 +83,8 @@ export function EmailInboxPage() {
         <div className="email-inbox-empty">
           <Mail size={48} strokeWidth={1} />
           <h3>메일이 없어요</h3>
-          <p>설정에서 Gmail 또는 Outlook을 연결하세요.</p>
+          <p>설정에서 Gmail 또는 Outlook을 연결하거나, 아래에서 직접 이메일을 붙여넣으세요.</p>
+          <ManualEmailInput />
         </div>
       ) : (
         <div className="email-inbox-list">

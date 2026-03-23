@@ -16,6 +16,7 @@ import { RoutineScheduler } from "../services/routineScheduler.js";
 import { SkillSourceRegistry } from "../skills/registry.js";
 import { LocalFolderSourceLibrary } from "../sources/localFolderLibrary.js";
 import { McpConnector } from "../sources/mcpConnector.js";
+import { GitHubSourceProvider } from "../sources/githubProvider.js";
 import { EmailManager } from "../email/emailManager.js";
 import { GmailMcpProvider } from "../email/providers/gmailMcpProvider.js";
 import { OutlookGraphProvider } from "../email/providers/outlookGraphProvider.js";
@@ -36,6 +37,7 @@ export interface Services {
   agentExecutor: AgentExecutor;
   emailManager: EmailManager;
   codeAnalyzer: CodeAnalyzer;
+  githubProvider: GitHubSourceProvider;
 }
 
 export function createServices(
@@ -75,6 +77,7 @@ export function createServices(
     repos.sourceDocumentRepo,
   );
   const mcpConnector = new McpConnector(repos.configuredSourceRepo, repos.sourceDocumentRepo);
+  const githubProvider = new GitHubSourceProvider(repos.configuredSourceRepo, repos.sourceDocumentRepo);
 
   const routineExecutor = new RoutineExecutor(
     repos.routineTemplateRepo,
@@ -135,5 +138,6 @@ export function createServices(
     agentExecutor,
     emailManager,
     codeAnalyzer,
+    githubProvider,
   };
 }

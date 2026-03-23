@@ -45,6 +45,16 @@ export default tseslint.config(
     },
   },
 
+  // Test files (all __tests__ directories)
+  {
+    files: ['src/**/__tests__/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.test.json',
+      },
+    },
+  },
+
   // Ignore build outputs
   {
     ignores: ['dist/', 'dist-renderer/', 'release/', 'node_modules/'],

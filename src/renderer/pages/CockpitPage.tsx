@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useAppShellStore } from '../stores/appShellStore'
 import { useCockpitStore } from '../stores/cockpitStore'
 import type { CockpitViewMode } from '../stores/cockpitStore'
+import { FirstRunBanner } from '../components/onboarding/FirstRunBanner'
 import { OverviewPanel } from './cockpit/OverviewPanel'
 import { DailyTasksPanel } from './cockpit/DailyTasksPanel'
 import { MonthlyClosingPanel } from './cockpit/MonthlyClosingPanel'
@@ -31,6 +32,7 @@ export function CockpitPage() {
 
   return (
     <div className="cockpit-page">
+      <FirstRunBanner />
       {viewMode === 'overview' && <OverviewPanel />}
       {viewMode === 'daily' && <DailyTasksPanel />}
       {viewMode === 'monthly' && <MonthlyClosingPanel />}

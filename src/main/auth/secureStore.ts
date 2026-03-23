@@ -1,3 +1,5 @@
+import { fileFallback } from "./fileFallback.js";
+
 type SecureRecord = {
   accessToken: string;
   refreshToken?: string;
@@ -9,8 +11,6 @@ type KeytarModule = {
   setPassword: (service: string, account: string, password: string) => Promise<void>;
   deletePassword: (service: string, account: string) => Promise<boolean>;
 };
-
-const fallback = new Map<string, string>();
 
 async function loadKeytar(): Promise<KeytarModule | null> {
   try {
@@ -33,7 +33,7 @@ export class SecureStore {
     const account = this.key(provider);
     const raw = keytar
       ? await keytar.getPassword(this.serviceName, account)
-      : fallback.get(account) ?? null;
+      : fileFallback.get(account);
     if (!raw) {
       return null;
     }
@@ -48,7 +48,7 @@ export class SecureStore {
       await keytar.setPassword(this.serviceName, account, raw);
       return;
     }
-    fallback.set(account, raw);
+    fileFallback.set(account, raw);
   }
 
   async delete(provider: string): Promise<void> {
@@ -58,7 +58,7 @@ export class SecureStore {
       await keytar.deletePassword(this.serviceName, account);
       return;
     }
-    fallback.delete(account);
+    fileFallback.delete(account);
   }
 }
 

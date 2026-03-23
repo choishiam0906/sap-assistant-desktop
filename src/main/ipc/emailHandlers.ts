@@ -34,6 +34,13 @@ export function registerEmailHandlers(ctx: IpcContext): void {
   );
 
   ipcMain.handle(
+    IPC.EMAIL_MANUAL_IMPORT,
+    wrapHandler(IPC.EMAIL_MANUAL_IMPORT, (_e, input: { subject: string; bodyText: string; fromEmail?: string; fromName?: string }) =>
+      ctx.emailManager.manualImport(input),
+    ),
+  );
+
+  ipcMain.handle(
     IPC.EMAIL_ANALYZE_AND_CREATE_PLAN,
     wrapHandler(
       IPC.EMAIL_ANALYZE_AND_CREATE_PLAN,

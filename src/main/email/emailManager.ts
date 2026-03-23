@@ -187,6 +187,29 @@ export class EmailManager {
     return { plan, steps, link };
   }
 
+  /**
+   * 수동 이메일 임포트 — 사용자가 직접 붙여넣기하거나 .eml 파일을 드롭한 이메일 본문을 저장한다.
+   */
+  manualImport(input: {
+    subject: string;
+    bodyText: string;
+    fromEmail?: string;
+    fromName?: string;
+  }): EmailInbox {
+    const now = new Date().toISOString();
+    return this.emailInboxRepo.create({
+      sourceId: "manual",
+      providerMessageId: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      fromEmail: input.fromEmail || "manual@local",
+      fromName: input.fromName,
+      subject: input.subject,
+      bodyText: input.bodyText,
+      receivedAt: now,
+      labels: ["manual"],
+      provider: "manual",
+    });
+  }
+
   /** 인박스 목록 조회 */
   listInbox(options?: {
     limit?: number;
