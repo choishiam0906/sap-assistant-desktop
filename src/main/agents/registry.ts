@@ -68,6 +68,39 @@ const PRESET_AGENTS: AgentDefinition[] = [
       },
     ],
   },
+  {
+    id: "system-health-check-workflow",
+    title: "시스템 헬스체크 Workflow",
+    description:
+      "프로세스 상태 → 성능 병목 → 운영 절차서를 한 번에 생성해요.",
+    category: "analysis",
+    estimatedDuration: 360,
+    steps: [
+      {
+        id: "process",
+        skillId: "process-monitor",
+        label: "프로세스 모니터링 분석",
+        sortOrder: 1,
+        config: {},
+      },
+      {
+        id: "perf",
+        skillId: "perf-analysis",
+        label: "성능 병목 진단",
+        sortOrder: 2,
+        dependsOn: ["process"],
+        config: {},
+      },
+      {
+        id: "runbook",
+        skillId: "ops-runbook-writer",
+        label: "조치 절차서 작성",
+        sortOrder: 3,
+        dependsOn: ["perf"],
+        config: {},
+      },
+    ],
+  },
 ];
 
 function getAllAgents(): AgentDefinition[] {
