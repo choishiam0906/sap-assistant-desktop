@@ -15,7 +15,7 @@ describe('SettingsPage', () => {
     useSettingsStore.setState({
       theme: 'system',
       defaultProvider: 'openai',
-      defaultModel: 'gpt-4.1-mini',
+      defaultModel: 'gpt-5.4-mini',
       fontFamily: 'pretendard',
       sendKey: 'enter',
       spellCheck: true,
@@ -88,7 +88,7 @@ describe('SettingsPage', () => {
     const addBtn = screen.getByRole('button', { name: '연결 추가' })
     await user.click(addBtn)
 
-    expect(screen.getByText('Welcome to SAP Knowledge Hub')).toBeInTheDocument()
+    expect(screen.getByText('Welcome to Enterprise Knowledge Hub')).toBeInTheDocument()
     expect(screen.getByText('어떻게 연결하시겠어요?')).toBeInTheDocument()
     // Craft-style 연결 방법 카드
     expect(screen.getByText('Claude Pro / Max')).toBeInTheDocument()

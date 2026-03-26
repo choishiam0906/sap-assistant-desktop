@@ -1,3 +1,7 @@
+vi.mock("electron", () => ({
+  app: { getPath: () => "/tmp", isPackaged: false },
+}));
+
 import { ChatRuntime } from "../chatRuntime.js";
 import type { LlmProvider, ProviderChatOutput } from "../providers/base.js";
 import type { ProviderResilience } from "../providers/providerResilience.js";

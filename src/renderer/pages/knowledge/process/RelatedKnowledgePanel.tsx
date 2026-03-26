@@ -57,9 +57,9 @@ export function RelatedKnowledgePanel({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onNavigate('knowledge', 'vault')}
+            onClick={() => onNavigate('knowledge', 'process')}
           >
-            Vault 보기
+            프로세스 보기
           </Button>
           <Button
             variant="ghost"

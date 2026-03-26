@@ -43,8 +43,8 @@ export class CopilotProvider implements LlmProvider {
       headers: {
         Authorization: `token ${githubToken}`,
         Accept: "application/json",
-        "Editor-Version": "vscode/1.100.0",
-        "Editor-Plugin-Version": "copilot/1.300.0",
+        "Editor-Version": "vscode/1.102.0",
+        "Editor-Plugin-Version": "copilot/1.310.0",
       },
     });
 
@@ -89,8 +89,8 @@ export class CopilotProvider implements LlmProvider {
       headers: {
         Authorization: `Bearer ${copilotToken}`,
         "Content-Type": "application/json",
-        "Editor-Version": "vscode/1.100.0",
-        "Editor-Plugin-Version": "copilot/1.300.0",
+        "Editor-Version": "vscode/1.102.0",
+        "Editor-Plugin-Version": "copilot/1.310.0",
         "Copilot-Integration-Id": "vscode-chat",
       },
       body: JSON.stringify({
@@ -141,8 +141,8 @@ export class CopilotProvider implements LlmProvider {
       headers: {
         Authorization: `Bearer ${copilotToken}`,
         "Content-Type": "application/json",
-        "Editor-Version": "vscode/1.100.0",
-        "Editor-Plugin-Version": "copilot/1.300.0",
+        "Editor-Version": "vscode/1.102.0",
+        "Editor-Plugin-Version": "copilot/1.310.0",
         "Copilot-Integration-Id": "vscode-chat",
       },
       body: JSON.stringify({

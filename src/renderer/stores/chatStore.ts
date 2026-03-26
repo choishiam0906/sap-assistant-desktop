@@ -148,3 +148,17 @@ export const useChatAgentExecution = () =>
 
 export const useChatError = () =>
   useChatStore(useShallow((s) => ({ error: s.error, setError: s.setError, clearError: s.clearError })))
+
+// ─── Settings → Chat 디폴트 AI 동기화 ───
+// Settings에서 디폴트 프로바이더/모델을 변경하면 chatStore에 자동 반영
+useSettingsStore.subscribe((state, prevState) => {
+  if (
+    state.defaultProvider !== prevState.defaultProvider ||
+    state.defaultModel !== prevState.defaultModel
+  ) {
+    useChatStore.setState({
+      provider: state.defaultProvider,
+      model: state.defaultModel,
+    })
+  }
+})

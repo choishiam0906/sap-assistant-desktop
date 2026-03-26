@@ -1,9 +1,10 @@
 import { ipcMain, shell } from "electron";
 
 import type { AgentExecutionListOptions } from "../storage/repositories/agentExecutionRepository.js";
-import type { InteractiveAgentInput } from "../types/agent.js";
+import type { InteractiveAgentInput, ReActExecutionInput } from "../types/agent.js";
 import { listAgentDefinitions, getAgentDefinition, listCustomAgentDefinitions } from "../agents/registry.js";
 import { saveCustomAgent, deleteCustomAgent, getAgentFolderPath } from "../agents/agentLoaderService.js";
+import { ReActExecutor } from "../agents/reactExecutor.js";
 import type { IpcContext } from "./types.js";
 import { IPC } from "./channels.js";
 import { wrapHandler } from "./helpers/wrapHandler.js";
@@ -56,4 +57,41 @@ export function registerAgentHandlers(ctx: IpcContext): void {
   ipcMain.handle(IPC.AGENTS_OPEN_FOLDER, wrapHandler(IPC.AGENTS_OPEN_FOLDER, async () => {
     await shell.openPath(getAgentFolderPath());
   }));
+
+  // ─── ReAct 도구 기반 에이전트 ───
+
+  ipcMain.handle(
+    IPC.AGENTS_TOOLS_LIST,
+    wrapHandler(IPC.AGENTS_TOOLS_LIST, () => {
+      const tools = ctx.agentToolkit.listTools();
+      return tools.map((t) => ({
+        name: t.name,
+        description: t.description,
+        parameters: t.parameters,
+      }));
+    }),
+  );
+
+  ipcMain.handle(
+    IPC.AGENTS_REACT_EXECUTE,
+    wrapHandler(IPC.AGENTS_REACT_EXECUTE, async (_e, input: ReActExecutionInput) => {
+      const executor = new ReActExecutor(ctx.chatRuntime, {
+        maxIterations: input.maxIterations || 5,
+        toolkit: ctx.agentToolkit,
+        provider: input.provider,
+        model: input.model,
+      });
+
+      const mainWindow = ctx.getMainWindow?.();
+
+      const result = await executor.execute(input.query, input.sessionId, (step) => {
+        // 각 스텝을 Renderer에 전송
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send(IPC.AGENTS_REACT_STEP, step);
+        }
+      });
+
+      return result;
+    }),
+  );
 }

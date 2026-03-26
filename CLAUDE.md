@@ -1,4 +1,4 @@
-# CLAUDE.md - SAP Knowledge Hub v7.1.0
+# CLAUDE.md - Enterprise Knowledge Hub v9.0.0
 
 ## 프로젝트 개요
 
@@ -10,7 +10,7 @@
 - **UI 라이브러리**: lucide-react (아이콘)
 - **스타일**: CSS 변수 시스템 (Tailwind/CSS-in-JS 미사용)
 
-**버전**: v7.1.0
+**버전**: v9.0.0
 
 ---
 
@@ -223,6 +223,25 @@ desktop/
 - **UI 범용화**: CSS 클래스 .ask-sap-*→.chat-*, 디렉토리 sap-assistant/→assistant/, 앱 브랜딩 텍스트 범용화
 - **호환성 유지**: contracts.ts deprecated alias, SapAssistantSubPage alias
 
+### v8.1 변경 사항 (Dashboard 통합 — UI 리팩토링)
+- **Dashboard 통합**: 사이드바 8→5 섹션 축소 (Cockpit→Dashboard, AI 검색·리포트→Dashboard 위젯, Code Analysis→Knowledge 탭)
+- **통합 타임라인**: DailyTasksPanel + MonthlyClosingPanel + YearlyClosingPanel → TaskTimelinePanel (필터 탭 전환)
+- **위젯 그리드**: DashboardOverviewPanel에 SearchWidget + ReportsWidget 배치 (2x2 CSS Grid)
+- **타입 시스템**: AppSection 축소, DashboardViewMode 신규, LegacySection 리다이렉트
+- **레거시 호환**: cockpitStore.ts/CockpitPage.tsx/SearchPage.tsx/ReportsPage.tsx → deprecated re-export 유지
+- **백엔드 변경 없음**: 순수 프론트엔드 리팩토링
+- **버전**: 8.0.0 → 8.1.0
+
+### v8.0 변경 사항 (Enterprise Knowledge Hub + AI 검색/리포트)
+- **리브랜딩**: SAP Knowledge Hub → Enterprise Knowledge Hub
+- **벡터 DB**: sqlite-vec 연동, document_chunks + chunk_embeddings 테이블
+- **임베딩 파이프라인**: OpenAI text-embedding-3-small, DocumentChunker, DocumentImporter
+- **RAG 서비스**: HybridSearchEngine (벡터 + FTS5 + RRF), RagPipeline, ChatRuntime 연동
+- **리포트 자동화**: ReportGenerator, ExportService (PDF/Excel/HTML), 프리셋 템플릿
+- **검색 UI**: SearchPage (하이브리드 검색), SourceCitations (출처 인용)
+- **리포트 UI**: ReportsPage, ReportViewer
+- **버전**: 7.1.0 → 8.0.0
+
 ### v7.1 변경 사항 (SAP Knowledge Hub 리브랜딩)
 - **리브랜딩**: Assistant Desktop → SAP Knowledge Hub (productName, UI, docs)
 - **alias 제거**: window.sapOpsDesktop 하위 호환 alias 완전 제거
@@ -247,10 +266,25 @@ desktop/
 - **Chat History 설정화**: configurable history window (2~100)
 - **다크 모드**: CSS 변수 + data-theme 속성 전환 (이미 v4에서 준비됨)
 
+### v9.0 변경 사항 (Data Platform + AI Agent Tool-Use + 모델 갱신)
+- **Data Platform 연동**: DataPlatformProvider — REST API 외부 데이터 소스 연동 (JSON/CSV/XML, API Key/Bearer/Basic Auth)
+- **DataTransformer**: JSON dataPath 추출, CSV 파싱, XML 정규식 파싱
+- **AI Agent Tool-Use**: AgentToolkit (4개 내장 도구), ReActExecutor (Thought→Action→Observation 루프)
+- **AI 모델 갱신**: GPT-5.4/5.4-mini/o3 추가, GPT-4o 퇴역 모델 정리
+- **디폴트 AI 동기화**: Settings→Chat 디폴트 프로바이더 실시간 반영
+- **OAuth 수정**: OpenAI audience 파라미터 추가, RFC 8693 파라미터명 수정, Copilot 헤더 갱신
+- **검색 고도화**: SearchConfigRepository, FollowUpGenerator, 프리셋 템플릿
+- **임베딩 캐시**: EmbeddingCache SQLite 기반 캐싱, 파이프라인 배치 처리
+- **리포트 스케줄**: ReportScheduler cron 기반, 프리셋 템플릿 시스템
+- **버전**: 8.0.0 → 9.0.0
+
 ## 최근 변경 이력
 
 | 버전 | 날짜 | 변경 사항 |
 |------|------|----------|
+| 9.0.0 | 2026-03-26 | Data Platform 연동, AI Agent Tool-Use, 모델 갱신, OAuth 수정, 검색/임베딩/리포트 고도화 |
+| 8.1.0 | 2026-03-25 | Dashboard 통합: 사이드바 8→5, 위젯 그리드, TaskTimelinePanel, 레거시 리다이렉트 |
+| 8.0.0 | 2026-03-25 | Enterprise Knowledge Hub 리브랜딩, 벡터 DB + RAG + 리포트 자동화 |
 | 7.1.0 | 2026-03-23 | SAP Knowledge Hub 리브랜딩, sapOpsDesktop alias 제거, TS 에러 정리 |
 | 6.1.0 | 2026-03-21 | 범용 플랫폼 전환: 리브랜딩, 타입/IPC 범용화, Domain Pack 시스템, UI 범용화 |
 | 6.0.0 | 2026-03-15 | v6.0 코드 품질 개선: UI 분할, a11y, 캐싱, 안정성, 테스트, Zustand 통일, CJS 번들링 |

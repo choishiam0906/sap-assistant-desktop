@@ -1,4 +1,4 @@
-# SAP Knowledge Hub v7.1.0 — 제품 요구사항 문서 (PRD)
+# Enterprise Knowledge Hub v8.0.0 — 제품 요구사항 문서 (PRD)
 
 **버전**: 1.0
 **작성일**: 2026-03-23
@@ -11,7 +11,7 @@
 
 ### 1.1 비전 (Vision)
 
-SAP Knowledge Hub는 제조기업의 현업 운영자(End User)가 복잡한 시스템 에러를 자가 진단하고, AI 기반의 지능형 분석으로 운영 업무를 자율적으로 해결하는 **로컬 우선(Local-First) 지능형 지원 플랫폼**입니다.
+Enterprise Knowledge Hub는 제조기업의 현업 운영자(End User)가 복잡한 시스템 에러를 자가 진단하고, AI 기반의 지능형 분석으로 운영 업무를 자율적으로 해결하는 **로컬 우선(Local-First) 지능형 지원 플랫폼**입니다.
 
 ### 1.2 핵심 가치 제안 (Value Proposition)
 
@@ -469,11 +469,11 @@ migrations/
 
 #### **기능 18: 배포 (Deployment)**
 **우선순위**: P0 (Critical)
-**상지**: 완료
+**상태**: 완료
 
 **배포 형태**:
-- **NSIS 설치형**: Windows 설치 프로그램 (Assistant-Desktop-7.1.0-Setup.exe)
-- **Portable**: 설치 불필요 휴대용 (Assistant-Desktop-7.1.0-Portable.exe)
+- **NSIS 설치형**: Windows 설치 프로그램 (Enterprise-Knowledge-Hub-8.0.0-Setup.exe)
+- **Portable**: 설치 불필요 휴대용 (Enterprise-Knowledge-Hub-8.0.0-Portable.exe)
 
 **빌드 파이프라인**:
 ```
@@ -610,18 +610,18 @@ TypeScript → esbuild (CJS 번들) → electron-builder → NSIS/Portable
 
 ## 8. 향후 계획 (Roadmap)
 
-### 8.1 v7.2 (2026-04-30)
+### 8.1 v8.1 (2026-04-30)
 - [ ] Slack 통합 (알림)
 - [ ] 다크 모드 UI 개선
 - [ ] 접근성(a11y) 강화
 
-### 8.2 v8.0 (2026-06-23)
+### 8.2 v9.0 (2026-06-23)
 - [ ] macOS/Linux 지원
 - [ ] 팀 협업 기능 (클라우드 동기화)
 - [ ] 모바일 앱 (React Native)
 - [ ] 추가 LLM 지원 (Claude 4, Gemini 3 등)
 
-### 8.3 v9.0+ (2026-09+)
+### 8.3 v10.0+ (2026-09+)
 - [ ] AI 에이전트 자동화 고도화
 - [ ] SAP S/4HANA 2025 지원
 - [ ] 규제 컴플라이언스 인증 (SOC2, ISO27001)

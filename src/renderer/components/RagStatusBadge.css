@@ -1,0 +1,96 @@
+.rag-status-badge-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.rag-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), opacity var(--transition-fast);
+  color: var(--color-text-secondary);
+}
+
+.rag-status-badge:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.rag-status-badge:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+/* Status variants */
+.rag-status-badge--success {
+  color: var(--color-success);
+}
+
+.rag-status-badge--partial {
+  color: var(--color-warning);
+}
+
+.rag-status-badge--failed {
+  color: var(--color-error);
+}
+
+.rag-status-badge--skipped {
+  color: var(--color-text-muted);
+}
+
+/* Popover */
+.rag-status-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--spacing-xs);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+  min-width: 140px;
+  animation: popoverFadeIn 0.15s ease;
+}
+
+@keyframes popoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rag-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
+}
+
+.rag-metric-row:not(:last-child) {
+  margin-bottom: var(--spacing-xs);
+}
+
+.rag-metric-label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.rag-metric-value {
+  color: var(--color-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

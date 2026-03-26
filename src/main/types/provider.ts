@@ -12,10 +12,12 @@ export const PROVIDER_LABELS: Record<ProviderType, string> = {
 
 export const PROVIDER_MODELS: Record<ProviderType, { value: string; label: string }[]> = {
   openai: [
+    { value: 'gpt-5.4-mini', label: 'GPT-5.4 Mini' },
+    { value: 'gpt-5.4', label: 'GPT-5.4' },
     { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
     { value: 'gpt-4.1', label: 'GPT-4.1' },
-    { value: 'gpt-4o', label: 'GPT-4o' },
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+    { value: 'o3', label: 'o3' },
+    { value: 'o3-pro', label: 'o3 Pro' },
     { value: 'o4-mini', label: 'o4-mini' },
   ],
   anthropic: [
@@ -28,14 +30,16 @@ export const PROVIDER_MODELS: Record<ProviderType, { value: string; label: strin
     { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
   ],
   copilot: [
-    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-5.4', label: 'GPT-5.4' },
     { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
     { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+    { value: 'o3', label: 'o3' },
     { value: 'o4-mini', label: 'o4-mini' },
   ],
   openrouter: [
     { value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
     { value: 'anthropic/claude-opus-4-6', label: 'Claude Opus 4.6' },
+    { value: 'openai/gpt-5.4', label: 'GPT-5.4' },
     { value: 'openai/gpt-4.1', label: 'GPT-4.1' },
     { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
     { value: 'meta-llama/llama-4-scout', label: 'Llama 4 Scout' },
@@ -53,10 +57,10 @@ export const PROVIDER_MODELS: Record<ProviderType, { value: string; label: strin
 };
 
 export const DEFAULT_MODELS: Record<ProviderType, string> = {
-  openai: 'gpt-4.1-mini',
+  openai: 'gpt-5.4-mini',
   anthropic: 'claude-sonnet-4-6',
   google: 'gemini-2.5-flash',
-  copilot: 'gpt-4o',
+  copilot: 'gpt-5.4',
   openrouter: 'anthropic/claude-sonnet-4-6',
   ollama: 'llama3.3',
   microsoft: '',

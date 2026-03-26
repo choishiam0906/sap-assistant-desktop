@@ -1,10 +1,10 @@
-# SAP Knowledge Hub — Architecture
+# Enterprise Knowledge Hub — Architecture
 
 ## Overview
 
-SAP Knowledge Hub는 **Electron 31 + React 18 + TypeScript 5.7** 기반의 로컬 우선(Local-First) 데스크톱 앱입니다. 민감한 제조기업 운영 데이터를 로컬에 보관하면서 다중 LLM(OpenAI, Anthropic, Google)을 활용한 지능형 운영 지원을 제공합니다.
+Enterprise Knowledge Hub는 **Electron 31 + React 18 + TypeScript 5.7** 기반의 로컬 우선(Local-First) 데스크톱 앱입니다. 민감한 제조기업 운영 데이터를 로컬에 보관하면서 다중 LLM(OpenAI, Anthropic, Google)을 활용한 지능형 운영 지원을 제공합니다.
 
-**v7.1.0 기준**: 167+ IPC 채널, 108 preload 메서드, 13개 핸들러 모듈, 20+ Repository
+**v8.0.0 기준**: 167+ IPC 채널, 108 preload 메서드, 13개 핸들러 모듈, 20+ Repository
 
 ---
 
@@ -333,6 +333,7 @@ src/
 
 | 버전 | 아키텍처 변경 |
 |------|-------------|
+| v8.0.0 | 제품명 리브랜딩 (SAP Knowledge Hub → Enterprise Knowledge Hub), 벡터 DB RAG 시스템 |
 | v7.1.0 | GitHub 코드 연동, 보안 강화 (AES fallback, Logger redact, BrowserWindow 명시) |
 | v7.0.0 | OAuth 4대 프로바이더, 이메일 통합, 코드 분석 엔진, SAP Knowledge Hub 리브랜딩 |
 | v6.1.0 | Domain Pack 시스템, 타입/IPC 범용화, 범용 플랫폼 전환 |

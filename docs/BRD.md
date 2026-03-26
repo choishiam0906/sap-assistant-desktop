@@ -1,4 +1,4 @@
-# SAP Knowledge Hub v7.1.0 — 비즈니스 요구사항 문서 (BRD)
+# Enterprise Knowledge Hub v8.0.0 — 비즈니스 요구사항 문서 (BRD)
 
 **버전**: 1.0
 **작성일**: 2026-03-23
@@ -92,7 +92,7 @@ IT: "코드를 모르니까..."
 
 ## 3. 솔루션 개요 (Solution Overview)
 
-### 3.1 SAP Knowledge Hub의 핵심 가치
+### 3.1 Enterprise Knowledge Hub의 핵심 가치
 
 #### **Value Proposition for End Users (현업 운영자)**
 ```
@@ -133,7 +133,7 @@ IT: "코드를 모르니까..."
 
 ```
 ┌─────────────────────────────────────────┐
-│  SAP Knowledge Hub (Local-First)        │
+│  Enterprise Knowledge Hub (Local-First) │
 │                                         │
 │  ┌─────────────────────────────────┐  │
 │  │  AI-Powered Diagnostics         │  │
@@ -516,6 +516,11 @@ Phase 3: 파트너 에코시스템
 - 5가지 도메인 팩
 - 3가지 보안 모드
 
+#### **v8.0 (2026-03-25): Enterprise Knowledge Hub 리브랜딩**
+- 제품명 변경 (SAP Knowledge Hub → Enterprise Knowledge Hub)
+- 벡터 DB 기반 RAG 시스템
+- 자동화된 리포트 생성
+
 ### 9.2 향후 계획 (Roadmap)
 
 #### **v7.2 (2026-04-30)**
@@ -606,7 +611,7 @@ Phase 3: 파트너 에코시스템
 ### 10.4 KPI 모니터링 (Dashboards)
 
 ```
-SAP Knowledge Hub 운영 대시보드
+Enterprise Knowledge Hub 운영 대시보드
 ┌──────────────────────────────────────────────┐
 │ Product Health                                │
 │ ├─ Availability: 99.7% ↑                    │

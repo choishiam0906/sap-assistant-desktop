@@ -1,4 +1,4 @@
-# Getting Started — SAP Knowledge Hub
+# Getting Started — Enterprise Knowledge Hub
 
 ## 필수 요구사항
 
@@ -119,7 +119,7 @@ npm run test:run      # Vitest 테스트
 3. "연결" 클릭 → 코드 인덱싱 자동 실행
 
 ### 3. 이메일 연동 (선택)
-Gmail 또는 Outlook을 연결하면 SAP 관련 이메일을 AI가 분석합니다:
+Gmail 또는 Outlook을 연결하면 비즈니스 관련 이메일을 AI가 분석합니다:
 - Gmail: MCP 브릿지를 통한 연동
 - Outlook: Microsoft Graph API 연동
 - 수동 임포트: .eml 파일 또는 텍스트 직접 붙여넣기

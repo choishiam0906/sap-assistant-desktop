@@ -532,7 +532,8 @@ export class OAuthManager {
       client_id: oauthConfig.clientId,
       subject_token: idToken,
       subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
-      requested_token: "openai-api-key",
+      requested_token_type: "urn:openai:params:oauth:token-type:api-key",
+      audience: "https://api.openai.com/v1",
     });
 
     logger.debug({

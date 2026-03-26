@@ -1,4 +1,4 @@
-# SAP Knowledge Hub v7.1.0 — 기술 요구사항 문서 (TRD)
+# Enterprise Knowledge Hub v8.0.0 — 기술 요구사항 문서 (TRD)
 
 **버전**: 1.0
 **작성일**: 2026-03-23
@@ -87,7 +87,7 @@
 
 ### 1.2 프로세스 모델 (Process Model)
 
-SAP Knowledge Hub는 Electron의 **3-프로세스 모델**을 따릅니다:
+Enterprise Knowledge Hub는 Electron의 **3-프로세스 모델**을 따릅니다:
 
 ```
 ┌──────────────────┐
@@ -331,7 +331,7 @@ CREATE INDEX idx_auditLog_action ON auditLog(action);
 
 ### 4.1 IPC 채널 개요
 
-SAP Knowledge Hub는 **167개 이상의 IPC 채널**을 정의하며, **108개의 Preload 메서드**를 제공합니다.
+Enterprise Knowledge Hub는 **167개 이상의 IPC 채널**을 정의하며, **108개의 Preload 메서드**를 제공합니다.
 
 #### **IPC 채널 분류 (카테고리별)**
 
@@ -892,6 +892,10 @@ Source Code (TypeScript)
 |--------|------|------|---------|
 | **NSIS Setup** | Windows 인스톨러 | ~250MB | 설치 필요 |
 | **Portable** | 휴대용 exe | ~250MB | 설치 불필요 |
+
+#### **변경 이력**
+- v7.1: 기존 SAP Knowledge Hub 기술 스펙
+- v8.0: Enterprise Knowledge Hub 리브랜딩 (기술 스펙 동일)
 
 ### 7.3 자동 업데이트 (electron-updater)
 

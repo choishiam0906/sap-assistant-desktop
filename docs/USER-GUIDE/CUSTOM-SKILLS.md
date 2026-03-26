@@ -2,7 +2,7 @@
 
 ## 개요
 
-스킬은 특정 SAP 운영 작업에 특화된 **LLM 프롬프트 템플릿**입니다. `*.skill.md` 파일을 작성하면 앱에서 자동으로 로드되어 프리셋 스킬과 함께 사용할 수 있습니다.
+스킬은 특정 운영 작업에 특화된 **LLM 프롬프트 템플릿**입니다. `*.skill.md` 파일을 작성하면 Enterprise Knowledge Hub에서 자동으로 로드되어 프리셋 스킬과 함께 사용할 수 있습니다.
 
 ---
 
@@ -11,7 +11,7 @@
 커스텀 스킬 파일은 다음 경로에 저장합니다:
 
 ```
-%APPDATA%/SAP Assistant/skills/
+%APPDATA%/Enterprise Knowledge Hub/skills/
 ```
 
 ---
@@ -30,7 +30,7 @@ requiredSources: [vault-confidential, vault-reference]
 suggestedInputs:
   - "이 변경의 위험도를 평가해줘"
   - "내부 정책 위반 여부를 확인해줘"
-suggestedTcodes: [SE80, SE11]
+domainCodes: [SE80, SE11]
 defaultPromptTemplate: |
   당신은 우리 팀의 정책 검토자입니다.
   다음 기준으로 분석하세요:

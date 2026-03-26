@@ -2,9 +2,14 @@ import { create } from 'zustand'
 
 // ─── 새 계층형 네비게이션 타입 ───
 
-export type AppSection = 'cockpit' | 'assistant' | 'knowledge' | 'email' | 'code-analysis' | 'settings'
+export type AppSection = 'dashboard' | 'assistant' | 'knowledge' | 'email' | 'settings'
 
-export type CockpitSubPage = 'overview' | 'daily' | 'monthly' | 'yearly' | 'all-plans'
+/** @deprecated v8.0 호환 — 레거시 섹션 리다이렉트용 */
+export type LegacySection = 'cockpit' | 'code-analysis' | 'search' | 'reports'
+
+export type DashboardSubPage = 'overview' | 'tasks' | 'all-plans' | 'schedule' | 'search' | 'reports'
+/** @deprecated Use DashboardSubPage */
+export type CockpitSubPage = DashboardSubPage
 export type CodeLabSubPage =
   | 'code-lab'
   | 'code-lab:sources'
@@ -19,7 +24,7 @@ export type AssistantSubPage =
   | CodeLabSubPage
 /** @deprecated Use AssistantSubPage */
 export type SapAssistantSubPage = AssistantSubPage
-export type KnowledgeSubPage = 'process' | 'skills' | 'agents' | 'vault' | CodeLabSubPage
+export type KnowledgeSubPage = 'process' | 'skills' | 'agents' | CodeLabSubPage
 export type EmailSubPage = 'inbox' | 'analyzed' | 'settings'
 
 /** @deprecated Phase 1 호환 레이어 — AskSapSubPage는 SessionFilterTab으로 이전됨 */
@@ -34,7 +39,7 @@ interface AppShellState {
   currentSection: AppSection
   subPage: string | null
   sidebarCollapsed: boolean
-  setSection: (section: AppSection, subPage?: string | null) => void
+  setSection: (section: AppSection | LegacySection, subPage?: string | null) => void
   setSubPage: (subPage: string | null) => void
   toggleSidebar: () => void
   /** @deprecated Phase 1 호환 레이어 */
@@ -43,16 +48,28 @@ interface AppShellState {
   setCurrentPage: (page: AppPage) => void
 }
 
+// 레거시 섹션 → 새 위치로 리다이렉트
+function resolveLegacySection(section: string, subPage: string | null | undefined): { section: AppSection; subPage: string | null } {
+  switch (section) {
+    case 'cockpit': return { section: 'dashboard', subPage: subPage ?? 'overview' }
+    case 'search': return { section: 'dashboard', subPage: 'search' }
+    case 'reports': return { section: 'dashboard', subPage: 'reports' }
+    case 'code-analysis': return { section: 'knowledge', subPage: 'code-lab' }
+    case 'vault': return { section: 'knowledge', subPage: 'process' }
+    default: return { section: section as AppSection, subPage: subPage ?? null }
+  }
+}
+
 // AppPage → AppSection 매핑
 function pageToSection(page: AppPage): { section: AppSection; subPage: string | null } {
   switch (page) {
-    case 'audit': return { section: 'cockpit', subPage: 'overview' }
+    case 'audit': return { section: 'dashboard', subPage: 'overview' }
     case 'chat': return { section: 'assistant', subPage: 'chat' }
     case 'process': return { section: 'knowledge', subPage: 'process' }
     case 'skills': return { section: 'knowledge', subPage: 'skills' }
     case 'cbo': return { section: 'knowledge', subPage: 'code-lab:analysis' }
     case 'sources': return { section: 'knowledge', subPage: 'code-lab:sources' }
-    case 'vault': return { section: 'knowledge', subPage: 'vault' }
+    case 'vault': return { section: 'knowledge', subPage: 'process' }
     case 'settings': return { section: 'settings', subPage: null }
   }
 }
@@ -60,32 +77,32 @@ function pageToSection(page: AppPage): { section: AppSection; subPage: string | 
 // AppSection → AppPage 역매핑 (호환용)
 function sectionToPage(section: AppSection, subPage: string | null): AppPage {
   switch (section) {
-    case 'cockpit': return 'audit'
+    case 'dashboard': return 'audit'
     case 'assistant': return 'chat'
     case 'knowledge':
       if (subPage === 'process') return 'process'
       if (subPage === 'skills') return 'skills'
-      if (subPage === 'vault') return 'vault'
+      if (subPage === 'vault') return 'process'
       if (subPage === 'code-lab:analysis') return 'cbo'
       return 'sources'
     case 'email': return 'chat'
-    case 'code-analysis': return 'cbo'
     case 'settings': return 'settings'
   }
 }
 
 export const useAppShellStore = create<AppShellState>((set) => ({
-  currentSection: 'cockpit',
+  currentSection: 'dashboard',
   subPage: null,
   sidebarCollapsed: false,
 
-  setSection: (currentSection, subPage) =>
+  setSection: (section, subPage) =>
     set(() => {
-      const nextSubPage = subPage ?? null
+      // 레거시 섹션 → 새 위치로 리다이렉트
+      const resolved = resolveLegacySection(section, subPage)
       return {
-        currentSection,
-        subPage: nextSubPage,
-        currentPage: sectionToPage(currentSection, nextSubPage),
+        currentSection: resolved.section,
+        subPage: resolved.subPage,
+        currentPage: sectionToPage(resolved.section, resolved.subPage),
       }
     }),
 

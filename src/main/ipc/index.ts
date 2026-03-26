@@ -11,6 +11,11 @@ import { registerAgentHandlers } from "./agentHandlers.js";
 import { registerScheduleHandlers } from "./scheduleHandlers.js";
 import { registerEmailHandlers } from "./emailHandlers.js";
 import { registerCodeAnalysisHandlers } from "./codeAnalysisHandlers.js";
+import { registerEmbeddingHandlers } from "./embeddingHandlers.js";
+import { registerSearchHandlers } from "./searchHandlers.js";
+import { registerReportHandlers } from "./reportHandlers.js";
+import { registerSearchConfigHandlers } from "./searchConfigHandlers.js";
+import { registerDataPlatformHandlers } from "./dataPlatformHandlers.js";
 
 export type { IpcContext } from "./types.js";
 
@@ -27,4 +32,9 @@ export function registerAllIpcHandlers(ctx: IpcContext): void {
   registerScheduleHandlers(ctx);
   registerEmailHandlers(ctx);
   registerCodeAnalysisHandlers(ctx);
+  registerEmbeddingHandlers(ctx);
+  registerSearchHandlers(ctx);
+  registerReportHandlers(ctx);
+  registerSearchConfigHandlers(ctx);
+  registerDataPlatformHandlers(ctx);
 }

@@ -31,7 +31,19 @@ import type {
   EmailInboxRepository,
   EmailTaskLinkRepository,
   CodeAnalysisRepository,
+  DocumentChunkRepository,
 } from "../storage/repositories/index.js";
+import type { EmbeddingPipeline } from "../embedding/embeddingPipeline.js";
+import type { EmbeddingService } from "../embedding/embeddingService.js";
+import type { HybridSearchEngine } from "../search/hybridSearch.js";
+import type { RagPipeline } from "../search/ragPipeline.js";
+import type { ReportGenerator } from "../reports/reportGenerator.js";
+import type { ExportService } from "../reports/exportService.js";
+import type { ReportRepository } from "../reports/reportRepository.js";
+import type { ReportScheduler } from "../reports/reportScheduler.js";
+import type { SearchConfigRepository } from "../search/searchConfig.js";
+import type { AgentToolkit } from "../agents/toolkit.js";
+import type { DataPlatformProvider } from "../sources/dataPlatformProvider.js";
 export interface IpcContext {
   oauthManager: OAuthManager;
   chatRuntime: ChatRuntime;
@@ -62,5 +74,17 @@ export interface IpcContext {
   codeAnalyzer: CodeAnalyzer;
   codeAnalysisRepo: CodeAnalysisRepository;
   githubProvider: GitHubSourceProvider;
+  chunkRepo: DocumentChunkRepository;
+  embeddingPipeline: EmbeddingPipeline;
+  embeddingService: EmbeddingService;
+  hybridSearch: HybridSearchEngine;
+  ragPipeline: RagPipeline;
+  searchConfigRepo: SearchConfigRepository;
+  reportGenerator: ReportGenerator;
+  exportService: ExportService;
+  reportRepo: ReportRepository;
+  reportScheduler: ReportScheduler;
+  agentToolkit: AgentToolkit;
+  dataPlatformProvider: DataPlatformProvider;
   getMainWindow: () => BrowserWindow | null;
 }

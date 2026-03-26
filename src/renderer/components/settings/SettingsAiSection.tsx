@@ -716,7 +716,7 @@ export function SettingsAiSection() {
               <div className="setup-wizard-icon">
                 <Sparkles size={40} className="setup-wizard-icon-svg" />
               </div>
-              <h2 className="setup-wizard-title">Welcome to SAP Knowledge Hub</h2>
+              <h2 className="setup-wizard-title">Welcome to Enterprise Knowledge Hub</h2>
               <p className="setup-wizard-desc">어떻게 연결하시겠어요?</p>
 
               <div className="setup-wizard-content">

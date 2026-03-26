@@ -14,12 +14,15 @@ import { LlmProvider, StreamChunk } from "./providers/base.js";
 import type { ProviderResilience } from "./providers/providerResilience.js";
 import { AuditRepository, MessageRepository, SessionRepository } from "./storage/repositories/index.js";
 import { SkillSourceRegistry } from "./skills/registry.js";
+import type { RagPipeline } from "./search/ragPipeline.js";
+import { logger } from "./logger.js";
 
 export class ChatRuntime {
   private readonly providers: Map<ProviderType, LlmProvider>;
   // P4-5: 세션 생성 동시 요청 방지 — 동일 provider에 대한 중복 생성을 막는 Promise mutex
   private readonly sessionMutex = new Map<string, Promise<ChatSession>>();
   private _chatHistoryLimit = 10;
+  private ragPipeline?: RagPipeline;
 
   constructor(
     providers: LlmProvider[],
@@ -41,6 +44,11 @@ export class ChatRuntime {
 
   set chatHistoryLimit(value: number) {
     this._chatHistoryLimit = Math.max(2, Math.min(100, value));
+  }
+
+  /** RAG 파이프라인 연결 — createServices에서 ChatRuntime 생성 후 주입 */
+  setRagPipeline(pipeline: RagPipeline): void {
+    this.ragPipeline = pipeline;
   }
 
   listSessions(limit = 50) {
@@ -93,7 +101,16 @@ export class ChatRuntime {
       );
     }
 
-    const message = this.composeMessage(input.message, execution.promptContext);
+    // RAG 컨텍스트 자동 주입
+    const ragContext = await this.ragPipeline?.buildContext(input.message).catch((err) => {
+      logger.warn({ err }, "RAG 컨텍스트 빌드 실패 — 일반 채팅으로 진행");
+      return null;
+    });
+    const enrichedContext = [
+      ...execution.promptContext,
+      ...(ragContext?.promptContext ?? []),
+    ];
+    const message = this.composeMessage(input.message, enrichedContext);
     const callFn = () => provider.sendMessage(tokenRecord, {
       model: input.model,
       message,
@@ -185,7 +202,16 @@ export class ChatRuntime {
       );
     }
 
-    const message = this.composeMessage(input.message, execution.promptContext);
+    // RAG 컨텍스트 자동 주입 (스트리밍)
+    const ragContext = await this.ragPipeline?.buildContext(input.message).catch((err) => {
+      logger.warn({ err }, "RAG 컨텍스트 빌드 실패 — 일반 채팅으로 진행");
+      return null;
+    });
+    const enrichedContext = [
+      ...execution.promptContext,
+      ...(ragContext?.promptContext ?? []),
+    ];
+    const message = this.composeMessage(input.message, enrichedContext);
 
     let llmResult;
     if (provider.sendMessageStream) {

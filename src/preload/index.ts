@@ -535,6 +535,147 @@ const desktopApi = {
   openSkillFolder(): Promise<void> {
     return ipcRenderer.invoke(IPC.SKILLS_OPEN_FOLDER);
   },
+
+  // ─── Embedding (벡터 임베딩) API ───
+
+  embeddingIndexSource(sourceId: string) {
+    return ipcRenderer.invoke(IPC.EMBEDDING_INDEX_SOURCE, sourceId);
+  },
+  embeddingIndexDocument(documentId: string) {
+    return ipcRenderer.invoke(IPC.EMBEDDING_INDEX_DOCUMENT, documentId);
+  },
+  embeddingImportFile(payload: { filePath: string; sourceId: string }) {
+    return ipcRenderer.invoke(IPC.EMBEDDING_IMPORT_FILE, payload);
+  },
+  embeddingPickAndImport(sourceId: string) {
+    return ipcRenderer.invoke(IPC.EMBEDDING_PICK_AND_IMPORT, sourceId);
+  },
+  embeddingStatus() {
+    return ipcRenderer.invoke(IPC.EMBEDDING_STATUS);
+  },
+  onEmbeddingProgress(callback: (event: { sourceId: string; indexed: number; total: number }) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: { sourceId: string; indexed: number; total: number }) =>
+      callback(data);
+    ipcRenderer.on(IPC.EMBEDDING_PROGRESS, handler);
+    return () => { ipcRenderer.removeListener(IPC.EMBEDDING_PROGRESS, handler); };
+  },
+
+  // ─── Search (하이브리드 검색) API ───
+
+  searchHybrid(payload: { query: string; topK?: number; minScore?: number }) {
+    return ipcRenderer.invoke(IPC.SEARCH_HYBRID, payload);
+  },
+  searchSemantic(payload: { query: string; k?: number }) {
+    return ipcRenderer.invoke(IPC.SEARCH_SEMANTIC, payload);
+  },
+  searchKeyword(payload: { query: string; k?: number }) {
+    return ipcRenderer.invoke(IPC.SEARCH_KEYWORD, payload);
+  },
+
+  // ─── Reports (리포트) API ───
+
+  reportTemplatesList() {
+    return ipcRenderer.invoke(IPC.REPORTS_TEMPLATES_LIST);
+  },
+  reportTemplatesCreate(input: { title: string; description?: string; sections: unknown[]; outputFormat: string }) {
+    return ipcRenderer.invoke(IPC.REPORTS_TEMPLATES_CREATE, input);
+  },
+  reportTemplatesUpdate(payload: { id: string; input: Record<string, unknown> }) {
+    return ipcRenderer.invoke(IPC.REPORTS_TEMPLATES_UPDATE, payload);
+  },
+  reportTemplatesDelete(id: string) {
+    return ipcRenderer.invoke(IPC.REPORTS_TEMPLATES_DELETE, id);
+  },
+  reportGenerate(payload: { templateId: string; provider: string; model: string; query?: string }) {
+    return ipcRenderer.invoke(IPC.REPORTS_GENERATE, payload);
+  },
+  reportRunsList(templateId?: string, limit?: number) {
+    return ipcRenderer.invoke(IPC.REPORTS_RUNS_LIST, templateId, limit);
+  },
+  reportExport(payload: { report: unknown; format: string; outputPath: string }) {
+    return ipcRenderer.invoke(IPC.REPORTS_EXPORT, payload);
+  },
+  onReportProgress(callback: (event: { runId: string; completed: number; total: number }) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: { runId: string; completed: number; total: number }) =>
+      callback(data);
+    ipcRenderer.on(IPC.REPORTS_PROGRESS, handler);
+    return () => { ipcRenderer.removeListener(IPC.REPORTS_PROGRESS, handler); };
+  },
+
+  // ─── Report Schedule (리포트 스케줄) API ───
+
+  reportScheduleList() {
+    return ipcRenderer.invoke(IPC.REPORTS_SCHEDULE_LIST);
+  },
+  reportScheduleCreate(input: { templateId: string; cronExpression: string; enabled?: boolean; provider?: string; model?: string }) {
+    return ipcRenderer.invoke(IPC.REPORTS_SCHEDULE_CREATE, input);
+  },
+  reportScheduleUpdate(payload: { id: string; patch: Record<string, unknown> }) {
+    return ipcRenderer.invoke(IPC.REPORTS_SCHEDULE_UPDATE, payload);
+  },
+  reportScheduleDelete(id: string) {
+    return ipcRenderer.invoke(IPC.REPORTS_SCHEDULE_DELETE, id);
+  },
+  reportScheduleToggle(id: string) {
+    return ipcRenderer.invoke(IPC.REPORTS_SCHEDULE_TOGGLE, id);
+  },
+
+  // ─── Search Config (검색 설정) API ───
+
+  searchConfigGet() {
+    return ipcRenderer.invoke(IPC.SEARCH_CONFIG_GET);
+  },
+  searchConfigUpdate(config: Record<string, unknown>) {
+    return ipcRenderer.invoke(IPC.SEARCH_CONFIG_UPDATE, config);
+  },
+  searchConfigReset() {
+    return ipcRenderer.invoke(IPC.SEARCH_CONFIG_RESET);
+  },
+
+  // ─── Data Platform (외부 데이터 연동) API ───
+
+  dataPlatformConnect(input: {
+    name: string;
+    endpointUrl: string;
+    authType: string;
+    authConfig?: Record<string, string>;
+    format: string;
+    dataPath?: string;
+    refreshIntervalMinutes?: number;
+  }) {
+    return ipcRenderer.invoke(IPC.DATA_PLATFORM_CONNECT, input);
+  },
+  dataPlatformSync(sourceId: string) {
+    return ipcRenderer.invoke(IPC.DATA_PLATFORM_SYNC, sourceId);
+  },
+  dataPlatformList() {
+    return ipcRenderer.invoke(IPC.DATA_PLATFORM_LIST);
+  },
+  dataPlatformTestConnection(input: {
+    name: string;
+    endpointUrl: string;
+    authType: string;
+    authConfig?: Record<string, string>;
+    format: string;
+    dataPath?: string;
+  }) {
+    return ipcRenderer.invoke(IPC.DATA_PLATFORM_TEST_CONNECTION, input);
+  },
+
+  // ─── Agent Tool-Use (ReAct) API ───
+
+  agentReactExecute(input: { query: string; provider: string; model: string; sessionId?: string; maxIterations?: number }) {
+    return ipcRenderer.invoke(IPC.AGENTS_REACT_EXECUTE, input);
+  },
+  agentToolsList() {
+    return ipcRenderer.invoke(IPC.AGENTS_TOOLS_LIST);
+  },
+  onAgentReactStep(callback: (step: { iteration: number; thought: string; action?: unknown; observation?: string; isFinal: boolean; finalAnswer?: string }) => void) {
+    const handler = (_event: Electron.IpcRendererEvent, data: { iteration: number; thought: string; action?: unknown; observation?: string; isFinal: boolean; finalAnswer?: string }) =>
+      callback(data);
+    ipcRenderer.on(IPC.AGENTS_REACT_STEP, handler);
+    return () => { ipcRenderer.removeListener(IPC.AGENTS_REACT_STEP, handler); };
+  },
 };
 
 contextBridge.exposeInMainWorld("assistantDesktop", desktopApi);

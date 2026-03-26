@@ -1,10 +1,10 @@
 import {
   LayoutDashboard, Settings,
   PanelLeftClose, PanelLeft, BookOpen, Plus,
-  Mail, Sparkles, ScanSearch,
+  Mail, Sparkles, Search, FileBarChart,
   MessageCircle, Star, Archive,
-  Workflow, Zap, Bot, Lock, FlaskConical,
-  BarChart3, ListTodo, CalendarDays, CalendarRange, ClipboardList,
+  Workflow, Zap, Bot, FlaskConical,
+  BarChart3, ListTodo, ClipboardList,
   Inbox, CheckCircle,
 } from 'lucide-react'
 import type { AppSection } from '../stores/appShellStore'
@@ -17,17 +17,17 @@ import './Sidebar.css'
 
 const MAIN_NAV_ITEMS: NavGroupItem[] = [
   {
-    id: 'cockpit',
-    section: 'cockpit',
-    label: 'Cockpit',
+    id: 'dashboard',
+    section: 'dashboard',
+    label: 'Dashboard',
     Icon: LayoutDashboard,
     position: 'main',
     children: [
-      { id: 'cockpit-overview', subPage: 'overview', label: 'Overview', Icon: BarChart3 },
-      { id: 'cockpit-daily', subPage: 'daily', label: 'Daily Tasks', Icon: ListTodo },
-      { id: 'cockpit-monthly', subPage: 'monthly', label: '월별 마감', Icon: CalendarDays },
-      { id: 'cockpit-yearly', subPage: 'yearly', label: '연간 마감', Icon: CalendarRange },
-      { id: 'cockpit-all-plans', subPage: 'all-plans', label: '전체 Plan', Icon: ClipboardList },
+      { id: 'dash-overview', subPage: 'overview', label: 'Overview', Icon: BarChart3 },
+      { id: 'dash-tasks', subPage: 'tasks', label: '마감 일정', Icon: ListTodo },
+      { id: 'dash-all-plans', subPage: 'all-plans', label: '전체 Plan', Icon: ClipboardList },
+      { id: 'dash-search', subPage: 'search', label: 'AI 검색', Icon: Search },
+      { id: 'dash-reports', subPage: 'reports', label: '리포트', Icon: FileBarChart },
     ],
   },
   {
@@ -66,16 +66,8 @@ const MAIN_NAV_ITEMS: NavGroupItem[] = [
       { id: 'knowledge-process', subPage: 'process', label: '프로세스', Icon: Workflow },
       { id: 'knowledge-skills', subPage: 'skills', label: '스킬', Icon: Zap },
       { id: 'knowledge-agents', subPage: 'agents', label: '에이전트', Icon: Bot },
-      { id: 'knowledge-vault', subPage: 'vault', label: '볼트', Icon: Lock },
       { id: 'knowledge-code-lab', subPage: 'code-lab', label: '코드 랩', Icon: FlaskConical },
     ],
-  },
-  {
-    id: 'code-analysis',
-    section: 'code-analysis',
-    label: 'Code Analysis',
-    Icon: ScanSearch,
-    position: 'main',
   },
 ]
 
@@ -115,7 +107,7 @@ export function Sidebar() {
       <div className="sidebar-header">
         {!sidebarCollapsed && (
           <div className="sidebar-brand">
-            <h1 className="sidebar-title">SAP Knowledge Hub</h1>
+            <h1 className="sidebar-title">Enterprise Knowledge Hub</h1>
             <span className="sidebar-version">by boxlogodev · v{__APP_VERSION__}</span>
           </div>
         )}

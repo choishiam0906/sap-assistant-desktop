@@ -27,7 +27,7 @@ describe('CockpitPage (마감 관리)', () => {
       viewMode: 'overview',
     })
     useAppShellStore.setState({
-      currentSection: 'cockpit',
+      currentSection: 'dashboard',
       subPage: 'overview',
     })
   })
@@ -35,7 +35,7 @@ describe('CockpitPage (마감 관리)', () => {
   it('Overview 모드에서 통계 카드가 표시된다', async () => {
     renderWithProviders(<CockpitPage />)
     await waitFor(() => {
-      expect(screen.getByText('Overview')).toBeInTheDocument()
+      expect(screen.getByText('Dashboard')).toBeInTheDocument()
     })
     expect(screen.getByText('진행 중인 Plan')).toBeInTheDocument()
     expect(screen.getByText('전체 완료율')).toBeInTheDocument()
@@ -79,11 +79,11 @@ describe('CockpitPage (마감 관리)', () => {
   })
 
   it('subPage 변경 시 viewMode가 동기화된다', async () => {
-    useAppShellStore.setState({ subPage: 'daily' })
+    useAppShellStore.setState({ subPage: 'tasks' })
     renderWithProviders(<CockpitPage />)
 
     await waitFor(() => {
-      expect(useCockpitStore.getState().viewMode).toBe('daily')
+      expect(useCockpitStore.getState().viewMode).toBe('tasks')
     })
   })
 })

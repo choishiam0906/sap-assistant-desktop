@@ -23,7 +23,7 @@ export type SourceKind =
   | "mcp"
   | "api";
 export type SourceAvailability = "ready" | "empty" | "unavailable";
-export type ConfiguredSourceKind = "local-folder" | "mcp" | "api";
+export type ConfiguredSourceKind = "local-folder" | "mcp" | "api" | "data-platform";
 export type SourceSyncStatus = "idle" | "indexing" | "ready" | "error";
 
 export interface ConfiguredSource {
@@ -134,7 +134,8 @@ export interface SourceDefinition {
     | "workspace_context"
     | "local_folder_library"
     | "mcp_connector"
-    | "api_connector";
+    | "api_connector"
+    | "data_platform_connector";
   linkedId?: string | null;
   configuredSourceId?: string | null;
   rootPath?: string | null;

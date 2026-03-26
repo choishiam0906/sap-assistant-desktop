@@ -260,6 +260,29 @@ export function createMockApi(overrides?: Partial<MockApi>): MockApi {
     listScheduleLogs: vi.fn().mockResolvedValue([]),
     listRecentScheduleLogs: vi.fn().mockResolvedValue([]),
     onScheduleExecutionComplete: vi.fn().mockReturnValue(() => {}),
+
+    // Embedding
+    embeddingIndexSource: vi.fn().mockResolvedValue({ indexed: 0, total: 0 }),
+    embeddingIndexDocument: vi.fn().mockResolvedValue({ indexed: true }),
+    embeddingImportFile: vi.fn().mockResolvedValue({ documentId: 'd1', indexed: true }),
+    embeddingPickAndImport: vi.fn().mockResolvedValue({ canceled: true }),
+    embeddingStatus: vi.fn().mockResolvedValue({ totalChunks: 0, totalDocuments: 0, vectorEnabled: false }),
+    onEmbeddingProgress: vi.fn().mockReturnValue(() => {}),
+
+    // Search
+    searchHybrid: vi.fn().mockResolvedValue([]),
+    searchSemantic: vi.fn().mockResolvedValue([]),
+    searchKeyword: vi.fn().mockResolvedValue([]),
+
+    // Reports
+    reportTemplatesList: vi.fn().mockResolvedValue([]),
+    reportTemplatesCreate: vi.fn().mockResolvedValue({ id: 'tpl-1' }),
+    reportTemplatesUpdate: vi.fn().mockResolvedValue(undefined),
+    reportTemplatesDelete: vi.fn().mockResolvedValue(true),
+    reportGenerate: vi.fn().mockResolvedValue({ id: 'rpt-1', sections: [] }),
+    reportRunsList: vi.fn().mockResolvedValue([]),
+    reportExport: vi.fn().mockResolvedValue({ success: true }),
+    onReportProgress: vi.fn().mockReturnValue(() => {}),
   }
 
   return { ...base, ...overrides }

@@ -1,6 +1,6 @@
-# SAP Knowledge Hub
+# Enterprise Knowledge Hub
 
-[![Version](https://img.shields.io/badge/version-7.1.0-blue.svg)](https://github.com/choishiam0906/sap-assistant-desktop/releases/tag/v7.1.0)
+[![Version](https://img.shields.io/badge/version-8.0.0-blue.svg)](https://github.com/choishiam0906/sap-assistant-desktop/releases/tag/v8.0.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d4.svg)](#)
 [![Node](https://img.shields.io/badge/node-22.x-brightgreen.svg)](#)

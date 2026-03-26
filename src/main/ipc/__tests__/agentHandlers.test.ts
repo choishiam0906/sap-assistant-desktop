@@ -3,6 +3,10 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 // Mock electron
 const mockHandlers = new Map<string, Function>();
 vi.mock('electron', () => ({
+  app: {
+    isPackaged: false,
+    getPath: vi.fn(() => '/tmp'),
+  },
   ipcMain: {
     handle: vi.fn((channel: string, handler: Function) => {
       mockHandlers.set(channel, handler);

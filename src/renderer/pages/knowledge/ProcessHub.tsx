@@ -177,7 +177,7 @@ export function ProcessHub() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigateToKnowledge('knowledge', 'vault')}
+              onClick={() => navigateToKnowledge('knowledge', 'process')}
             >
               <FolderOpen size={14} aria-hidden="true" />
               관련 문서 보기

@@ -8,6 +8,7 @@ import {
   ClosingStepRepository,
   CodeAnalysisRepository,
   ConfiguredSourceRepository,
+  DocumentChunkRepository,
   EmailInboxRepository,
   EmailTaskLinkRepository,
   MessageRepository,
@@ -21,6 +22,7 @@ import {
   SourceDocumentRepository,
   VaultRepository,
 } from "../storage/repositories/index.js";
+import { ReportRepository } from "../reports/reportRepository.js";
 
 export interface Repositories {
   sessionRepo: SessionRepository;
@@ -42,6 +44,8 @@ export interface Repositories {
   emailInboxRepo: EmailInboxRepository;
   emailTaskLinkRepo: EmailTaskLinkRepository;
   codeAnalysisRepo: CodeAnalysisRepository;
+  chunkRepo: DocumentChunkRepository;
+  reportRepo: ReportRepository;
   secureStore: SecureStore;
 }
 
@@ -66,6 +70,8 @@ export function createRepositories(db: LocalDatabase): Repositories {
     emailInboxRepo: new EmailInboxRepository(db),
     emailTaskLinkRepo: new EmailTaskLinkRepository(db),
     codeAnalysisRepo: new CodeAnalysisRepository(db),
+    chunkRepo: new DocumentChunkRepository(db),
+    reportRepo: new ReportRepository(db),
     secureStore: new SecureStore("sap-ops-bot-desktop"),
   };
 }

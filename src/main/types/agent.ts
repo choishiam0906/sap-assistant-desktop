@@ -122,6 +122,38 @@ export interface AgentExecutionSummary {
   completedSteps: number;
 }
 
+// ─── Agent Tool-Use (ReAct) ───
+
+export interface AgentToolDefinition {
+  name: string;
+  description: string;
+  parameters: Record<string, { type: string; description: string; required?: boolean }>;
+}
+
+export interface ReActExecutionInput {
+  query: string;
+  provider: ProviderType;
+  model: string;
+  sessionId?: string;
+  maxIterations?: number;
+}
+
+export interface ReActStepEvent {
+  iteration: number;
+  thought: string;
+  action?: { tool: string; params: Record<string, unknown> };
+  observation?: string;
+  isFinal: boolean;
+  finalAnswer?: string;
+}
+
+export interface ReActExecutionResult {
+  finalAnswer: string;
+  steps: ReActStepEvent[];
+  totalDurationMs: number;
+  toolsUsed: string[];
+}
+
 // ─── 대화형 에이전트 ───
 
 /** 대화형 에이전트 실행 입력 */

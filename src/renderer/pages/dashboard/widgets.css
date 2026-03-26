@@ -1,0 +1,236 @@
+/* ════════════════════════════════════════════════
+   Dashboard 위젯 공통 스타일
+   ════════════════════════════════════════════════ */
+
+.dashboard-widget {
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.dashboard-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.dashboard-widget-header h3 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dashboard-widget-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+  transition: background var(--transition-fast);
+}
+
+.dashboard-widget-more:hover {
+  background: var(--color-primary-subtle);
+}
+
+/* ─── 위젯 내부 요소 ─── */
+.widget-empty {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--spacing-md);
+}
+
+.widget-loading {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--spacing-sm);
+}
+
+.widget-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* ─── 최근 검색 태그 ─── */
+.widget-recent {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.widget-recent-tag {
+  display: inline-block;
+  border: none;
+  background: var(--color-bg-tertiary);
+  padding: 2px 8px;
+  margin: 0 4px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.widget-recent-tag:hover {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+/* ─── 검색 결과 (위젯 내) ─── */
+.widget-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.widget-result-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  transition: background var(--transition-fast);
+}
+
+.widget-result-item:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.widget-result-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── 리포트 위젯 ─── */
+.widget-quick-actions {
+  margin-bottom: var(--spacing-md);
+}
+
+.widget-quick-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.widget-runs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.widget-run-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  transition: background var(--transition-fast);
+}
+
+.widget-run-item:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.widget-run-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+/* ─── 데이터 인사이트 위젯 ─── */
+.data-insight-summary {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.data-insight-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.data-insight-stat-value {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.data-insight-stat-label {
+  color: var(--color-text-muted);
+}
+
+.data-insight-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.data-insight-bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.data-insight-bar-label {
+  flex: 0 0 90px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.data-insight-bar-track {
+  flex: 1;
+  height: 16px;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.data-insight-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease-out;
+  min-width: 4px;
+}
+
+.data-insight-bar-value {
+  flex: 0 0 40px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: right;
+}
+
+/* 새로고침 스핀 애니메이션 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

@@ -1,9 +1,9 @@
-# Skill API — SapSkillDefinition 스키마
+# Skill API — SkillDefinition 스키마
 
-## SapSkillDefinition
+## SkillDefinition
 
 ```typescript
-interface SapSkillDefinition {
+interface SkillDefinition {
   id: string;
   title: string;
   description: string;
@@ -13,7 +13,7 @@ interface SapSkillDefinition {
   outputFormat: SkillOutputFormat;
   requiredSources: string[];
   suggestedInputs: string[];
-  suggestedTcodes: string[];
+  domainCodes: string[];
   isCustom?: boolean;          // 커스텀 스킬 여부
 }
 
@@ -33,7 +33,7 @@ defaultPromptTemplate: string  # 필수, LLM 프롬프트 템플릿
 outputFormat: string           # 선택, 기본값 chat-answer
 requiredSources: string[]      # 선택, 필요 소스 ID
 suggestedInputs: string[]      # 선택, 추천 질문
-suggestedTcodes: string[]      # 선택, 관련 T-Code
+domainCodes: string[]          # 선택, 관련 도메인 코드
 ---
 ```
 

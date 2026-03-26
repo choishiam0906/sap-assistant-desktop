@@ -187,6 +187,33 @@ export class ConfiguredSourceRepository {
     return this.getById(id)!;
   }
 
+  createDataPlatformSource(input: {
+    title: string;
+    classificationDefault: VaultClassification;
+    connectionMeta: Record<string, string>;
+  }): ConfiguredSource {
+    const now = nowIso();
+    const id = randomUUID();
+    this.db
+      .prepare(
+        `INSERT INTO configured_sources(
+          id, kind, title, root_path, classification_default,
+          include_globs, enabled, sync_status, last_indexed_at,
+          connection_meta_json, created_at, updated_at
+        )
+        VALUES (?, 'data-platform', ?, NULL, ?, '[]', 1, 'idle', NULL, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        input.title,
+        input.classificationDefault,
+        JSON.stringify(input.connectionMeta),
+        now,
+        now,
+      );
+    return this.getById(id)!;
+  }
+
   updateSyncStatus(sourceId: string, syncStatus: SourceSyncStatus, lastIndexedAt?: string | null): void {
     this.db
       .prepare(
@@ -375,6 +402,70 @@ export class SourceDocumentRepository {
       }
     });
     write();
+  }
+
+  listBySourceId(sourceId: string): SourceDocument[] {
+    const rows = this.db
+      .prepare(
+        `SELECT
+          id,
+          source_id AS sourceId,
+          relative_path AS relativePath,
+          absolute_path AS absolutePath,
+          title,
+          excerpt,
+          content_text AS contentText,
+          content_hash AS contentHash,
+          classification,
+          tags_json AS tags,
+          indexed_at AS indexedAt
+         FROM source_documents
+         WHERE source_id = ?
+         ORDER BY indexed_at DESC`,
+      )
+      .all(sourceId) as SourceDocumentRow[];
+    return rows.map(toSourceDocument);
+  }
+
+  insertOne(input: {
+    id: string;
+    sourceId: string;
+    relativePath: string;
+    absolutePath: string;
+    title: string;
+    excerpt: string | null;
+    contentText: string;
+    contentHash: string;
+    classification: VaultClassification | null;
+    tagsJson: string;
+  }): void {
+    this.db
+      .prepare(
+        `INSERT INTO source_documents(
+          id, source_id, relative_path, absolute_path, title, excerpt,
+          content_text, content_hash, classification, tags_json, indexed_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        input.id,
+        input.sourceId,
+        input.relativePath,
+        input.absolutePath,
+        input.title,
+        input.excerpt,
+        input.contentText,
+        input.contentHash,
+        input.classification,
+        input.tagsJson,
+        nowIso(),
+      );
+  }
+
+  updateContentHash(id: string, contentHash: string): void {
+    this.db
+      .prepare("UPDATE source_documents SET content_hash = ? WHERE id = ?")
+      .run(contentHash, id);
   }
 
   getById(id: string): SourceDocument | null {

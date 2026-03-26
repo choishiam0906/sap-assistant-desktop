@@ -25,3 +25,9 @@ export type {
   CodeAnalysisRisk,
   CodeAnalysisRecommendation,
 } from "./codeAnalysisRepository.js";
+export { DocumentChunkRepository } from "./chunkRepository.js";
+export type {
+  DocumentChunk,
+  DocumentChunkInput,
+  ChunkSearchResult,
+} from "./chunkRepository.js";

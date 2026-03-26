@@ -23,7 +23,7 @@ describe('Agent Registry', () => {
   it('listAgentDefinitions() returns preset agents', () => {
     const agents = listAgentDefinitions();
 
-    expect(agents).toHaveLength(2);
+    expect(agents).toHaveLength(3);
     expect(agents).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -33,6 +33,9 @@ describe('Agent Registry', () => {
         expect.objectContaining({
           id: 'incident-resolution-workflow',
           title: 'Incident 해결 Workflow',
+        }),
+        expect.objectContaining({
+          id: 'system-health-check-workflow',
         }),
       ])
     );
@@ -214,8 +217,8 @@ describe('Agent Registry', () => {
 
     const agents = listAgentDefinitions();
 
-    // Should have exactly 2: preset agents (custom duplicate is filtered out)
-    expect(agents).toHaveLength(2);
+    // Should have exactly 3: preset agents (custom duplicate is filtered out)
+    expect(agents).toHaveLength(3);
     // The returned agent should be the preset version, not custom
     const preset = agents.find((a) => a.id === 'transport-review-workflow');
     expect(preset?.steps[0].id).toBe('analyze');
@@ -243,10 +246,11 @@ describe('Agent Registry', () => {
 
     const agents = listAgentDefinitions();
 
-    // Should have 3: 2 preset + 1 unique custom
-    expect(agents).toHaveLength(3);
+    // Should have 4: 3 preset + 1 unique custom
+    expect(agents).toHaveLength(4);
     expect(agents.map((a) => a.id)).toContain('transport-review-workflow');
     expect(agents.map((a) => a.id)).toContain('incident-resolution-workflow');
+    expect(agents.map((a) => a.id)).toContain('system-health-check-workflow');
     expect(agents.map((a) => a.id)).toContain('unique-custom-agent');
   });
 

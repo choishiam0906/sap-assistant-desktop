@@ -21,6 +21,20 @@ import { EmailManager } from "../email/emailManager.js";
 import { GmailMcpProvider } from "../email/providers/gmailMcpProvider.js";
 import { OutlookGraphProvider } from "../email/providers/outlookGraphProvider.js";
 import { CodeAnalyzer } from "../analysis/codeAnalyzer.js";
+import { EmbeddingService } from "../embedding/embeddingService.js";
+import { EmbeddingCache } from "../embedding/embeddingCache.js";
+import { DocumentChunker } from "../embedding/documentChunker.js";
+import { DocumentImporter } from "../embedding/documentImporter.js";
+import { EmbeddingPipeline } from "../embedding/embeddingPipeline.js";
+import { HybridSearchEngine } from "../search/hybridSearch.js";
+import { RagPipeline } from "../search/ragPipeline.js";
+import { SearchConfigRepository } from "../search/searchConfig.js";
+import { FollowUpGenerator } from "../search/followUpGenerator.js";
+import { ReportGenerator } from "../reports/reportGenerator.js";
+import { ExportService } from "../reports/exportService.js";
+import { ReportScheduler } from "../reports/reportScheduler.js";
+import { DataPlatformProvider } from "../sources/dataPlatformProvider.js";
+import { AgentToolkit } from "../agents/toolkit.js";
 import type { LocalDatabase } from "../storage/sqlite.js";
 import type { Repositories } from "./createRepositories.js";
 
@@ -38,6 +52,18 @@ export interface Services {
   emailManager: EmailManager;
   codeAnalyzer: CodeAnalyzer;
   githubProvider: GitHubSourceProvider;
+  embeddingService: EmbeddingService;
+  embeddingCache: EmbeddingCache;
+  embeddingPipeline: EmbeddingPipeline;
+  hybridSearch: HybridSearchEngine;
+  ragPipeline: RagPipeline;
+  searchConfigRepo: SearchConfigRepository;
+  followUpGenerator: FollowUpGenerator;
+  reportGenerator: ReportGenerator;
+  exportService: ExportService;
+  reportScheduler: ReportScheduler;
+  dataPlatformProvider: DataPlatformProvider;
+  agentToolkit: AgentToolkit;
 }
 
 export function createServices(
@@ -125,6 +151,36 @@ export function createServices(
     repos.sourceDocumentRepo,
   );
 
+  // ─── v8.0: 벡터 임베딩 + RAG + 리포트 ───
+  const embeddingCache = new EmbeddingCache(db);
+  const embeddingService = new EmbeddingService(repos.secureStore, providerResilience);
+  embeddingService.setCache(embeddingCache);
+  const documentChunker = new DocumentChunker();
+  const documentImporter = new DocumentImporter();
+  const embeddingPipeline = new EmbeddingPipeline(
+    documentChunker,
+    embeddingService,
+    repos.chunkRepo,
+    repos.sourceDocumentRepo,
+    documentImporter,
+    repos.configuredSourceRepo,
+  );
+
+  const hybridSearch = new HybridSearchEngine(embeddingService, repos.chunkRepo);
+  const ragPipeline = new RagPipeline(hybridSearch);
+  const searchConfigRepo = new SearchConfigRepository(db);
+  const followUpGenerator = new FollowUpGenerator();
+
+  // ChatRuntime에 RAG 파이프라인 주입 (순환 의존 방지를 위한 setter 주입)
+  chatRuntime.setRagPipeline(ragPipeline);
+  const reportGenerator = new ReportGenerator(hybridSearch, providers, repos.secureStore, providerResilience);
+  const exportService = new ExportService();
+  const reportScheduler = new ReportScheduler(db, reportGenerator, repos.reportRepo, getMainWindow);
+
+  // ─── v9.0: Data Platform + Agent Tool-Use ───
+  const dataPlatformProvider = new DataPlatformProvider(repos.configuredSourceRepo, repos.sourceDocumentRepo);
+  const agentToolkit = new AgentToolkit(hybridSearch, repos.sourceDocumentRepo, embeddingPipeline, repos.configuredSourceRepo);
+
   return {
     oauthManager,
     chatRuntime,
@@ -139,5 +195,17 @@ export function createServices(
     emailManager,
     codeAnalyzer,
     githubProvider,
+    embeddingService,
+    embeddingCache,
+    embeddingPipeline,
+    hybridSearch,
+    ragPipeline,
+    searchConfigRepo,
+    followUpGenerator,
+    reportGenerator,
+    exportService,
+    reportScheduler,
+    dataPlatformProvider,
+    agentToolkit,
   };
 }

@@ -2,7 +2,7 @@
 
 ## 개요
 
-SAP Assistant는 3가지 보안 모드를 제공하여 데이터 보호 수준을 조절합니다.
+Enterprise Knowledge Hub는 3가지 보안 모드를 제공하여 데이터 보호 수준을 조절합니다.
 
 ---
 

@@ -11,9 +11,11 @@ import {
 import { LocalFolderSourceLibrary } from "./localFolderLibrary.js";
 import { McpConnector, type McpServerConfig } from "./mcpConnector.js";
 import { GitHubSourceProvider } from "./githubProvider.js";
+import { DataPlatformProvider } from "./dataPlatformProvider.js";
 
 export class SourceManager {
   readonly githubProvider: GitHubSourceProvider;
+  readonly dataPlatformProvider: DataPlatformProvider;
 
   constructor(
     private readonly sourceRepo: ConfiguredSourceRepository,
@@ -22,6 +24,7 @@ export class SourceManager {
     private readonly mcpConnector: McpConnector
   ) {
     this.githubProvider = new GitHubSourceProvider(sourceRepo, documentRepo);
+    this.dataPlatformProvider = new DataPlatformProvider(sourceRepo, documentRepo);
   }
 
   listSources(kind?: ConfiguredSourceKind): ConfiguredSource[] {
@@ -41,6 +44,8 @@ export class SourceManager {
         return this.mcpConnector.syncSource(sourceId);
       case "api":
         return this.githubProvider.syncRepo(sourceId);
+      case "data-platform":
+        return this.dataPlatformProvider.syncSource(sourceId);
       default:
         throw new Error(`지원하지 않는 source 종류: ${source.kind}`);
     }

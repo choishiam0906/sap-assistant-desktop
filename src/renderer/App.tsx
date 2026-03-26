@@ -2,11 +2,10 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './lib/queryClient.js'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Sidebar } from './components/Sidebar'
-import { CockpitPage } from './pages/CockpitPage'
+import { DashboardPage } from './pages/DashboardPage'
 import { AssistantPage } from './pages/AssistantPage'
 import { KnowledgePage } from './pages/KnowledgePage'
 import { EmailPage } from './pages/email/EmailPage'
-import { CodeAnalysisPage } from './pages/analysis/CodeAnalysisPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { useAppShellStore } from './stores/appShellStore'
 import { ToastContainer } from './components/ui/Toast.js'
@@ -27,11 +26,10 @@ export function App() {
           <Sidebar />
           <main className="app-main">
             <div key={currentSection} className="app-page-shell page-enter">
-              {currentSection === 'cockpit' && <CockpitPage />}
+              {currentSection === 'dashboard' && <DashboardPage />}
               {currentSection === 'assistant' && <AssistantPage />}
               {currentSection === 'knowledge' && <KnowledgePage />}
               {currentSection === 'email' && <EmailPage />}
-              {currentSection === 'code-analysis' && <CodeAnalysisPage />}
               {currentSection === 'settings' && <SettingsPage />}
             </div>
           </main>

@@ -51,8 +51,9 @@ export function getOAuthConfig(
         callbackHost: "localhost",
         callbackPath: "/auth/callback",
         requiresTokenExchange: true,
-        // Codex CLI와 동일: audience 없음, simplified flow + org 정보
+        // Codex CLI와 동일: audience로 API 접근 권한 획득
         extraAuthParams: {
+          audience: "https://api.openai.com/v1",
           codex_cli_simplified_flow: "true",
           id_token_add_organizations: "true",
         },

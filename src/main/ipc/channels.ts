@@ -25,6 +25,7 @@ export const IPC = {
   CHAT_SET_HISTORY_LIMIT: 'chat:set-history-limit',
   CHAT_GET_HISTORY_LIMIT: 'chat:get-history-limit',
   CHAT_STOP: 'chat:stop',
+  CHAT_RAG_STATUS: 'chat:rag:status',
 
   // ── Sessions ──
   SESSIONS_LIST: 'sessions:list',
@@ -137,6 +138,12 @@ export const IPC = {
   AGENT_EXECUTION_DONE: 'agents:execution:done',
   AGENT_EXECUTION_ERROR: 'agents:execution:error',
 
+  // ── Agent Tool-Use (ReAct) ──
+  AGENTS_REACT_EXECUTE: 'agents:react:execute',
+  AGENTS_REACT_STATUS: 'agents:react:status',
+  AGENTS_REACT_STEP: 'agents:react:step',
+  AGENTS_TOOLS_LIST: 'agents:tools:list',
+
   // ── Email (메일 → 업무) ──
   EMAIL_SYNC_INBOX: 'email:syncInbox',
   EMAIL_LIST_INBOX: 'email:listInbox',
@@ -170,6 +177,44 @@ export const IPC = {
   SCHEDULE_LOGS: 'schedule:logs',
   SCHEDULE_LOGS_RECENT: 'schedule:logs:recent',
   SCHEDULE_EXECUTION_COMPLETE: 'schedule:execution-complete',
+  // ── Embedding (벡터 임베딩) ──
+  EMBEDDING_INDEX_SOURCE: 'embedding:indexSource',
+  EMBEDDING_INDEX_DOCUMENT: 'embedding:indexDocument',
+  EMBEDDING_IMPORT_FILE: 'embedding:importFile',
+  EMBEDDING_PICK_AND_IMPORT: 'embedding:pickAndImport',
+  EMBEDDING_STATUS: 'embedding:status',
+  EMBEDDING_PROGRESS: 'embedding:progress',
+  EMBEDDING_CACHE_STATS: 'embedding:cache:stats',
+  EMBEDDING_CACHE_CLEAR: 'embedding:cache:clear',
+
+  // ── Search (하이브리드 검색) ──
+  SEARCH_HYBRID: 'search:hybrid',
+  SEARCH_SEMANTIC: 'search:semantic',
+  SEARCH_KEYWORD: 'search:keyword',
+  SEARCH_CONFIG_GET: 'search:config:get',
+  SEARCH_CONFIG_SET: 'search:config:set',
+  SEARCH_ANALYTICS_LIST: 'search:analytics:list',
+
+  // ── Reports (리포트) ──
+  REPORTS_TEMPLATES_LIST: 'reports:templates:list',
+  REPORTS_TEMPLATES_CREATE: 'reports:templates:create',
+  REPORTS_TEMPLATES_UPDATE: 'reports:templates:update',
+  REPORTS_TEMPLATES_DELETE: 'reports:templates:delete',
+  REPORTS_GENERATE: 'reports:generate',
+  REPORTS_RUNS_LIST: 'reports:runs:list',
+  REPORTS_EXPORT: 'reports:export',
+  REPORTS_PROGRESS: 'reports:progress',
+  REPORTS_SCHEDULE_LIST: 'reports:schedule:list',
+  REPORTS_SCHEDULE_CREATE: 'reports:schedule:create',
+  REPORTS_SCHEDULE_UPDATE: 'reports:schedule:update',
+  REPORTS_SCHEDULE_DELETE: 'reports:schedule:delete',
+  REPORTS_SCHEDULE_TOGGLE: 'reports:schedule:toggle',
+
+  // ── Data Platform (외부 데이터 연동) ──
+  DATA_PLATFORM_CONNECT: 'dataPlatform:connect',
+  DATA_PLATFORM_SYNC: 'dataPlatform:sync',
+  DATA_PLATFORM_LIST: 'dataPlatform:list',
+  DATA_PLATFORM_TEST_CONNECTION: 'dataPlatform:testConnection',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];

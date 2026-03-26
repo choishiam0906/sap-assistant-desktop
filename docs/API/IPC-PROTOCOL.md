@@ -4,7 +4,7 @@
 
 모든 Renderer ↔ Main 통신은 Preload의 `contextBridge`를 통해 `window.assistantDesktop` API로 노출됩니다. 내부적으로 `ipcRenderer.invoke` → `ipcMain.handle` 패턴을 사용합니다.
 
-**v7.1.0 기준**: 167+ 채널, 108 preload 메서드, 13개 핸들러 파일
+**v8.0.0 기준**: 167+ 채널, 108 preload 메서드, 13개 핸들러 파일
 
 ---
 

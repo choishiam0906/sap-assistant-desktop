@@ -18,7 +18,7 @@ import { LocalDatabase } from "./storage/sqlite.js";
 
 let mainWindow: BrowserWindow | null = null;
 const mainDir = fileURLToPath(new URL(".", import.meta.url));
-const productName = "SAP Knowledge Hub";
+const productName = "Enterprise Knowledge Hub";
 const appUserModelId = "com.boxlogodev.assistant-desktop";
 
 let ipcContext: IpcContext;
