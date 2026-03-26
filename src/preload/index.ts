@@ -626,10 +626,10 @@ const desktopApi = {
     return ipcRenderer.invoke(IPC.SEARCH_CONFIG_GET);
   },
   searchConfigUpdate(config: Record<string, unknown>) {
-    return ipcRenderer.invoke(IPC.SEARCH_CONFIG_UPDATE, config);
+    return ipcRenderer.invoke(IPC.SEARCH_CONFIG_SET, config);
   },
   searchConfigReset() {
-    return ipcRenderer.invoke(IPC.SEARCH_CONFIG_RESET);
+    return ipcRenderer.invoke(IPC.SEARCH_CONFIG_SET, {});
   },
 
   // ─── Data Platform (외부 데이터 연동) API ───
